@@ -9,7 +9,7 @@ export default async function Home() {
       ? 1
       : b.date.start === "TBD"
       ? -1
-      : a.date.start.getTime() - b.date.start.getTime(),
+      : a.date.start.localeCompare(b.date.start),
   );
 
   return <EventList events={JSON.stringify(events)} />;

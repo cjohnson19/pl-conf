@@ -1,10 +1,9 @@
-import { ArrowUpRight } from "lucide-react";
+import { Calendar, Globe } from "lucide-react";
 import { dateToString, ScheduledEvent } from "../lib/event";
 import {
   Card,
   CardContent,
   CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from "./ui/card";
@@ -17,6 +16,9 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "./ui/tooltip";
+import { CalendarEvent } from "./calendar-event";
+import { Button } from "./ui/button";
+import clsx from "clsx";
 
 export function EventCard({ e }: { e: ScheduledEvent }) {
   return (
@@ -24,41 +26,69 @@ export function EventCard({ e }: { e: ScheduledEvent }) {
       <CardHeader>
         <div className="flex flex-col justify-between gap-1 w-full">
           <CardTitle className="flex gap-8 justify-between items-center">
-            <TooltipProvider>
-              <Tooltip delayDuration={100}>
-                <TooltipTrigger asChild>
-                  <h3>
-                    {e.url ? (
-                      <div className="flex items-start justify-start gap-1 underline underline-offset-3">
-                        <Link href={e.url}>{e.abbreviation}</Link>
-                        <ArrowUpRight />
-                      </div>
-                    ) : (
-                      e.abbreviation
-                    )}
-                  </h3>
-                </TooltipTrigger>
-                <TooltipContent>{e.name}</TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-            <p className="text-muted-foreground leading-none mt-0">
-              {dateToString(e.date.start)}
-            </p>
+            <div className="flex gap-2 items-start">
+              <TooltipProvider>
+                <Tooltip delayDuration={100}>
+                  <TooltipTrigger asChild>
+                    <h3>
+                      <Link href={`/event/${e.abbreviation}`}>
+                        {e.abbreviation}
+                      </Link>
+                    </h3>
+                  </TooltipTrigger>
+                  <TooltipContent>{e.name}</TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+              {e.url ? (
+                <TooltipProvider>
+                  <Tooltip delayDuration={100}>
+                    <TooltipTrigger asChild>
+                      <h3>
+                        <Link href={e.url}>
+                          <Globe size={20} />
+                        </Link>
+                      </h3>
+                    </TooltipTrigger>
+                    <TooltipContent>Visit page</TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              ) : null}
+            </div>
+            <div className="flex gap-2 items-center justify-start">
+              <div className="flex flex-col gap-1 items-end">
+                <p className="text-muted-foreground leading-none">
+                  {e.date.start === "TBD" ? (
+                    "TBD"
+                  ) : (
+                    <>{dateToString(e.date.start)}</>
+                  )}
+                </p>
+                <CardDescription>
+                  <p className="text-muted-foreground leading-none">
+                    {e.location}
+                  </p>
+                </CardDescription>
+              </div>
+              <CalendarEvent e={e}>
+                <Button variant={"ghost"} size={"icon"}>
+                  <Calendar className="text-muted-foreground" />
+                </Button>
+              </CalendarEvent>
+            </div>
           </CardTitle>
           <div className="flex gap-4 items-center justify-between">
             <EventBadges tags={[e.type]} />
-            <CardDescription>
-              <p className="text-muted-foreground leading-none mt-0">
-                {e.location}
-              </p>
-            </CardDescription>
           </div>
         </div>
       </CardHeader>
-      <CardContent className="flex flex-col gap-4">
-        <DeadlineTable deadlines={e?.deadlines ?? {}} />
+      <CardContent
+        className={clsx("flex flex-col gap-4", {
+          "p-0": Object.keys(e.deadlines).length === 0,
+        })}
+      >
+        <DeadlineTable deadlines={e.deadlines} />
       </CardContent>
-      <CardFooter className="flex flex-col gap-0 items-start"></CardFooter>
+      {/* <CardFooter className="flex flex-col gap-0 items-start"></CardFooter> */}
     </Card>
   );
 }

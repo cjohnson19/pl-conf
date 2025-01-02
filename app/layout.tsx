@@ -5,16 +5,6 @@ import "./typography.css";
 import { ThemeProvider } from "next-themes";
 import { Header } from "./components/header";
 
-// const geistSans = Geist({
-//   variable: "--font-geist-sans",
-//   subsets: ["latin"],
-// });
-
-// const geistMono = Geist_Mono({
-//   variable: "--font-geist-mono",
-//   subsets: ["latin"],
-// });
-
 export const metadata: Metadata = {
   title: "PL Conferences",
   description: "Conferences and workshops in programming languages",
@@ -38,7 +28,7 @@ export default function RootLayout({
           >
             <main className="flex flex-col items-center w-full">
               <Header />
-              <div className="mt-24 w-96 lg:w-[850px]">{children}</div>
+              <div className="mt-24 w-full md:w-[768px]">{children}</div>
             </main>
           </ThemeProvider>
         </body>

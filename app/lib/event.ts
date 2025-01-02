@@ -1,28 +1,25 @@
 import { format } from "date-fns";
 import YAML from "yaml";
 import { z } from "zod";
+import { createEvents } from "ics";
 
-type UtcOrLocalDate = "TBD" | Date;
+type MaybeDate = "TBD" | string;
 
-const makeDateOrTBD = (date: "TBD" | string): Date | "TBD" => {
+const makeDateOrTBD = (date: "TBD" | string): string | "TBD" => {
   const res = date === "TBD" ? "TBD" : new Date(date);
   if (res !== "TBD" && isNaN(res.getTime())) {
-    // throw new Error(`Invalid date: ${date}`);
-    console.warn(`Invalid date: ${date}`);
-    return "TBD";
+    throw new Error(`Invalid date: ${date}`);
   }
-  return res;
+  return date;
 };
 
-export function hasDate(date: UtcOrLocalDate | undefined): date is Date {
+export function hasDate(date: MaybeDate | undefined): date is string {
   return date !== undefined && date !== "TBD";
 }
 
-const dateSchema = z.string().date();
-// .datetime({ local: true })
-// .refine((d) => !d.endsWith("Z"), { message: "Expected local datetime" });
+const DateSchema = z.string().date();
 
-const tbd = z.literal("TBD");
+const TBD = z.literal("TBD");
 
 const EventType = z.enum(["conference", "workshop", "journal"]);
 
@@ -33,15 +30,15 @@ const EventInput = z.object({
   abbreviation: z.string().nonempty(),
   date: z
     .object({
-      start: z.union([tbd, dateSchema]),
-      end: z.union([tbd, dateSchema]),
+      start: z.union([TBD, DateSchema]),
+      end: z.union([TBD, DateSchema]),
     })
     .optional()
     .default({ start: "TBD", end: "TBD" }),
   location: z.string().optional(),
   format: z.string().optional(),
   url: z.string().url().optional(),
-  deadlines: z.record(z.union([tbd, dateSchema])).default({}),
+  deadlines: z.record(z.union([TBD, DateSchema])).default({}),
   type: EventType,
   tags: z.array(z.string()).default([]),
 });
@@ -52,20 +49,20 @@ export interface ScheduledEvent {
   name: string;
   abbreviation: string;
   date: {
-    start: UtcOrLocalDate;
-    end: UtcOrLocalDate;
+    start: MaybeDate;
+    end: MaybeDate;
   };
   location?: string;
   format?: string;
   url?: string;
   deadlines: {
-    [deadline: string]: UtcOrLocalDate;
+    [deadline: string]: MaybeDate;
   };
   type: EventType;
   tags: string[];
 }
 
-export function dateToString(date: UtcOrLocalDate): string {
+export function dateToString(date: MaybeDate): string {
   if (date === "TBD") {
     return "TBD";
   }
@@ -75,7 +72,7 @@ export function dateToString(date: UtcOrLocalDate): string {
 export function fromYaml(yaml: string): ScheduledEvent[] {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const data = YAML.parse(yaml) as any[];
-  const parseRes = z.array(EventInput).safeParse(data); // validate data
+  const parseRes = z.array(EventInput).safeParse(data);
   if (parseRes.success === false) {
     throw new Error(
       parseRes.error.errors.map((e) => `${e.path}: ${e.message}`).join("\n"),
@@ -104,4 +101,54 @@ export function fromYaml(yaml: string): ScheduledEvent[] {
       } as ScheduledEvent;
     });
   }
+}
+
+export function toICal(e: ScheduledEvent): string {
+  if (e.date.start === "TBD" || e.date.end === "TBD") {
+    return "";
+  }
+  const start = new Date(e.date.start);
+  const end = new Date(e.date.end);
+  const iCalEvent = createEvents(
+    [
+      {
+        start: [start.getFullYear(), start.getMonth() + 1, start.getDate()],
+        end: [end.getFullYear(), end.getMonth() + 1, end.getDate()],
+        title: e.abbreviation,
+        description: e.name,
+        location: e.location,
+        url: e.url,
+        categories: [e.type, ...e.tags],
+      },
+    ],
+    {
+      productId: "pl-conferences/ics",
+      method: "PUBLISH",
+    },
+  );
+  if (iCalEvent.error) {
+    throw new Error(iCalEvent.error.message);
+  }
+  return iCalEvent.value!;
+}
+
+export function toGoogleCalendarLink(e: ScheduledEvent): string {
+  function encodeDate(date: Date): string {
+    return date.toISOString().replace(/T.*$/g, "");
+  }
+  if (e.date.start === "TBD" || e.date.end === "TBD") {
+    return "";
+  }
+  const start = encodeDate(new Date(e.date.start));
+  const end = encodeDate(new Date(e.date.end));
+  const url = new URL("https://www.google.com/calendar/render");
+  url.searchParams.append("action", "TEMPLATE");
+  url.searchParams.append("text", e.abbreviation);
+  url.searchParams.append("dates", `${start}/${end}`);
+  url.searchParams.append("details", e.name);
+  if (e.location) url.searchParams.append("location", e.location);
+  url.searchParams.append("sf", "true");
+  url.searchParams.append("output", "xml");
+
+  return url.toString();
 }

@@ -2,7 +2,7 @@ import Link from "next/link";
 
 export default async function About() {
   return (
-    <>
+    <div className="px-11">
       <p>
         I wanted to find a site which aggregated conferences and workshops in
         PL, but didn&apos;t find one that seemed maintained enough for my
@@ -25,9 +25,10 @@ export default async function About() {
 
       <ul>
         <li>Add tags to events</li>
-        <li>
-          Add to calendar functionality (Google Calendar, Outlook, ICal, etc.)
-        </li>
+        <li>Filtering by tags</li>
+        <li>Filtering by year</li>
+        <li>Include description for events</li>
+        <li>Calendar events for deadlines</li>
       </ul>
 
       <p>
@@ -41,6 +42,6 @@ export default async function About() {
         </Link>
         .
       </p>
-    </>
+    </div>
   );
 }
