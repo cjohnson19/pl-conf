@@ -1,18 +1,19 @@
-import { fromYaml, ScheduledEvent, toICal } from "@/lib/event";
+import { ScheduledEvent, toICal } from "@/lib/event";
 import { NextRequest, NextResponse } from "next/server";
-import { readFile } from "node:fs/promises";
+import { Resource } from "sst";
 
-const res = await readFile(process.cwd() + "/data/conf.yaml", "utf8");
-const es = fromYaml(res);
-const events = Object.fromEntries(
-  es.map((e: ScheduledEvent) => [e.abbreviation, e]),
-);
+export const dynamicParams = false;
+export const dynamic = "force-static";
 
 export async function GET(
   _req: NextRequest,
   { params }: { params: Promise<{ slug: string }> },
 ): Promise<NextResponse> {
-  const event = events[(await params).slug];
+  const event =
+    Resource.EventList.events[
+      // This is type safe due to generate static params
+      (await params).slug as keyof typeof Resource.EventList.events
+    ];
 
   if (!event) {
     return NextResponse.json(
@@ -30,4 +31,12 @@ export async function GET(
       "Content-Type": "text/calendar",
     },
   });
+}
+
+export async function generateStaticParams() {
+  return Object.entries(Resource.EventList.events).map(
+    ([, e]: [string, ScheduledEvent]) => ({
+      slug: e.abbreviation,
+    }),
+  );
 }

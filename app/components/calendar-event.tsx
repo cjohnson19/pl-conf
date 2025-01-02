@@ -6,7 +6,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "./ui/dropdown-menu";
-import { redirect } from "next/navigation";
+import { redirect, RedirectType } from "next/navigation";
 import Link from "next/link";
 
 export function CalendarEvent({
@@ -31,7 +31,7 @@ export function CalendarEvent({
         </DropdownMenuItem>
         <DropdownMenuItem
           onClick={() => {
-            redirect(`/ical/${e.abbreviation}`);
+            redirect(`/ical/${e.abbreviation}`, RedirectType.push);
           }}
         >
           Download iCalendar file

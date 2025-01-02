@@ -1,23 +1,19 @@
-import { fromYaml, ScheduledEvent } from "@/lib/event";
 import { format } from "date-fns";
-import { readFile } from "node:fs/promises";
 import { TimeUntil } from "./time-until";
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
 import { CalendarEvent } from "@/components/calendar-event";
-
-const res = await readFile(process.cwd() + "/data/conf.yaml", "utf8");
-const es = fromYaml(res);
-const events = Object.fromEntries(
-  es.map((e: ScheduledEvent) => [e.abbreviation, e]),
-);
+import { Resource } from "sst";
 
 export default async function Page({
   params,
 }: {
   params: Promise<{ eventName: string }>;
 }) {
-  const event = events[(await params).eventName];
+  const event =
+    Resource.EventList.events[
+      (await params).eventName as keyof typeof Resource.EventList.events
+    ];
 
   return (
     <div className="flex flex-col gap-4 items-start px-8">
@@ -49,7 +45,7 @@ export default async function Page({
 }
 
 export async function generateStaticParams() {
-  return es.map((e: ScheduledEvent) => ({
+  return Object.entries(Resource.EventList.events).map(([, e]) => ({
     eventName: e.abbreviation,
   }));
 }

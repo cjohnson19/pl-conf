@@ -6,6 +6,134 @@ import "sst"
 export {}
 declare module "sst" {
   export interface Resource {
+    "EventList": {
+      "events": {
+        "CADE": {
+          "abbreviation": string
+          "date": {
+            "end": string
+            "start": string
+          }
+          "deadlines": {
+          }
+          "format": string
+          "location": string
+          "name": string
+          "tags": any
+          "type": "conference"
+          "url": string
+        }
+        "FoSSaCS": {
+          "abbreviation": string
+          "date": {
+            "end": string
+            "start": string
+          }
+          "deadlines": {
+          }
+          "location": string
+          "name": string
+          "tags": any
+          "type": "conference"
+          "url": string
+        }
+        "ICFP": {
+          "abbreviation": string
+          "date": {
+            "end": string
+            "start": string
+          }
+          "deadlines": {
+            "paper": string
+            "rebuttal": string
+          }
+          "location": string
+          "name": string
+          "tags": any
+          "type": "conference"
+          "url": string
+        }
+        "ITP": {
+          "abbreviation": string
+          "date": {
+            "end": string
+            "start": string
+          }
+          "deadlines": {
+          }
+          "location": string
+          "name": string
+          "tags": any
+          "type": "conference"
+          "url": string
+        }
+        "LFMTP": {
+          "abbreviation": string
+          "date": {
+            "end": string
+            "start": string
+          }
+          "deadlines": {
+          }
+          "format": string
+          "location": string
+          "name": string
+          "tags": any
+          "type": "workshop"
+        }
+        "LICS": {
+          "abbreviation": string
+          "date": {
+            "end": string
+            "start": string
+          }
+          "deadlines": {
+            "abstract": string
+            "notification": string
+            "paper": string
+            "rebuttal": string
+          }
+          "format": string
+          "location": string
+          "name": string
+          "tags": any
+          "type": "conference"
+          "url": string
+        }
+        "PPDP": {
+          "abbreviation": string
+          "date": {
+            "end": string
+            "start": string
+          }
+          "deadlines": {
+          }
+          "format": string
+          "location": string
+          "name": string
+          "tags": any
+          "type": "conference"
+        }
+        "TYPES": {
+          "abbreviation": string
+          "date": {
+            "end": string
+            "start": string
+          }
+          "deadlines": {
+            "abstract": string
+            "notification": string
+          }
+          "format": string
+          "location": string
+          "name": string
+          "tags": any
+          "type": "conference"
+          "url": string
+        }
+      }
+      "type": "sst.sst.Linkable"
+    }
     "PLConf": {
       "type": "sst.aws.Nextjs"
       "url": string

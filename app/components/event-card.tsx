@@ -25,7 +25,7 @@ export function EventCard({ e }: { e: ScheduledEvent }) {
     <Card className="w-full bg-muted/50">
       <CardHeader>
         <div className="flex flex-col justify-between gap-1 w-full">
-          <CardTitle className="flex gap-8 justify-between items-center">
+          <CardTitle className="flex gap-3 justify-between items-center">
             <div className="flex gap-2 items-start">
               <TooltipProvider>
                 <Tooltip delayDuration={100}>
@@ -54,9 +54,9 @@ export function EventCard({ e }: { e: ScheduledEvent }) {
                 </TooltipProvider>
               ) : null}
             </div>
-            <div className="flex gap-2 items-center justify-start">
+            <div className="flex gap-2 items-center justify-end">
               <div className="flex flex-col gap-1 items-end">
-                <p className="text-muted-foreground leading-none">
+                <p className="text-muted-foreground leading-none text-right">
                   {e.date.start === "TBD" ? (
                     "TBD"
                   ) : (
@@ -64,7 +64,7 @@ export function EventCard({ e }: { e: ScheduledEvent }) {
                   )}
                 </p>
                 <CardDescription>
-                  <p className="text-muted-foreground leading-none">
+                  <p className="text-muted-foreground leading-none text-right">
                     {e.location}
                   </p>
                 </CardDescription>

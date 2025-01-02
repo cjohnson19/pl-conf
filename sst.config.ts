@@ -1,4 +1,8 @@
+// eslint-disable-next-line @typescript-eslint/triple-slash-reference
 /// <reference path="./.sst/platform/config.d.ts" />
+
+import { fromYaml, ScheduledEvent } from "@/lib/event";
+import { readFile } from "node:fs/promises";
 
 export default $config({
   app(input) {
@@ -9,7 +13,16 @@ export default $config({
     };
   },
   async run() {
+    const res = await readFile(process.cwd() + "/data/conf.yaml", "utf8");
+    const es = fromYaml(res);
+    const events = Object.fromEntries(
+      es.map((e: ScheduledEvent) => [e.abbreviation, e]),
+    )
+    const eventList = new sst.Linkable("EventList", {
+      properties: { events },
+    });
     new sst.aws.Nextjs("PLConf", {
+      link: [eventList],
       domain:
         $app.stage === "production"
           ? {

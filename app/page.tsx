@@ -1,16 +1,16 @@
-import { readFile } from "fs/promises";
 import { EventList } from "./components/event-list";
-import { fromYaml } from "./lib/event";
+import { Resource } from "sst";
 
 export default async function Home() {
-  const res = await readFile(process.cwd() + "/data/conf.yaml", "utf8");
-  const events = fromYaml(res).sort((a, b) =>
-    a.date.start === "TBD"
-      ? 1
-      : b.date.start === "TBD"
-      ? -1
-      : a.date.start.localeCompare(b.date.start),
-  );
+  const events = Object.entries(Resource.EventList.events)
+    .map(([, e]) => e)
+    .sort((a, b) =>
+      a.date.start === "TBD"
+        ? 1
+        : b.date.start === "TBD"
+        ? -1
+        : a.date.start.localeCompare(b.date.start),
+    );
 
   return <EventList events={JSON.stringify(events)} />;
 }

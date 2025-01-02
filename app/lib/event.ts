@@ -83,10 +83,9 @@ export function fromYaml(yaml: string): ScheduledEvent[] {
       const endDate = makeDateOrTBD(event.date.end);
       const deadlines = event?.deadlines
         ? Object.fromEntries(
-            Object.entries(event.deadlines).map(([type, value]) => [
-              type,
-              makeDateOrTBD(value as string),
-            ]),
+            Object.entries(event.deadlines)
+              .map(([type, value]) => [type, makeDateOrTBD(value as string)])
+              .sort(([, a], [, b]) => a.localeCompare(b)),
           )
         : {};
 
