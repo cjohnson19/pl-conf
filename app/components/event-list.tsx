@@ -30,7 +30,7 @@ export function EventList({ events }: { events: string }) {
         <Accordion type="single" collapsible className="w-full">
           <AccordionItem value="item-1">
             <AccordionTrigger> Filters </AccordionTrigger>
-            <AccordionContent className="flex w-full items-center gap-2 mb-4">
+            <AccordionContent className="flex flex-col w-full items-start gap-2 mb-4 md:flex-row md:items-center">
               <DateFilter
                 value={yearFilter}
                 setValue={setYearFilter}

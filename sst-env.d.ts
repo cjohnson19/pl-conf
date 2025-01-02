@@ -15,6 +15,10 @@ declare module "sst" {
             "start": string
           }
           "deadlines": {
+            "abstract": string
+            "notification": string
+            "paper": string
+            "rebuttal": string
           }
           "format": string
           "location": string
@@ -30,6 +34,9 @@ declare module "sst" {
             "start": string
           }
           "deadlines": {
+            "abstract": string
+            "notification": string
+            "paper": string
           }
           "location": string
           "name": string
@@ -44,14 +51,32 @@ declare module "sst" {
             "start": string
           }
           "deadlines": {
+            "camera ready": string
+            "conditional acceptance notification": string
+            "notification": string
             "paper": string
             "rebuttal": string
+            "revisions": string
           }
           "location": string
           "name": string
           "tags": any
           "type": "conference"
           "url": string
+        }
+        "ICLP": {
+          "abbreviation": string
+          "date": {
+            "end": string
+            "start": string
+          }
+          "deadlines": {
+          }
+          "format": string
+          "location": string
+          "name": string
+          "tags": any
+          "type": "conference"
         }
         "ITP": {
           "abbreviation": string
@@ -80,6 +105,7 @@ declare module "sst" {
           "name": string
           "tags": any
           "type": "workshop"
+          "url": string
         }
         "LICS": {
           "abbreviation": string

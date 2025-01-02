@@ -1,11 +1,16 @@
 - name: Conference on Automated Deduction
   abbreviation: CADE
   date:
-    start: 2025-07-31
-    end: 2025-07-01
+    start: 2025-07-28
+    end: 2025-07-31
   location: Stuttgart, Germany
   format: Springer LNCS
-  url: "https://cadeinc.org/"
+  deadlines:
+    abstract: 2025-02-17
+    paper: 2025-02-24
+    rebuttal: 2025-04-18
+    notification: 2025-04-28
+  url: "https://www.dhbw-stuttgart.de/cade-30/"
   type: "conference"
 - name: Foundations of Software Science and Computation Structures
   abbreviation: FoSSaCS
@@ -13,10 +18,19 @@
     start: 2025-05-05
     end: 2025-05-08
   location: Hamilton, Canada
+  deadlines:
+    abstract: 2024-12-06
+    paper: 2024-12-13
+    notification: 2025-02-14
   url: "https://etaps.org/2025/conferences/fossacs/"
   type: "conference"
 - name: Principles and Practice of Declarative Programming
   abbreviation: PPDP
+  location: TBD
+  format: TBD
+  type: "conference"
+- name: International Conference on Logic Programming
+  abbreviation: ICLP
   location: TBD
   format: TBD
   type: "conference"
@@ -48,6 +62,10 @@
   deadlines:
     paper: 2025-02-27
     rebuttal: 2025-05-01
+    "conditional acceptance notification": 2025-05-23
+    revisions: 2025-06-27
+    notification: 2025-07-27
+    "camera ready": 2025-07-11
   url: "https://icfp25.sigplan.org/"
   type: "conference"
 - name: Types for Proofs and Programs
@@ -64,9 +82,7 @@
     notification: 2025-04-11
 - name: Logical Frameworks and Meta Languages
   abbreviation: LFMTP
-  date:
-    start: 2025-06-26
-    end: 2025-06-26
+  url: "https://lfmtp.github.io/lfmtp-page/workshops/2025/"
   location: TBD
   format: TBD
   type: "workshop"

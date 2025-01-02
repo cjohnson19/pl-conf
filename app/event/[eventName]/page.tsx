@@ -1,5 +1,5 @@
 import { format } from "date-fns";
-import { TimeUntil } from "./time-until";
+import { TimeUntil } from "../../components/time-until";
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
 import { CalendarEvent } from "@/components/calendar-event";
@@ -32,7 +32,10 @@ export default async function Page({
                 {format(event.date.end, "PPP")}
               </h3>
             </div>
-            <TimeUntil date={event.date.start} />
+            <TimeUntil
+              date={event.date.start}
+              className="text-muted-foreground leading-none mt-0"
+            />
           </div>
           <CalendarEvent e={event}>
             <Button variant={"outline"}>Add to calendar</Button>

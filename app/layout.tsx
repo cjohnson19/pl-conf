@@ -40,7 +40,7 @@ export default function RootLayout({
             enableSystem
             disableTransitionOnChange
           >
-            <main className="flex flex-col items-center w-full">
+            <main className="flex flex-col items-center w-full pb-11">
               <Header />
               <div className="mt-24 w-full md:w-[768px]">{children}</div>
             </main>
