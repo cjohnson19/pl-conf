@@ -8,6 +8,20 @@ import { Header } from "./components/header";
 export const metadata: Metadata = {
   title: "PL Conferences",
   description: "Conferences and workshops in programming languages",
+  authors: [
+    {
+      url: "https://chasej.dev",
+      name: "Chase Johnson",
+    },
+  ],
+  keywords: [
+    "programming languages",
+    "conferences",
+    "workshops",
+    "PL",
+    "events",
+    "calendar",
+  ],
 };
 
 export default function RootLayout({
