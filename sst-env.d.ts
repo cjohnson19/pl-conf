@@ -14,13 +14,13 @@ declare module "sst" {
             "end": string
             "start": string
           }
-          "deadlines": {
+          "format": string
+          "importantDates": {
             "abstract": string
             "notification": string
             "paper": string
             "rebuttal": string
           }
-          "format": string
           "location": string
           "name": string
           "tags": any
@@ -33,7 +33,7 @@ declare module "sst" {
             "end": string
             "start": string
           }
-          "deadlines": {
+          "importantDates": {
             "abstract": string
             "notification": string
             "paper": string
@@ -50,9 +50,9 @@ declare module "sst" {
             "end": string
             "start": string
           }
-          "deadlines": {
-            "camera ready": string
-            "conditional acceptance notification": string
+          "importantDates": {
+            "camera-ready": string
+            "conditional-acceptance": string
             "notification": string
             "paper": string
             "rebuttal": string
@@ -70,9 +70,9 @@ declare module "sst" {
             "end": string
             "start": string
           }
-          "deadlines": {
-          }
           "format": string
+          "importantDates": {
+          }
           "location": string
           "name": string
           "tags": any
@@ -84,7 +84,7 @@ declare module "sst" {
             "end": string
             "start": string
           }
-          "deadlines": {
+          "importantDates": {
           }
           "location": string
           "name": string
@@ -98,9 +98,9 @@ declare module "sst" {
             "end": string
             "start": string
           }
-          "deadlines": {
-          }
           "format": string
+          "importantDates": {
+          }
           "location": string
           "name": string
           "tags": any
@@ -113,13 +113,13 @@ declare module "sst" {
             "end": string
             "start": string
           }
-          "deadlines": {
+          "format": string
+          "importantDates": {
             "abstract": string
             "notification": string
             "paper": string
             "rebuttal": string
           }
-          "format": string
           "location": string
           "name": string
           "tags": any
@@ -132,9 +132,9 @@ declare module "sst" {
             "end": string
             "start": string
           }
-          "deadlines": {
-          }
           "format": string
+          "importantDates": {
+          }
           "location": string
           "name": string
           "tags": any
@@ -146,11 +146,11 @@ declare module "sst" {
             "end": string
             "start": string
           }
-          "deadlines": {
+          "format": string
+          "importantDates": {
             "abstract": string
             "notification": string
           }
-          "format": string
           "location": string
           "name": string
           "tags": any
@@ -160,9 +160,17 @@ declare module "sst" {
       }
       "type": "sst.sst.Linkable"
     }
+    "OpenApiKey": {
+      "type": "sst.sst.Secret"
+      "value": string
+    }
     "PLConf": {
       "type": "sst.aws.Nextjs"
       "url": string
+    }
+    "TimeCheck": {
+      "name": string
+      "type": "sst.aws.Function"
     }
   }
 }

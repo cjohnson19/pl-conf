@@ -1,23 +1,27 @@
-import { dateToString, ScheduledEvent } from "../lib/event";
+import {
+  dateNameToReadable,
+  dateToString,
+  DeadlineName,
+  ScheduledEvent,
+} from "../lib/event";
 import { Table, TableBody, TableCell, TableRow } from "./ui/table";
-import { capitalize } from "../lib/utils";
 import { TimeUntil } from "./time-until";
 
-export function DeadlineTable({
-  deadlines,
+export function DateTable({
+  importantDates,
 }: {
-  deadlines: ScheduledEvent["deadlines"];
+  importantDates: ScheduledEvent["importantDates"];
 }) {
-  return Object.entries(deadlines).length === 0 ? null : (
+  return Object.entries(importantDates).length === 0 ? null : (
     <>
-      <h4>Deadlines</h4>
+      <h4>Dates & Deadlines</h4>
       <Table>
         <TableBody>
-          {Object.entries(deadlines)
+          {Object.entries(importantDates)
             .sort(([, a], [, b]) => a.localeCompare(b))
             .map(([k, v], i) => (
               <TableRow key={i}>
-                <TableCell>{capitalize(k)}</TableCell>
+                <TableCell>{dateNameToReadable(k as DeadlineName)}</TableCell>
                 <TableCell>{dateToString(v)}</TableCell>
                 <TableCell align="right">
                   <TimeUntil

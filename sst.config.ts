@@ -17,10 +17,12 @@ export default $config({
     const es = fromYaml(res);
     const events = Object.fromEntries(
       es.map((e: ScheduledEvent) => [e.abbreviation, e]),
-    )
+    );
+
     const eventList = new sst.Linkable("EventList", {
       properties: { events },
     });
+
     new sst.aws.Nextjs("PLConf", {
       link: [eventList],
       domain:

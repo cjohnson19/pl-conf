@@ -5,7 +5,7 @@
     end: 2025-07-31
   location: Stuttgart, Germany
   format: Springer LNCS
-  deadlines:
+  importantDates:
     abstract: 2025-02-17
     paper: 2025-02-24
     rebuttal: 2025-04-18
@@ -18,7 +18,7 @@
     start: 2025-05-05
     end: 2025-05-08
   location: Hamilton, Canada
-  deadlines:
+  importantDates:
     abstract: 2024-12-06
     paper: 2024-12-13
     notification: 2025-02-14
@@ -43,7 +43,7 @@
   format: IEEE Proceedings
   url: "https://lics.siglog.org/lics25/"
   type: "conference"
-  deadlines:
+  importantDates:
     abstract: 2025-01-16
     paper: 2025-01-23
     rebuttal: 2025-03-20
@@ -59,13 +59,13 @@
 - name: International Conference on Functional Programming
   abbreviation: ICFP
   location: Singapore
-  deadlines:
+  importantDates:
     paper: 2025-02-27
     rebuttal: 2025-05-01
-    "conditional acceptance notification": 2025-05-23
+    conditional-acceptance: 2025-05-23
     revisions: 2025-06-27
     notification: 2025-07-27
-    "camera ready": 2025-07-11
+    camera-ready: 2025-07-11
   url: "https://icfp25.sigplan.org/"
   type: "conference"
 - name: Types for Proofs and Programs
@@ -77,7 +77,7 @@
   format: easychair
   url: "https://msp.cis.strath.ac.uk/types2025/index.html"
   type: "conference"
-  deadlines:
+  importantDates:
     abstract: 2025-03-03
     notification: 2025-04-11
 - name: Logical Frameworks and Meta Languages

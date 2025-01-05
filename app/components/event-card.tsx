@@ -9,7 +9,7 @@ import {
 } from "./ui/card";
 import Link from "next/link";
 import { EventBadges } from "./event-badges";
-import { DeadlineTable } from "./deadline-table";
+import { DateTable } from "./date-table";
 import {
   Tooltip,
   TooltipContent,
@@ -83,10 +83,10 @@ export function EventCard({ e }: { e: ScheduledEvent }) {
       </CardHeader>
       <CardContent
         className={clsx("flex flex-col gap-4", {
-          "p-0": Object.keys(e.deadlines).length === 0,
+          "p-0": Object.keys(e.importantDates).length === 0,
         })}
       >
-        <DeadlineTable deadlines={e.deadlines} />
+        <DateTable importantDates={e.importantDates} />
       </CardContent>
       {/* <CardFooter className="flex flex-col gap-0 items-start"></CardFooter> */}
     </Card>

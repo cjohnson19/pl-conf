@@ -21,6 +21,18 @@ const DateSchema = z.string().date();
 
 const TBD = z.literal("TBD");
 
+const DateName = z.enum([
+  "abstract",
+  "paper",
+  "notification",
+  "rebuttal",
+  "conditional-acceptance",
+  "camera-ready",
+  "revisions",
+]);
+
+export type DeadlineName = z.infer<typeof DateName>;
+
 const EventType = z.enum(["conference", "workshop", "journal"]);
 
 export type EventType = z.infer<typeof EventType>;
@@ -36,12 +48,32 @@ const EventInput = z.object({
     .optional()
     .default({ start: "TBD", end: "TBD" }),
   location: z.string().optional(),
+  cfp: z.string().url().optional(),
   format: z.string().optional(),
   url: z.string().url().optional(),
-  deadlines: z.record(z.union([TBD, DateSchema])).default({}),
+  importantDates: z.record(DateName, z.union([TBD, DateSchema])).default({}),
   type: EventType,
   tags: z.array(z.string()).default([]),
 });
+
+export function dateNameToReadable(name: DeadlineName): string {
+  switch (name) {
+    case "abstract":
+      return "Abstract";
+    case "paper":
+      return "Paper Submission";
+    case "notification":
+      return "Notification";
+    case "conditional-acceptance":
+      return "Conditional Acceptance Notification";
+    case "revisions":
+      return "Revisions";
+    case "camera-ready":
+      return "Camera Ready";
+    case "rebuttal":
+      return "Rebuttal";
+  }
+}
 
 export type EventInput = z.infer<typeof EventInput>;
 
@@ -55,8 +87,9 @@ export interface ScheduledEvent {
   location?: string;
   format?: string;
   url?: string;
-  deadlines: {
-    [deadline: string]: MaybeDate;
+  cfp?: string;
+  importantDates: {
+    [dateName: string]: MaybeDate;
   };
   type: EventType;
   tags: string[];
@@ -81,9 +114,9 @@ export function fromYaml(yaml: string): ScheduledEvent[] {
     return parseRes.data.map((event) => {
       const startDate = makeDateOrTBD(event.date.start);
       const endDate = makeDateOrTBD(event.date.end);
-      const deadlines = event?.deadlines
+      const deadlines = event?.importantDates
         ? Object.fromEntries(
-            Object.entries(event.deadlines)
+            Object.entries(event.importantDates)
               .map(([type, value]) => [type, makeDateOrTBD(value as string)])
               .sort(([, a], [, b]) => a.localeCompare(b)),
           )
@@ -95,7 +128,7 @@ export function fromYaml(yaml: string): ScheduledEvent[] {
           start: startDate,
           end: endDate,
         },
-        deadlines,
+        importantDates: deadlines,
         tags: event.tags ?? [],
       } as ScheduledEvent;
     });
