@@ -25,7 +25,7 @@ export function TimeUntil({
     return () => {
       clearInterval(interval);
     };
-  }, []);
+  });
 
   const conferenceDuration: Interval = {
     end: date,

@@ -1,25 +1,15 @@
 import { format } from "date-fns";
 import YAML from "yaml";
 import { z } from "zod";
-import { createEvents } from "ics";
-
-type MaybeDate = "TBD" | string;
-
-const makeDateOrTBD = (date: "TBD" | string): string | "TBD" => {
-  const res = date === "TBD" ? "TBD" : new Date(date);
-  if (res !== "TBD" && isNaN(res.getTime())) {
-    throw new Error(`Invalid date: ${date}`);
-  }
-  return date;
-};
-
-export function hasDate(date: MaybeDate | undefined): date is string {
-  return date !== undefined && date !== "TBD";
-}
+import * as ics from "ics";
 
 const DateSchema = z.string().date();
 
 const TBD = z.literal("TBD");
+
+const MaybeDate = z.union([TBD, DateSchema]);
+
+export type MaybeDate = z.infer<typeof MaybeDate>;
 
 const DateName = z.enum([
   "abstract",
@@ -31,32 +21,41 @@ const DateName = z.enum([
   "revisions",
 ]);
 
-export type DeadlineName = z.infer<typeof DateName>;
+export type DateName = z.infer<typeof DateName>;
 
 const EventType = z.enum(["conference", "workshop", "journal"]);
 
 export type EventType = z.infer<typeof EventType>;
 
-const EventInput = z.object({
-  name: z.string().nonempty(),
-  abbreviation: z.string().nonempty(),
-  date: z
-    .object({
-      start: z.union([TBD, DateSchema]),
-      end: z.union([TBD, DateSchema]),
-    })
-    .optional()
-    .default({ start: "TBD", end: "TBD" }),
-  location: z.string().optional(),
-  cfp: z.string().url().optional(),
-  format: z.string().optional(),
-  url: z.string().url().optional(),
-  importantDates: z.record(DateName, z.union([TBD, DateSchema])).default({}),
-  type: EventType,
-  tags: z.array(z.string()).default([]),
-});
+const ScheduledEvent = z
+  .object({
+    name: z.string().nonempty(),
+    abbreviation: z.string().nonempty(),
+    date: z
+      .object({
+        start: MaybeDate,
+        end: MaybeDate,
+      })
+      .optional()
+      .default({ start: "TBD", end: "TBD" }),
+    location: z.string().optional(),
+    importantDateUrl: z.string().url().optional(),
+    format: z.string().optional(),
+    url: z.string().url().optional(),
+    importantDates: z.record(DateName, z.union([TBD, DateSchema])).default({}),
+    type: EventType,
+    tags: z.array(z.string()).default([]),
+  })
+  .refine(
+    (data) =>
+      Object.keys(data.importantDates).length === 0 || data.importantDateUrl,
+    {
+      message: "A reference url must be provided if there are important dates",
+      path: ["importantDateUrl", "importantDates"],
+    },
+  );
 
-export function dateNameToReadable(name: DeadlineName): string {
+export function dateNameToReadable(name: DateName): string {
   switch (name) {
     case "abstract":
       return "Abstract";
@@ -75,25 +74,7 @@ export function dateNameToReadable(name: DeadlineName): string {
   }
 }
 
-export type EventInput = z.infer<typeof EventInput>;
-
-export interface ScheduledEvent {
-  name: string;
-  abbreviation: string;
-  date: {
-    start: MaybeDate;
-    end: MaybeDate;
-  };
-  location?: string;
-  format?: string;
-  url?: string;
-  cfp?: string;
-  importantDates: {
-    [dateName: string]: MaybeDate;
-  };
-  type: EventType;
-  tags: string[];
-}
+export type ScheduledEvent = z.infer<typeof ScheduledEvent>;
 
 export function dateToString(date: MaybeDate): string {
   if (date === "TBD") {
@@ -105,43 +86,26 @@ export function dateToString(date: MaybeDate): string {
 export function fromYaml(yaml: string): ScheduledEvent[] {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const data = YAML.parse(yaml) as any[];
-  const parseRes = z.array(EventInput).safeParse(data);
+  const parseRes = z.array(ScheduledEvent).safeParse(data);
   if (parseRes.success === false) {
     throw new Error(
       parseRes.error.errors.map((e) => `${e.path}: ${e.message}`).join("\n"),
     );
   } else {
-    return parseRes.data.map((event) => {
-      const startDate = makeDateOrTBD(event.date.start);
-      const endDate = makeDateOrTBD(event.date.end);
-      const deadlines = event?.importantDates
-        ? Object.fromEntries(
-            Object.entries(event.importantDates)
-              .map(([type, value]) => [type, makeDateOrTBD(value as string)])
-              .sort(([, a], [, b]) => a.localeCompare(b)),
-          )
-        : {};
-
-      return {
-        ...event,
-        date: {
-          start: startDate,
-          end: endDate,
-        },
-        importantDates: deadlines,
-        tags: event.tags ?? [],
-      } as ScheduledEvent;
-    });
+    return parseRes.data;
   }
 }
 
-export function toICal(e: ScheduledEvent): string {
+export function toICal(
+  e: ScheduledEvent,
+  includeDates: boolean = false,
+): string {
   if (e.date.start === "TBD" || e.date.end === "TBD") {
     return "";
   }
   const start = new Date(e.date.start);
   const end = new Date(e.date.end);
-  const iCalEvent = createEvents(
+  const iCalEvent = ics.createEvents(
     [
       {
         start: [start.getFullYear(), start.getMonth() + 1, start.getDate()],
@@ -152,6 +116,35 @@ export function toICal(e: ScheduledEvent): string {
         url: e.url,
         categories: [e.type, ...e.tags],
       },
+      ...(!includeDates
+        ? []
+        : Object.entries(e.importantDates).flatMap(([type, date]) => {
+            if (date === "TBD") {
+              return [];
+            }
+            const d = new Date(date);
+            return [
+              {
+                start: [
+                  d.getFullYear(),
+                  d.getMonth() + 1,
+                  d.getDate(),
+                ] as ics.DateTime,
+                end: [
+                  d.getFullYear(),
+                  d.getMonth() + 1,
+                  d.getDate(),
+                ] as ics.DateTime,
+                title: `${e.abbreviation}: ${dateNameToReadable(
+                  type as DateName,
+                )}`,
+                description: `${e.name}: ${dateNameToReadable(
+                  type as DateName,
+                )}`,
+                url: e.url,
+              },
+            ];
+          })),
     ],
     {
       productId: "pl-conferences/ics",

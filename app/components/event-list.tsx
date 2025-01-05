@@ -4,7 +4,7 @@ import { EventCard } from "./event-card";
 import { useState } from "react";
 import { CategoryFilter } from "./category-filter";
 import { hasText, isBetween, isType } from "../lib/event-filter";
-import { TextFilter } from "./text-filter";
+import { SearchInput } from "./search-input";
 import { DateFilter } from "./date-filter";
 import { Accordion, AccordionItem, AccordionTrigger } from "./ui/accordion";
 import { format } from "date-fns";
@@ -36,7 +36,7 @@ export function EventList({ events }: { events: string }) {
                 setValue={setYearFilter}
                 years={eventYears}
               />
-              <TextFilter value={textFilter} setValue={setTextFilter} />
+              <SearchInput value={textFilter} setValue={setTextFilter} />
               <CategoryFilter
                 value={categoryFilter}
                 setValue={setCategoryFilter}

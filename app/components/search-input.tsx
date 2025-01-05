@@ -1,7 +1,7 @@
 import React from "react";
 import { Input } from "./ui/input";
 
-export function TextFilter({
+export function SearchInput({
   value,
   setValue,
 }: {

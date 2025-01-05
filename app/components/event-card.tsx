@@ -31,9 +31,11 @@ export function EventCard({ e }: { e: ScheduledEvent }) {
                 <Tooltip delayDuration={100}>
                   <TooltipTrigger asChild>
                     <h3>
-                      <Link href={`/event/${e.abbreviation}`}>
-                        {e.abbreviation}
-                      </Link>
+                      {e.url ? (
+                        <Link href={e.url}>{e.abbreviation}</Link>
+                      ) : (
+                        e.abbreviation
+                      )}
                     </h3>
                   </TooltipTrigger>
                   <TooltipContent>{e.name}</TooltipContent>
@@ -81,12 +83,15 @@ export function EventCard({ e }: { e: ScheduledEvent }) {
           </div>
         </div>
       </CardHeader>
+      {
+
+      }
       <CardContent
         className={clsx("flex flex-col gap-4", {
           "p-0": Object.keys(e.importantDates).length === 0,
         })}
       >
-        <DateTable importantDates={e.importantDates} />
+        <DateTable importantDates={e.importantDates} url={e.importantDateUrl!} />
       </CardContent>
       {/* <CardFooter className="flex flex-col gap-0 items-start"></CardFooter> */}
     </Card>

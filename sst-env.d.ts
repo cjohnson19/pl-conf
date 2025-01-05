@@ -15,6 +15,7 @@ declare module "sst" {
             "start": string
           }
           "format": string
+          "importantDateUrl": string
           "importantDates": {
             "abstract": string
             "notification": string
@@ -33,6 +34,7 @@ declare module "sst" {
             "end": string
             "start": string
           }
+          "importantDateUrl": string
           "importantDates": {
             "abstract": string
             "notification": string
@@ -50,6 +52,7 @@ declare module "sst" {
             "end": string
             "start": string
           }
+          "importantDateUrl": string
           "importantDates": {
             "camera-ready": string
             "conditional-acceptance": string
@@ -114,6 +117,7 @@ declare module "sst" {
             "start": string
           }
           "format": string
+          "importantDateUrl": string
           "importantDates": {
             "abstract": string
             "notification": string
@@ -147,6 +151,7 @@ declare module "sst" {
             "start": string
           }
           "format": string
+          "importantDateUrl": string
           "importantDates": {
             "abstract": string
             "notification": string
@@ -160,17 +165,9 @@ declare module "sst" {
       }
       "type": "sst.sst.Linkable"
     }
-    "OpenApiKey": {
-      "type": "sst.sst.Secret"
-      "value": string
-    }
     "PLConf": {
       "type": "sst.aws.Nextjs"
       "url": string
-    }
-    "TimeCheck": {
-      "name": string
-      "type": "sst.aws.Function"
     }
   }
 }

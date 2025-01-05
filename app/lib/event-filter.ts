@@ -1,6 +1,10 @@
-import { EventType, hasDate, ScheduledEvent } from "./event";
+import { EventType, ScheduledEvent } from "./event";
 import { DateRange } from "react-day-picker";
 import { isAfter as dateIsAfter, isBefore as dateIsBefore } from "date-fns";
+
+function hasDate(s: string): boolean {
+  return s !== "TBD";
+}
 
 export interface EventFilter {
   f: (event: ScheduledEvent) => boolean;
@@ -16,21 +20,21 @@ export const hasTag: (tag: string) => EventFilter = (tag) => ({
 
 export const isAfter: (date: Date) => EventFilter = (date) => {
   return {
-    f: (e) => hasDate(e.date?.start) && dateIsAfter(e.date.start, date),
+    f: (e) => hasDate(e.date.start) && dateIsAfter(e.date.start, date),
   };
 };
 
 export const isBefore: (date: Date) => EventFilter = (date) => {
   return {
-    f: (e) => hasDate(e.date?.start) && dateIsBefore(e.date.start, date),
+    f: (e) => hasDate(e.date.start) && dateIsBefore(e.date.start, date),
   };
 };
 
 export const isBetween: (range: DateRange) => EventFilter = ({ from, to }) => {
   return {
     f: (e) =>
-      hasDate(e.date?.start) &&
-      hasDate(e.date?.end) &&
+      hasDate(e.date.start) &&
+      hasDate(e.date.end) &&
       from !== undefined &&
       dateIsAfter(e.date.start, from) &&
       to !== undefined &&

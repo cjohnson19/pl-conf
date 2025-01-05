@@ -11,6 +11,7 @@
     rebuttal: 2025-04-18
     notification: 2025-04-28
   url: "https://www.dhbw-stuttgart.de/cade-30/"
+  importantDateUrl: "https://www.dhbw-stuttgart.de/cade-30/calls/"
   type: "conference"
 - name: Foundations of Software Science and Computation Structures
   abbreviation: FoSSaCS
@@ -23,6 +24,7 @@
     paper: 2024-12-13
     notification: 2025-02-14
   url: "https://etaps.org/2025/conferences/fossacs/"
+  importantDateUrl: "https://etaps.org/2025/cfp/"
   type: "conference"
 - name: Principles and Practice of Declarative Programming
   abbreviation: PPDP
@@ -42,6 +44,7 @@
   location: Singapore
   format: IEEE Proceedings
   url: "https://lics.siglog.org/lics25/"
+  importantDateUrl: "https://lics.siglog.org/lics25/"
   type: "conference"
   importantDates:
     abstract: 2025-01-16
@@ -67,6 +70,7 @@
     notification: 2025-07-27
     camera-ready: 2025-07-11
   url: "https://icfp25.sigplan.org/"
+  importantDateUrl: "https://icfp25.sigplan.org/dates"
   type: "conference"
 - name: Types for Proofs and Programs
   abbreviation: TYPES
@@ -76,6 +80,7 @@
   location: Glasgow, Scotland
   format: easychair
   url: "https://msp.cis.strath.ac.uk/types2025/index.html"
+  importantDateUrl: "https://msp.cis.strath.ac.uk/types2025/cfp.html"
   type: "conference"
   importantDates:
     abstract: 2025-03-03

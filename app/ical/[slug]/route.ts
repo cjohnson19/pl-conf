@@ -1,19 +1,16 @@
-import { ScheduledEvent, toICal } from "@/lib/event";
+import { toICal } from "@/lib/event";
 import { NextRequest, NextResponse } from "next/server";
 import { Resource } from "sst";
 
 export const dynamicParams = false;
-export const dynamic = "force-static";
 
 export async function GET(
-  _req: NextRequest,
-  { params }: { params: Promise<{ slug: string }> },
+  req: NextRequest,
+  {
+    params,
+  }: { params: Promise<{ slug: keyof typeof Resource.EventList.events }> },
 ): Promise<NextResponse> {
-  const event =
-    Resource.EventList.events[
-      // This is type safe due to generate static params
-      (await params).slug as keyof typeof Resource.EventList.events
-    ];
+  const event = Resource.EventList.events[(await params).slug];
 
   if (!event) {
     return NextResponse.json(
@@ -26,7 +23,9 @@ export async function GET(
     );
   }
 
-  return new NextResponse(toICal(event), {
+  const includeDates = req.nextUrl.searchParams?.get("dates");
+
+  return new NextResponse(toICal(event, includeDates === "true"), {
     headers: {
       "Content-Type": "text/calendar",
     },
@@ -34,9 +33,7 @@ export async function GET(
 }
 
 export async function generateStaticParams() {
-  return Object.entries(Resource.EventList.events).map(
-    ([, e]: [string, ScheduledEvent]) => ({
-      slug: e.abbreviation,
-    }),
-  );
+  return Object.keys(Resource.EventList.events).map((k) => ({
+    slug: k,
+  }));
 }
