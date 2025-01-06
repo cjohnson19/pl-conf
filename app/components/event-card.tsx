@@ -1,4 +1,4 @@
-import { Calendar, Globe } from "lucide-react";
+import { Calendar } from "lucide-react";
 import { dateToString, ScheduledEvent } from "../lib/event";
 import {
   Card,
@@ -41,7 +41,7 @@ export function EventCard({ e }: { e: ScheduledEvent }) {
                   <TooltipContent>{e.name}</TooltipContent>
                 </Tooltip>
               </TooltipProvider>
-              {e.url ? (
+              {/* {e.url ? (
                 <TooltipProvider>
                   <Tooltip delayDuration={100}>
                     <TooltipTrigger asChild>
@@ -54,7 +54,7 @@ export function EventCard({ e }: { e: ScheduledEvent }) {
                     <TooltipContent>Visit page</TooltipContent>
                   </Tooltip>
                 </TooltipProvider>
-              ) : null}
+              ) : null} */}
             </div>
             <div className="flex gap-2 items-center justify-end">
               <div className="flex flex-col gap-1 items-end">
@@ -83,15 +83,15 @@ export function EventCard({ e }: { e: ScheduledEvent }) {
           </div>
         </div>
       </CardHeader>
-      {
-
-      }
       <CardContent
         className={clsx("flex flex-col gap-4", {
           "p-0": Object.keys(e.importantDates).length === 0,
         })}
       >
-        <DateTable importantDates={e.importantDates} url={e.importantDateUrl!} />
+        <DateTable
+          importantDates={e.importantDates}
+          url={e.importantDateUrl!}
+        />
       </CardContent>
       {/* <CardFooter className="flex flex-col gap-0 items-start"></CardFooter> */}
     </Card>

@@ -6,14 +6,7 @@ import {
 } from "../lib/event";
 import { Table, TableBody, TableCell, TableRow } from "./ui/table";
 import { TimeUntil } from "./time-until";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "./ui/tooltip";
 import Link from "next/link";
-import { Globe } from "lucide-react";
 
 export function DateTable({
   importantDates,
@@ -28,7 +21,7 @@ export function DateTable({
         <h4>
           <Link href={url}>Dates & Deadlines</Link>
         </h4>
-        <TooltipProvider>
+        {/* <TooltipProvider>
           <Tooltip delayDuration={100}>
             <TooltipTrigger asChild>
               <h3>
@@ -39,7 +32,7 @@ export function DateTable({
             </TooltipTrigger>
             <TooltipContent>View page</TooltipContent>
           </Tooltip>
-        </TooltipProvider>
+        </TooltipProvider> */}
       </div>
       <Table>
         <TableBody>
