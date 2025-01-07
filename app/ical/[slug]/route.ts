@@ -28,6 +28,7 @@ export async function GET(
   return new NextResponse(toICal(event, includeDates === "true"), {
     headers: {
       "Content-Type": "text/calendar",
+      "Content-Disposition": `attachment; filename=${event.abbreviation}.ics`,
     },
   });
 }
