@@ -76,6 +76,9 @@
 - name: International Conference on Functional Programming
   abbreviation: ICFP
   location: Singapore
+  date:
+    start: 2025-10-12
+    end: 2025-10-18
   importantDates:
     paper: 2025-02-27
     rebuttal: 2025-05-01
