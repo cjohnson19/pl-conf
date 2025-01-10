@@ -10,22 +10,26 @@
     paper: 2025-02-24
     rebuttal: 2025-04-18
     notification: 2025-04-28
+    camera-ready: 2025-05-30
   url: "https://www.dhbw-stuttgart.de/cade-30/"
   importantDateUrl: "https://www.dhbw-stuttgart.de/cade-30/calls/"
   type: "conference"
+  lastUpdated: 2025-01-09
 - name: Foundations of Software Science and Computation Structures
   abbreviation: FoSSaCS
   date:
     start: 2025-05-05
     end: 2025-05-08
   location: Hamilton, Canada
+  url: "https://etaps.org/2025/conferences/fossacs/"
   importantDates:
-    abstract: 2024-12-06
-    paper: 2024-12-13
+    paper: 2024-10-10
+    rebuttal: 2024-12-05
     notification: 2024-12-20
     camera-ready: 2025-01-30
   importantDateUrl: "https://etaps.org/2025/cfp/"
   type: "conference"
+  lastUpdated: 2025-01-09
 - name: European Symposium on Programming
   abbreviation: ESOP
   date:
@@ -33,23 +37,26 @@
     end: 2025-05-08
   location: Hamilton, Canada
   importantDates:
-    paper: 2024-10-24
+    paper: 2024-10-10
     rebuttal: 2024-12-05
     notification: 2024-12-20
     camera-ready: 2025-01-30
   url: "https://etaps.org/2025/conferences/fossacs/"
   importantDateUrl: "https://etaps.org/2025/cfp/"
   type: "conference"
+  lastUpdated: 2025-01-09
 - name: Principles and Practice of Declarative Programming
   abbreviation: PPDP
   location: TBD
   format: TBD
   type: "conference"
+  lastUpdated: 2025-01-09
 - name: International Conference on Logic Programming
   abbreviation: ICLP
   location: TBD
   format: TBD
   type: "conference"
+  lastUpdated: 2025-01-09
 - name: Logic in Computer Science
   abbreviation: LICS
   date:
@@ -58,8 +65,9 @@
   location: Singapore
   format: IEEE Proceedings
   url: "https://lics.siglog.org/lics25/"
-  importantDateUrl: "https://lics.siglog.org/lics25/"
+  importantDateUrl: "https://lics.siglog.org/lics25/cfp.php"
   type: "conference"
+  lastUpdated: 2025-01-09
   importantDates:
     abstract: 2025-01-16
     paper: 2025-01-23
@@ -72,6 +80,7 @@
     end: 2025-10-03
   location: Reykjavik, Iceland
   url: "https://icetcs.github.io/frocos-itp-tableaux25/"
+  lastUpdated: 2025-01-09
   type: "conference"
 - name: International Conference on Functional Programming
   abbreviation: ICFP
@@ -88,6 +97,7 @@
     camera-ready: 2025-07-11
   url: "https://icfp25.sigplan.org/"
   importantDateUrl: "https://icfp25.sigplan.org/dates"
+  lastUpdated: 2025-01-09
   type: "conference"
 - name: Types for Proofs and Programs
   abbreviation: TYPES
@@ -102,9 +112,11 @@
   importantDates:
     abstract: 2025-03-03
     notification: 2025-04-11
+  lastUpdated: 2025-01-09
 - name: Logical Frameworks and Meta Languages
   abbreviation: LFMTP
   url: "https://lfmtp.github.io/lfmtp-page/workshops/2025/"
   location: TBD
   format: TBD
   type: "workshop"
+  lastUpdated: 2025-01-09

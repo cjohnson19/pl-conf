@@ -3,7 +3,13 @@ import YAML from "yaml";
 import { z } from "zod";
 import * as ics from "ics";
 
-const DateSchema = z.string().date();
+const DateSchema = z
+  .string()
+  .date()
+  // Date fns interprets dates with "-" as having a timezone which should be
+  // converted into local time, but we want to treat them as "AOE" dates almost
+  // always.
+  .transform((d) => d.replaceAll("-", "/"));
 
 const TBD = z.literal("TBD");
 
@@ -45,6 +51,7 @@ const ScheduledEvent = z
     importantDates: z.record(DateName, z.union([TBD, DateSchema])).default({}),
     type: EventType,
     tags: z.array(z.string()).default([]),
+    lastUpdated: DateSchema,
   })
   .refine(
     (data) =>

@@ -4,6 +4,7 @@ import {
   Card,
   CardContent,
   CardDescription,
+  CardFooter,
   CardHeader,
   CardTitle,
 } from "./ui/card";
@@ -19,8 +20,10 @@ import {
 import { CalendarEvent } from "./calendar-event";
 import { Button } from "./ui/button";
 import clsx from "clsx";
+import { format } from "date-fns";
 
 export function EventCard({ e }: { e: ScheduledEvent }) {
+  console.log(e.lastUpdated);
   return (
     <Card className="w-full bg-muted/50">
       <CardHeader>
@@ -93,7 +96,11 @@ export function EventCard({ e }: { e: ScheduledEvent }) {
           url={e.importantDateUrl!}
         />
       </CardContent>
-      {/* <CardFooter className="flex flex-col gap-0 items-start"></CardFooter> */}
+      <CardFooter className="flex flex-col gap-0 items-end">
+        <small className="text-muted-foreground">
+          Last updated {format(e.lastUpdated, "PP")}
+        </small>
+      </CardFooter>
     </Card>
   );
 }

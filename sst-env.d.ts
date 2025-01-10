@@ -22,6 +22,7 @@ declare module "sst" {
             "paper": string
             "rebuttal": string
           }
+          "lastUpdated": string
           "location": string
           "name": string
           "tags": any
@@ -41,6 +42,7 @@ declare module "sst" {
             "paper": string
             "rebuttal": string
           }
+          "lastUpdated": string
           "location": string
           "name": string
           "tags": any
@@ -60,6 +62,7 @@ declare module "sst" {
             "notification": string
             "paper": string
           }
+          "lastUpdated": string
           "location": string
           "name": string
           "tags": any
@@ -80,6 +83,7 @@ declare module "sst" {
             "rebuttal": string
             "revisions": string
           }
+          "lastUpdated": string
           "location": string
           "name": string
           "tags": any
@@ -95,6 +99,7 @@ declare module "sst" {
           "format": string
           "importantDates": {
           }
+          "lastUpdated": string
           "location": string
           "name": string
           "tags": any
@@ -108,6 +113,7 @@ declare module "sst" {
           }
           "importantDates": {
           }
+          "lastUpdated": string
           "location": string
           "name": string
           "tags": any
@@ -123,6 +129,7 @@ declare module "sst" {
           "format": string
           "importantDates": {
           }
+          "lastUpdated": string
           "location": string
           "name": string
           "tags": any
@@ -143,6 +150,7 @@ declare module "sst" {
             "paper": string
             "rebuttal": string
           }
+          "lastUpdated": string
           "location": string
           "name": string
           "tags": any
@@ -158,6 +166,7 @@ declare module "sst" {
           "format": string
           "importantDates": {
           }
+          "lastUpdated": string
           "location": string
           "name": string
           "tags": any
@@ -175,6 +184,7 @@ declare module "sst" {
             "abstract": string
             "notification": string
           }
+          "lastUpdated": string
           "location": string
           "name": string
           "tags": any
