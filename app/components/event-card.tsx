@@ -23,7 +23,6 @@ import clsx from "clsx";
 import { format } from "date-fns";
 
 export function EventCard({ e }: { e: ScheduledEvent }) {
-  console.log(e.lastUpdated);
   return (
     <Card className="w-full bg-muted/50">
       <CardHeader>

@@ -23,6 +23,24 @@ export default $config({
       properties: { events },
     });
 
+    const webpageBucket = new sst.aws.Bucket("WebpageBucket", {
+      versioning: true,
+    });
+
+    const driftEmail = new sst.aws.Email("DriftEmail", {
+      sender: `drift-${$app.stage}@pl-conferences.com`,
+    });
+
+    const driftFunction = new sst.aws.Function("DriftFunction", {
+      handler: "drift-lambda/index.handler",
+      link: [eventList, webpageBucket, driftEmail],
+    });
+
+    new sst.aws.Cron("DriftCronJob", {
+      function: driftFunction.arn,
+      schedule: "rate(1 day)",
+    });
+
     new sst.aws.Nextjs("PLConf", {
       link: [eventList],
       domain:
