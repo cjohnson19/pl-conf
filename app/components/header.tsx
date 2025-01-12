@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { ModeToggle } from "./theme-toggle";
+import { GithubLink } from "./github-link";
 
 export function Header() {
   return (
@@ -9,6 +10,7 @@ export function Header() {
       </h3>
       <div className="flex items-center gap-4">
         <Link href="/about">About</Link>
+        <GithubLink />
         <ModeToggle />
       </div>
     </header>
