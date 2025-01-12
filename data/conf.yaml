@@ -41,7 +41,7 @@
     rebuttal: 2024-12-05
     notification: 2024-12-20
     camera-ready: 2025-01-30
-  url: "https://etaps.org/2025/conferences/fossacs/"
+  url: "https://etaps.org/2025/conferences/esop/"
   importantDateUrl: "https://etaps.org/2025/cfp/"
   type: "conference"
   lastUpdated: 2025-01-09
@@ -120,3 +120,14 @@
   format: TBD
   type: "workshop"
   lastUpdated: 2025-01-09
+- name: Object-oriented Programming, Systems, Languages, and Applications
+  type: "conference"
+  abbreviation: OOPSLA
+  date:
+    start: 2025-10-12
+    end: 2025-10-18
+  location: Singapore
+  format: ACM Proceedings
+  url: "https://2025.splashcon.org/track/OOPSLA"
+  importantDateUrl: "https://2025.splashcon.org/dates"
+  lastUpdated: 2025-01-12

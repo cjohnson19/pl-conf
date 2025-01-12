@@ -168,6 +168,23 @@ declare module "sst" {
           "type": "conference"
           "url": string
         }
+        "OOPSLA": {
+          "abbreviation": string
+          "date": {
+            "end": string
+            "start": string
+          }
+          "format": string
+          "importantDateUrl": string
+          "importantDates": {
+          }
+          "lastUpdated": string
+          "location": string
+          "name": string
+          "tags": any
+          "type": "conference"
+          "url": string
+        }
         "PPDP": {
           "abbreviation": string
           "date": {
