@@ -97,7 +97,7 @@ export function EventCard({ e }: { e: ScheduledEvent }) {
       </CardContent>
       <CardFooter className="flex flex-col gap-0 items-end">
         <small className="text-muted-foreground">
-          Last updated {format(e.lastUpdated, "PP")}
+          Updated {format(e.lastUpdated, "PP")}
         </small>
       </CardFooter>
     </Card>
