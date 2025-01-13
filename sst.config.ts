@@ -38,7 +38,7 @@ export default $config({
 
     new sst.aws.Cron("DriftCronJob", {
       function: driftFunction.arn,
-      schedule: "rate(1 day)",
+      schedule: "cron(0 17 * * ? *)",
     });
 
     new sst.aws.Nextjs("PLConf", {

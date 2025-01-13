@@ -13,6 +13,10 @@ interface EventWebInfo {
   importantDates?: string;
 }
 
+function bind<T, U>(v: T | undefined, f: (x: T) => U): U | undefined {
+  return v === undefined ? undefined : f(v);
+}
+
 function zip<T, U>(a: T[], b: U[]): [T, U][] {
   return a.map((_, i) => [a[i], b[i]]);
 }
@@ -22,14 +26,9 @@ function sameContent(
   stored: string | undefined,
   current: string | undefined,
 ): diff.Diff[] {
-  const a =
-    stored !== undefined
-      ? parse(stored).querySelector("body")?.structuredText ?? ""
-      : "";
-  const b =
-    current !== undefined
-      ? parse(current).querySelector("body")?.structuredText ?? ""
-      : "";
+  const f = (v: string) => parse(v).querySelector("body")?.innerText;
+  const a = bind(stored, f) ?? "";
+  const b = bind(current, f) ?? "";
   return diff(a, b).filter(([flag]) => flag !== 0);
 }
 
@@ -151,13 +150,13 @@ function toTable(
         ${drifts
           .map(([abbrev, drift]) => {
             return `
-              <tr>
+              <tr style="max-height: 100px;">
                 <td style="vertical-align: top;">${abbrev}</td>
                 <td style="vertical-align: top;">${
                   drift.main.length > 0
-                    ? `<a href="${getUrl("url", abbrev)}">${drift.main.map(
-                        formatDiff,
-                      )}</a>`
+                    ? `<a href="${getUrl("url", abbrev)}">${drift.main
+                        .map(formatDiff)
+                        .join("\n")}</a>`
                     : "No Drift"
                 }</td>
                 <td style="vertical-align: top;">${
@@ -165,7 +164,9 @@ function toTable(
                     ? `<a href="${getUrl(
                         "importantDateUrl",
                         abbrev,
-                      )}">${drift.importantDates.map(formatDiff)}</a>`
+                      )}">${drift.importantDates
+                        .map(formatDiff)
+                        .join("\n")}</a>`
                     : "No Drift"
                 }</td>
               </tr>
