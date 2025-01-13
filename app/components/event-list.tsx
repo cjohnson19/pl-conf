@@ -26,7 +26,7 @@ export function EventList({ events }: { events: string }) {
 
   return (
     <>
-      <div className="flex flex-col gap-8 px-11 items-center">
+      <div className="flex flex-col gap-8 px-4 md:px-11 items-center">
         <div className="flex flex-col gap-2 w-full">
           <SearchInput value={textFilter} setValue={setTextFilter} />
           <Accordion type="single" collapsible className="w-full">
