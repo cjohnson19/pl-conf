@@ -1,0 +1,14 @@
+name: Foundations of Software Science and Computation Structures
+abbreviation: FoSSaCS
+date:
+  start: 2025-05-05
+  end: 2025-05-08
+location: Hamilton, Canada
+url: "https://etaps.org/2025/conferences/fossacs/"
+importantDates:
+  paper: 2024-10-10
+  rebuttal: 2024-12-05
+  notification: 2024-12-20
+  camera-ready: 2025-01-30
+importantDateUrl: "https://etaps.org/2025/cfp/"
+type: "conference"

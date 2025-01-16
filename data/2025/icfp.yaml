@@ -1,0 +1,16 @@
+name: International Conference on Functional Programming
+abbreviation: ICFP
+location: Singapore
+date:
+  start: 2025-10-12
+  end: 2025-10-18
+importantDates:
+  paper: 2025-02-27
+  rebuttal: 2025-05-01
+  conditional-acceptance: 2025-05-23
+  revisions: 2025-06-27
+  notification: 2025-07-27
+  camera-ready: 2025-07-11
+url: "https://icfp25.sigplan.org/"
+importantDateUrl: "https://icfp25.sigplan.org/dates"
+type: "conference"

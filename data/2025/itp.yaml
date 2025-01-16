@@ -1,0 +1,14 @@
+name: International Conference on Interactive Theorem Proving
+abbreviation: ITP
+date:
+  start: 2025-09-27
+  end: 2025-10-03
+location: Reykjavik, Iceland
+url: "https://icetcs.github.io/frocos-itp-tableaux25/itp/"
+type: "conference"
+importantDateUrl: "https://icetcs.github.io/frocos-itp-tableaux25/itp/"
+importantDates:
+  abstract: 2025-03-12
+  paper: 2025-03-19
+  notification: 2025-04-23
+  camera-ready: 2025-06-27

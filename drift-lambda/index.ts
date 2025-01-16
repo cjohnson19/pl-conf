@@ -1,4 +1,4 @@
-import { parse } from "node-html-parser";
+import { DomUtils, parseDocument } from "htmlparser2";
 import { Resource } from "sst";
 import {
   GetObjectCommand,
@@ -13,8 +13,8 @@ interface EventWebInfo {
   importantDates?: string;
 }
 
-function bind<T, U>(v: T | undefined, f: (x: T) => U): U | undefined {
-  return v === undefined ? undefined : f(v);
+function bind<T, U>(v: T | undefined | null, f: (x: T) => U): U | undefined {
+  return v === undefined || v === null ? undefined : f(v);
 }
 
 function zip<T, U>(a: T[], b: U[]): [T, U][] {
@@ -26,7 +26,11 @@ function sameContent(
   stored: string | undefined,
   current: string | undefined,
 ): diff.Diff[] {
-  const f = (v: string) => parse(v).querySelector("body")?.innerText;
+  const f = (v: string) =>
+    bind(
+      DomUtils.findOne((node) => node.name === "body", parseDocument(v)),
+      (v) => DomUtils.innerText(v),
+    );
   const a = bind(stored, f) ?? "";
   const b = bind(current, f) ?? "";
   return diff(a, b).filter(([flag]) => flag !== 0);

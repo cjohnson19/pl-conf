@@ -1,0 +1,15 @@
+name: Logic in Computer Science
+abbreviation: LICS
+date:
+  start: 2025-06-23
+  end: 2025-06-26
+location: Singapore
+format: IEEE Proceedings
+url: "https://lics.siglog.org/lics25/"
+importantDateUrl: "https://lics.siglog.org/lics25/cfp.php"
+type: "conference"
+importantDates:
+  abstract: 2025-01-16
+  paper: 2025-01-23
+  rebuttal: 2025-03-20
+  notification: 2025-04-08

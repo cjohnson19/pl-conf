@@ -122,7 +122,12 @@ declare module "sst" {
             "end": string
             "start": string
           }
+          "importantDateUrl": string
           "importantDates": {
+            "abstract": string
+            "camera-ready": string
+            "notification": string
+            "paper": string
           }
           "lastUpdated": string
           "location": string

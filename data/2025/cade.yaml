@@ -1,0 +1,16 @@
+name: Conference on Automated Deduction
+abbreviation: CADE
+date:
+  start: 2025-07-28
+  end: 2025-07-31
+location: Stuttgart, Germany
+format: Springer LNCS
+importantDates:
+  abstract: 2025-02-17
+  paper: 2025-02-24
+  rebuttal: 2025-04-18
+  notification: 2025-04-28
+  camera-ready: 2025-05-30
+url: "https://www.dhbw-stuttgart.de/cade-30/"
+importantDateUrl: "https://www.dhbw-stuttgart.de/cade-30/calls/"
+type: "conference"

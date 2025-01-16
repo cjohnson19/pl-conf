@@ -1,0 +1,14 @@
+name: European Symposium on Programming
+abbreviation: ESOP
+date:
+  start: 2025-05-05
+  end: 2025-05-08
+location: Hamilton, Canada
+importantDates:
+  paper: 2024-10-10
+  rebuttal: 2024-12-05
+  notification: 2024-12-20
+  camera-ready: 2025-01-30
+url: "https://etaps.org/2025/conferences/esop/"
+importantDateUrl: "https://etaps.org/2025/cfp/"
+type: "conference"

@@ -1,6 +1,12 @@
 "use client";
 
-import { formatDuration, Interval, intervalToDuration } from "date-fns";
+import {
+  endOfDay,
+  formatDuration,
+  Interval,
+  intervalToDuration,
+  isSameDay,
+} from "date-fns";
 import React from "react";
 
 export function TimeUntil({
@@ -18,7 +24,6 @@ export function TimeUntil({
       return;
     }
     const interval = setInterval(() => {
-      console.log("updating", date);
       setNow(new Date());
     }, 1000 * 60 * 60); // Update hourly, it's not that important to be precise
 
@@ -27,19 +32,23 @@ export function TimeUntil({
     };
   });
 
-  const conferenceDuration: Interval = {
-    end: date,
+  const timeUntilDuration: Interval = {
     start: now,
+    end: endOfDay(date),
   };
 
-  const isPast = now.getTime() > new Date(date).getTime();
+  const isPast = now.getTime() > endOfDay(date).getTime();
+  const duration = intervalToDuration(timeUntilDuration);
+  const sameDay = isSameDay(now, endOfDay(date));
 
   return (
     <p {...props}>
       {prefix ? prefix + " " : null}
-      {isPast
+      {sameDay
+        ? "Today"
+        : isPast
         ? "Past"
-        : formatDuration(intervalToDuration(conferenceDuration), {
+        : formatDuration(duration, {
             format: ["years", "months", "days"],
             zero: false,
             delimiter: ", ",

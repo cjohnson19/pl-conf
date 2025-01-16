@@ -1,5 +1,4 @@
 import { format } from "date-fns";
-import YAML from "yaml";
 import { z } from "zod";
 import * as ics from "ics";
 
@@ -33,7 +32,7 @@ const EventType = z.enum(["conference", "workshop", "journal"]);
 
 export type EventType = z.infer<typeof EventType>;
 
-const ScheduledEvent = z
+export const ScheduledEvent = z
   .object({
     name: z.string().nonempty(),
     abbreviation: z.string().nonempty(),
@@ -88,19 +87,6 @@ export function dateToString(date: MaybeDate): string {
     return "TBD";
   }
   return format(date, "PPP");
-}
-
-export function fromYaml(yaml: string): ScheduledEvent[] {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const data = YAML.parse(yaml) as any[];
-  const parseRes = z.array(ScheduledEvent).safeParse(data);
-  if (parseRes.success === false) {
-    throw new Error(
-      parseRes.error.errors.map((e) => `${e.path}: ${e.message}`).join("\n"),
-    );
-  } else {
-    return parseRes.data;
-  }
 }
 
 export function toICal(
