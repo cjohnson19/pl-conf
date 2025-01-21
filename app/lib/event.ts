@@ -48,6 +48,7 @@ export const ScheduledEvent = z
     format: z.string().optional(),
     url: z.string().url().optional(),
     importantDates: z.record(DateName, z.union([TBD, DateSchema])).default({}),
+    notes: z.string().array().default([]),
     type: EventType,
     tags: z.array(z.string()).default([]),
     lastUpdated: DateSchema,
@@ -112,32 +113,32 @@ export function toICal(
       ...(!includeDates
         ? []
         : Object.entries(e.importantDates).flatMap(([type, date]) => {
-            if (date === "TBD") {
-              return [];
-            }
-            const d = new Date(date);
-            return [
-              {
-                start: [
-                  d.getFullYear(),
-                  d.getMonth() + 1,
-                  d.getDate(),
-                ] as ics.DateTime,
-                end: [
-                  d.getFullYear(),
-                  d.getMonth() + 1,
-                  d.getDate(),
-                ] as ics.DateTime,
-                title: `${e.abbreviation}: ${dateNameToReadable(
-                  type as DateName,
-                )}`,
-                description: `${e.name}: ${dateNameToReadable(
-                  type as DateName,
-                )}`,
-                url: e.url,
-              },
-            ];
-          })),
+          if (date === "TBD") {
+            return [];
+          }
+          const d = new Date(date);
+          return [
+            {
+              start: [
+                d.getFullYear(),
+                d.getMonth() + 1,
+                d.getDate(),
+              ] as ics.DateTime,
+              end: [
+                d.getFullYear(),
+                d.getMonth() + 1,
+                d.getDate(),
+              ] as ics.DateTime,
+              title: `${e.abbreviation}: ${dateNameToReadable(
+                type as DateName,
+              )}`,
+              description: `${e.name}: ${dateNameToReadable(
+                type as DateName,
+              )}`,
+              url: e.url,
+            },
+          ];
+        })),
     ],
     {
       productId: "pl-conferences/ics",

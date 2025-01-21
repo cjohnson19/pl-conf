@@ -24,7 +24,7 @@ import { format } from "date-fns";
 
 export function EventCard({ e }: { e: ScheduledEvent }) {
   return (
-    <Card className="w-full bg-muted/50">
+    <Card className="w-full bg-muted/80">
       <CardHeader>
         <div className="flex flex-col justify-between gap-1 w-full">
           <CardTitle className="flex gap-3 justify-between items-center">
@@ -87,12 +87,14 @@ export function EventCard({ e }: { e: ScheduledEvent }) {
       </CardHeader>
       <CardContent
         className={clsx("flex flex-col gap-4", {
-          "p-0": Object.keys(e.importantDates).length === 0,
+          "p-0":
+            Object.keys(e.importantDates).length === 0 && !e.importantDateUrl,
         })}
       >
         <DateTable
           importantDates={e.importantDates}
-          url={e.importantDateUrl!}
+          url={e.importantDateUrl}
+          notes={e.notes}
         />
       </CardContent>
       <CardFooter className="flex flex-col gap-0 items-end">

@@ -35,6 +35,7 @@ declare module "sst" {
           "lastUpdated": string
           "location": string
           "name": string
+          "notes": any
           "tags": any
           "type": "conference"
           "url": string
@@ -55,6 +56,7 @@ declare module "sst" {
           "lastUpdated": string
           "location": string
           "name": string
+          "notes": any
           "tags": any
           "type": "conference"
           "url": string
@@ -75,6 +77,7 @@ declare module "sst" {
           "lastUpdated": string
           "location": string
           "name": string
+          "notes": any
           "tags": any
           "type": "conference"
           "url": string
@@ -97,6 +100,7 @@ declare module "sst" {
           "lastUpdated": string
           "location": string
           "name": string
+          "notes": any
           "tags": any
           "type": "conference"
           "url": string
@@ -113,6 +117,7 @@ declare module "sst" {
           "lastUpdated": string
           "location": string
           "name": string
+          "notes": any
           "tags": any
           "type": "conference"
         }
@@ -132,6 +137,7 @@ declare module "sst" {
           "lastUpdated": string
           "location": string
           "name": string
+          "notes": any
           "tags": any
           "type": "conference"
           "url": string
@@ -148,6 +154,7 @@ declare module "sst" {
           "lastUpdated": string
           "location": string
           "name": string
+          "notes": any
           "tags": any
           "type": "workshop"
           "url": string
@@ -169,6 +176,7 @@ declare module "sst" {
           "lastUpdated": string
           "location": string
           "name": string
+          "notes": any
           "tags": any
           "type": "conference"
           "url": string
@@ -186,6 +194,7 @@ declare module "sst" {
           "lastUpdated": string
           "location": string
           "name": string
+          "notes": any
           "tags": any
           "type": "conference"
           "url": string
@@ -202,6 +211,7 @@ declare module "sst" {
           "lastUpdated": string
           "location": string
           "name": string
+          "notes": any
           "tags": any
           "type": "conference"
         }
@@ -220,6 +230,7 @@ declare module "sst" {
           "lastUpdated": string
           "location": string
           "name": string
+          "notes": any
           "tags": any
           "type": "conference"
           "url": string
