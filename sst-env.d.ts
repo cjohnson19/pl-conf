@@ -181,6 +181,27 @@ declare module "sst" {
           "type": "conference"
           "url": string
         }
+        "LSFA": {
+          "abbreviation": string
+          "date": {
+            "end": string
+            "start": string
+          }
+          "importantDateUrl": string
+          "importantDates": {
+            "abstract": string
+            "camera-ready": string
+            "notification": string
+            "paper": string
+          }
+          "lastUpdated": string
+          "location": string
+          "name": string
+          "notes": any
+          "tags": any
+          "type": "workshop"
+          "url": string
+        }
         "OOPSLA": {
           "abbreviation": string
           "date": {
