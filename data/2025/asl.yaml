@@ -1,0 +1,11 @@
+name: North American Annual Meeting of the Association for Symbolic Logic
+abbreviation: ASL
+date:
+  start: 2025-05-13
+  end: 2025-05-16
+location: Las Cruces, NM
+importantDates:
+  abstract: 2025-02-27
+url: "https://math.nmsu.edu/asl-2025/index.html"
+importantDateUrl: "https://math.nmsu.edu/asl-2025/index.html"
+type: "workshop"

@@ -17,6 +17,24 @@ declare module "sst" {
     }
     "EventList": {
       "events": {
+        "ASL": {
+          "abbreviation": string
+          "date": {
+            "end": string
+            "start": string
+          }
+          "importantDateUrl": string
+          "importantDates": {
+            "abstract": string
+          }
+          "lastUpdated": string
+          "location": string
+          "name": string
+          "notes": any
+          "tags": any
+          "type": "workshop"
+          "url": string
+        }
         "CADE": {
           "abbreviation": string
           "date": {
