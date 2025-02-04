@@ -1,5 +1,15 @@
 name: Principles and Practice of Declarative Programming
 abbreviation: PPDP
-location: TBD
-format: TBD
+location: Rende, Italy
+date:
+  start: 2025-09-10
+  end: 2025-09-11
+format: ACM
+url: "https://ppdp25.github.io/site/"
 type: "conference"
+importantDates:
+  abstract: 2025-05-18
+  paper: 2025-05-30
+  notification: 2025-07-07
+  camera-ready: 2025-07-21
+importantDateUrl: "https://ppdp25.github.io/site/cfp/"
