@@ -16,7 +16,7 @@ export function CategoryFilter({
     >
       <ToggleGroupItem value="conference">Conference</ToggleGroupItem>
       <ToggleGroupItem value="workshop">Workshop</ToggleGroupItem>
-      <ToggleGroupItem value="journal">Journal</ToggleGroupItem>
+      {/* <ToggleGroupItem value="journal">Journal</ToggleGroupItem> */}
     </ToggleGroup>
   );
 }

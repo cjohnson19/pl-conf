@@ -22,6 +22,7 @@ export function SearchInput({
       type="text"
       placeholder="Search"
       onChange={(e) => setDebounceValue(e.target.value)}
+      autoFocus={true}
     />
   );
 }
