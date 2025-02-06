@@ -1,5 +1,12 @@
 name: International Conference on Logic Programming
 abbreviation: ICLP
-location: TBD
-format: TBD
+location: Rende, Italy
+date:
+  start: 2025-09-12
+  end: 2025-09-19
 type: "conference"
+url: "https://iclp25.demacs.unical.it/"
+importantDateUrl: "https://iclp25.demacs.unical.it/calls/main-track"
+importantDates:
+  paper: 2025-04-18
+  notification: 2025-05-25

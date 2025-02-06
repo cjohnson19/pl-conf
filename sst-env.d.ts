@@ -129,8 +129,10 @@ declare module "sst" {
             "end": string
             "start": string
           }
-          "format": string
+          "importantDateUrl": string
           "importantDates": {
+            "notification": string
+            "paper": string
           }
           "lastUpdated": string
           "location": string
@@ -138,6 +140,7 @@ declare module "sst" {
           "notes": any
           "tags": any
           "type": "conference"
+          "url": string
         }
         "ITP": {
           "abbreviation": string
@@ -245,7 +248,12 @@ declare module "sst" {
             "start": string
           }
           "format": string
+          "importantDateUrl": string
           "importantDates": {
+            "abstract": string
+            "camera-ready": string
+            "notification": string
+            "paper": string
           }
           "lastUpdated": string
           "location": string
@@ -253,6 +261,7 @@ declare module "sst" {
           "notes": any
           "tags": any
           "type": "conference"
+          "url": string
         }
         "TYPES": {
           "abbreviation": string

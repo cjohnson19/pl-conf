@@ -8,9 +8,14 @@ import { Table, TableBody, TableCell, TableRow } from "./ui/table";
 import { TimeUntil } from "./time-until";
 import Link from "next/link";
 import { Badge } from "./ui/badge";
+import { isPast } from "date-fns";
 
 function hasDeadlines(importantDates: ScheduledEvent["importantDates"]) {
   return Object.keys(importantDates).length > 0;
+}
+
+function allDeadlinesPassed(importantDates: ScheduledEvent["importantDates"]) {
+  return Object.values(importantDates).every((d) => isPast(d));
 }
 
 export function DateTable({
@@ -38,7 +43,9 @@ export function DateTable({
           </div>
         )}
       </div>
-      {hasDeadlines(importantDates) && (
+      {hasDeadlines(importantDates) && allDeadlinesPassed(importantDates) ? (
+        <small>All deadlines have passed</small>
+      ) : (
         <Table>
           <TableBody>
             {Object.entries(importantDates)
