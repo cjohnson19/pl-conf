@@ -1,3 +1,5 @@
+"use client";
+import { EventFilter, hasYear } from "@/lib/event-filter";
 import {
   Select,
   SelectContent,
@@ -5,20 +7,26 @@ import {
   SelectTrigger,
   SelectValue,
 } from "./ui/select";
+import { Dispatch, SetStateAction, useState } from "react";
 
 export function DateFilter({
-  value,
   setValue,
   years,
 }: {
-  value: string | undefined;
-  setValue: (value: string | undefined) => void;
+  setValue: Dispatch<SetStateAction<EventFilter>>;
   years: string[];
 }) {
+  const [strValue, setStrValue] = useState<string>("");
   return years.length <= 1 ? (
     <></>
   ) : (
-    <Select onValueChange={setValue} value={value}>
+    <Select
+      onValueChange={(v) =>{
+        setStrValue(v);
+        setValue(() => hasYear(v));
+      }}
+      value={strValue}
+    >
       <SelectTrigger>
         <SelectValue placeholder="Filter by Year" />
       </SelectTrigger>

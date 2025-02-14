@@ -17,7 +17,11 @@ export function CalendarEvent({ e }: { e: ScheduledEvent }) {
       <DropdownMenuSubTrigger>Add to calendar</DropdownMenuSubTrigger>
       <DropdownMenuSubContent>
         <DropdownMenuLabel>Online calendar</DropdownMenuLabel>
-        <DropdownMenuItem>
+        <DropdownMenuItem
+          onClick={() => {
+            redirect(toGoogleCalendarLink(e));
+          }}
+        >
           <Link
             target="_blank"
             className="no-underline"

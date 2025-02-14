@@ -1,22 +1,26 @@
+"use client";
+import { EventFilter, isCategory } from "@/lib/event-filter";
 import { ToggleGroup, ToggleGroupItem } from "./ui/toggle-group";
+import { Dispatch, SetStateAction, useState } from "react";
 
 export function CategoryFilter({
-  value,
   setValue,
 }: {
-  value: string;
-  setValue: (value: string) => void;
+  setValue: Dispatch<SetStateAction<EventFilter>>;
 }) {
+  const [strValue, setStrValue] = useState<string>("");
   return (
     <ToggleGroup
       variant="outline"
       type="single"
-      value={value}
-      onValueChange={setValue}
+      value={strValue}
+      onValueChange={(v) => {
+        setStrValue(v);
+        setValue(() => isCategory(v));
+      }}
     >
       <ToggleGroupItem value="conference">Conference</ToggleGroupItem>
       <ToggleGroupItem value="workshop">Workshop</ToggleGroupItem>
-      {/* <ToggleGroupItem value="journal">Journal</ToggleGroupItem> */}
     </ToggleGroup>
   );
 }
