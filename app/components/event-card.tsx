@@ -1,4 +1,3 @@
-import { Calendar } from "lucide-react";
 import { dateToString, ScheduledEvent } from "../lib/event";
 import {
   Card,
@@ -17,18 +16,28 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "./ui/tooltip";
-import { CalendarEvent } from "./calendar-event";
-import { Button } from "./ui/button";
 import clsx from "clsx";
 import { format } from "date-fns";
+import { FavoriteButton } from "./favorite-button";
+import { EventOptions } from "./event-options/event-options";
+import { PreferenceCollection } from "@/lib/event-prefs";
+import { Dispatch, SetStateAction } from "react";
 
-export function EventCard({ e }: { e: ScheduledEvent }) {
+export function EventCard({
+  e,
+  prefs,
+  setPrefs,
+}: {
+  e: ScheduledEvent;
+  prefs: PreferenceCollection;
+  setPrefs: Dispatch<SetStateAction<PreferenceCollection>>;
+}) {
   return (
     <Card className="w-full bg-muted/80">
       <CardHeader>
         <div className="flex flex-col justify-between gap-1 w-full">
           <CardTitle className="flex gap-3 justify-between items-center">
-            <div className="flex gap-2 items-start">
+            <div className="flex gap-2 items-start justify-start">
               <TooltipProvider>
                 <Tooltip delayDuration={100}>
                   <TooltipTrigger asChild>
@@ -43,20 +52,11 @@ export function EventCard({ e }: { e: ScheduledEvent }) {
                   <TooltipContent>{e.name}</TooltipContent>
                 </Tooltip>
               </TooltipProvider>
-              {/* {e.url ? (
-                <TooltipProvider>
-                  <Tooltip delayDuration={100}>
-                    <TooltipTrigger asChild>
-                      <h3>
-                        <Link href={e.url}>
-                          <Globe size={20} />
-                        </Link>
-                      </h3>
-                    </TooltipTrigger>
-                    <TooltipContent>Visit page</TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-              ) : null} */}
+              <FavoriteButton
+                eventName={e.name}
+                prefs={prefs}
+                setPrefs={setPrefs}
+              />
             </div>
             <div className="flex gap-2 items-center justify-end">
               <div className="flex flex-col gap-1 items-end">
@@ -73,11 +73,7 @@ export function EventCard({ e }: { e: ScheduledEvent }) {
                   </p>
                 </CardDescription>
               </div>
-              <CalendarEvent e={e}>
-                <Button variant={"ghost"} size={"icon"}>
-                  <Calendar className="text-muted-foreground" />
-                </Button>
-              </CalendarEvent>
+              <EventOptions e={e} prefs={prefs} setPrefs={setPrefs} />
             </div>
           </CardTitle>
           <div className="flex gap-4 items-center justify-between">

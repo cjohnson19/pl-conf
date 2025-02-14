@@ -95,7 +95,11 @@ async function getCurrentEventInfo(): Promise<{
         if (!("url" in e)) {
           return {};
         }
-        const mainPage = await fetch(e.url);
+        const mainPage = await fetch(e.url, {
+          headers: {
+            "Accept-Language": "en-US,en;q=0.9,de;q=0.8"
+          }
+        });
         return {
           main: await mainPage.text(),
         };
