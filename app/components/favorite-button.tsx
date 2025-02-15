@@ -16,6 +16,7 @@ export function FavoriteButton({
     <Button
       variant={"ghost"}
       size={"icon"}
+      aria-label={`Toggle favorite status of ${eventName}`}
       onClick={() => {
         setPrefs((prev) => ({
           ...prev,
@@ -27,7 +28,8 @@ export function FavoriteButton({
       }}
     >
       <StarIcon
-        fill="white"
+        stroke="gold"
+        fill="gold"
         fillOpacity={prefs[eventName]?.favorite ? 100 : 0}
       />
     </Button>
