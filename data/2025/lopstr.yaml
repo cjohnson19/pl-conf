@@ -1,0 +1,14 @@
+name: International Symposium on Logic-Based Program Synthesis and Transformation
+abbreviation: LOPSTR
+location: Rende, Italy
+date:
+  start: 2025-09-09
+  end: 2025-09-09
+type: "conference"
+url: "https://lopstr.github.io/2025/"
+importantDateUrl: "https://lopstr.github.io/2025/#dates"
+importantDates:
+  abstract: 2025-05-09
+  paper: 2025-05-16
+  notification: 2025-06-27
+  camera-ready: 2025-07-17

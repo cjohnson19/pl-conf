@@ -1,0 +1,15 @@
+name: ACM Symposium on Parallelism in Algorithms and Architectures
+abbreviation: SPAA
+location: Portland, Oregon
+date:
+  start: 2025-07-28
+  end: 2025-08-01
+type: "conference"
+url: "https://spaa.acm.org/"
+importantDateUrl: "https://spaa.acm.org/call-for-papers/"
+importantDates:
+  abstract: 2025-02-21
+  paper: 2025-02-28
+  rebuttal: 2025-04-29
+  notification: 2025-05-20
+  camera-ready: 2025-06-20
