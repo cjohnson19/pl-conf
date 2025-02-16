@@ -52,6 +52,38 @@ export default async function About() {
         </Link>
         .
       </p>
+
+      <h2 className="mt-8">FAQ</h2>
+
+      <h4 className="mt-4">
+        Can we add <i>X</i> event?
+      </h4>
+
+      <p className="mt-2">
+        Yes! Contact me or create an issue on GitHub and I&apos;ll add it as
+        soon as I get the chance. To make it as quick as possible create a pull
+        request with the event.
+      </p>
+
+      <h4 className="mt-4">Why should I use this site?</h4>
+
+      <p className="mt-2">
+        If you keep track of mailing lists / event websites, there really is
+        little to no reason to use this website. Stick with your normal workflow
+        if it works for you!
+      </p>
+
+      <h4 className="mt-4">How do I know this information is accurate?</h4>
+
+      <p className="mt-2">
+        You should <b>always</b> check the linked website to confirm the dates
+        listed here. However, every day{" "}
+        <a href="https://github.com/cjohnson19/pl-conf/tree/main/drift-lambda">
+          I check the websites
+        </a>{" "}
+        to see if any of their content has changed. If something changes, I
+        should know about it within a day and be able to update the site.
+      </p>
     </div>
   );
 }
