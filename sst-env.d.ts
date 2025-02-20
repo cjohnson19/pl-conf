@@ -79,6 +79,28 @@ declare module "sst" {
           "type": "conference"
           "url": string
         }
+        "FSCD": {
+          "abbreviation": string
+          "date": {
+            "end": string
+            "start": string
+          }
+          "importantDateUrl": string
+          "importantDates": {
+            "abstract": string
+            "camera-ready": string
+            "notification": string
+            "paper": string
+            "rebuttal": string
+          }
+          "lastUpdated": string
+          "location": string
+          "name": string
+          "notes": any
+          "tags": any
+          "type": "workshop"
+          "url": string
+        }
         "FoSSaCS": {
           "abbreviation": string
           "date": {
@@ -202,6 +224,27 @@ declare module "sst" {
           "type": "conference"
           "url": string
         }
+        "LOPSTR": {
+          "abbreviation": string
+          "date": {
+            "end": string
+            "start": string
+          }
+          "importantDateUrl": string
+          "importantDates": {
+            "abstract": string
+            "camera-ready": string
+            "notification": string
+            "paper": string
+          }
+          "lastUpdated": string
+          "location": string
+          "name": string
+          "notes": any
+          "tags": any
+          "type": "conference"
+          "url": string
+        }
         "LSFA": {
           "abbreviation": string
           "date": {
@@ -263,6 +306,28 @@ declare module "sst" {
           "type": "conference"
           "url": string
         }
+        "SPAA": {
+          "abbreviation": string
+          "date": {
+            "end": string
+            "start": string
+          }
+          "importantDateUrl": string
+          "importantDates": {
+            "abstract": string
+            "camera-ready": string
+            "notification": string
+            "paper": string
+            "rebuttal": string
+          }
+          "lastUpdated": string
+          "location": string
+          "name": string
+          "notes": any
+          "tags": any
+          "type": "conference"
+          "url": string
+        }
         "TYPES": {
           "abbreviation": string
           "date": {
@@ -281,6 +346,26 @@ declare module "sst" {
           "notes": any
           "tags": any
           "type": "conference"
+          "url": string
+        }
+        "UNIF": {
+          "abbreviation": string
+          "date": {
+            "end": string
+            "start": string
+          }
+          "importantDateUrl": string
+          "importantDates": {
+            "camera-ready": string
+            "notification": string
+            "paper": string
+          }
+          "lastUpdated": string
+          "location": string
+          "name": string
+          "notes": any
+          "tags": any
+          "type": "workshop"
           "url": string
         }
       }

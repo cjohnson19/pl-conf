@@ -1,0 +1,15 @@
+name: Formal Structures for Computation and Deduction
+abbreviation: FSCD
+location: Birmingham, UK
+date:
+  start: 2025-07-14
+  end: 2025-07-20
+url: "https://fscd2025.github.io/index.htm"
+type: "workshop"
+importantDates:
+  abstract: 2025-02-17
+  paper: 2025-02-22
+  rebuttal: 2025-04-11
+  notification: 2025-04-30
+  camera-ready: 2025-05-14
+importantDateUrl: "https://fscd2025.github.io/cfp.htm"

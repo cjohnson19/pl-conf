@@ -1,0 +1,13 @@
+name: The International Workshop on Unification
+abbreviation: UNIF
+location: Birmingham, UK
+date:
+  start: 2025-07-14
+  end: 2025-07-14
+url: "https://cs.newpaltz.edu/unif2025/"
+type: "workshop"
+importantDates:
+  paper: 2025-05-07
+  notification: 2025-05-29
+  camera-ready: 2025-07-13
+importantDateUrl: "https://cs.newpaltz.edu/unif2025/importantdates.html"
