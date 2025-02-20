@@ -84,6 +84,12 @@ export default async function About() {
         to see if any of their content has changed. If something changes, I
         should know about it within a day and be able to update the site.
       </p>
+
+      <h4 className="mt-4">Are these questions really frequently asked?</h4>
+
+      <p className="mt-2">
+        No, but I like to pretend they would be!
+      </p>
     </div>
   );
 }
