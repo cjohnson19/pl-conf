@@ -1,4 +1,4 @@
-import { format } from "date-fns";
+import { format, isBefore } from "date-fns";
 import { z } from "zod";
 import * as ics from "ics";
 
@@ -53,6 +53,7 @@ export const ScheduledEvent = z
     tags: z.array(z.string()).default([]),
     lastUpdated: DateSchema,
   })
+  .strict()
   .refine(
     (data) =>
       Object.keys(data.importantDates).length === 0 || data.importantDateUrl,
@@ -60,6 +61,16 @@ export const ScheduledEvent = z
       message: "A reference url must be provided if there are important dates",
       path: ["importantDateUrl", "importantDates"],
     },
+  )
+  .refine(
+    (data) => {
+      if (data.date.start === "TBD" || data.date.end === "TBD") return true;
+      return data.date.start === data.date.end || isBefore(data.date.start, data.date.end);
+    },
+    {
+      message: "Event's start must be the same or before the end",
+      path: ['date']
+    }
   );
 
 export function dateNameToReadable(name: DateName): string {
