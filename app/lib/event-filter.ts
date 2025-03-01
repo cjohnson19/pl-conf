@@ -32,6 +32,10 @@ export const openToNewSubmissions: (enabled: boolean) => EventFilter = (on) => (
   return isFuture(dates[0])
 }
 
+export const hasFutureDeadline: EventFilter = (e) => {
+  return Object.values(e.importantDates).some(isFuture);
+}
+
 export const isBetween: (range: DateRange) => EventFilter = ({ from, to }) =>
   (e) =>
     hasDate(e.date.start) &&

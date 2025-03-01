@@ -11,6 +11,8 @@ import { PreferenceCollection } from "@/lib/event-prefs";
 import { HiddenFilter } from "./hidden-filter";
 import { Skeleton } from "./ui/skeleton";
 import { OpenSubmissionFilter } from "./open-submission-filter";
+import { EventSorter, sortByEventDate } from "@/lib/event-sorter";
+import { SortOptions } from "./sort-options";
 
 export function EventList({ events }: { events: string }) {
   const [prefsLoaded, setPrefsLoaded] = useState<boolean>(false);
@@ -24,6 +26,7 @@ export function EventList({ events }: { events: string }) {
   );
   const [showHidden, setShowHidden] = useState<boolean>(false);
   const [userPrefs, setUserPrefs] = useState<PreferenceCollection>({});
+  const [sorter, setSorter] = useState<EventSorter>(() => sortByEventDate);
 
   function filterEvents(es: ScheduledEvent[]): ScheduledEvent[] {
     return applyFilters(
@@ -75,6 +78,7 @@ export function EventList({ events }: { events: string }) {
             <CategoryFilter setValue={setCategoryFilter} />
             <OpenSubmissionFilter setValue={setOpenSubmissionFilter} />
             <HiddenFilter value={showHidden} setValue={setShowHidden} />
+            <SortOptions setValue={setSorter} />
           </div>
         </div>
         {!prefsLoaded
@@ -82,13 +86,7 @@ export function EventList({ events }: { events: string }) {
               <Skeleton key={i} className="h-48 w-full rounded-2xl"></Skeleton>
             ))
           : filterEvents(es)
-              .sort((a, b) => {
-                return b.date.start === "TBD"
-                  ? -1
-                  : a.date.start === "TBD"
-                  ? 1
-                  : a.date.start.localeCompare(b.date.start);
-              })
+              .sort((a, b) => sorter(a, b))
               .sort((a, b) => {
                 return userPrefs[a.name]?.favorite
                   ? -1
