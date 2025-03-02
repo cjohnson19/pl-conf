@@ -1,4 +1,4 @@
-import { compareAsc } from "date-fns";
+import { compareAsc, compareDesc } from "date-fns";
 import { ScheduledEvent } from "./event";
 
 export type EventSorter = (a: ScheduledEvent, b: ScheduledEvent) => number;
@@ -20,6 +20,10 @@ export function sortByFirstDeadline(a: ScheduledEvent, b: ScheduledEvent): numbe
 
 export function sortByEventDate(a: ScheduledEvent, b: ScheduledEvent): number {
   return compareAsc(a.date.start, b.date.start);
+}
+
+export function sortByLastUpdated(a: ScheduledEvent, b: ScheduledEvent): number {
+  return compareDesc(a.lastUpdated, b.lastUpdated);
 }
 
 export function compose(s1: EventSorter, s2: EventSorter): EventSorter {

@@ -3,6 +3,7 @@ import {
   EventSorter,
   sortByEventDate,
   sortByFirstDeadline,
+  sortByLastUpdated,
 } from "@/lib/event-sorter";
 import { Dispatch, SetStateAction, useState } from "react";
 import {
@@ -47,6 +48,15 @@ export function SortOptions({
             }}
           >
             Earliest Deadline
+          </DropdownMenuRadioItem>
+          <DropdownMenuRadioItem
+            value="three"
+            onClick={() => {
+              sv(() => "three");
+              setValue(() => sortByLastUpdated);
+            }}
+          >
+            Last Updated
           </DropdownMenuRadioItem>
         </DropdownMenuRadioGroup>
       </DropdownMenuContent>
