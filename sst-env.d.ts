@@ -328,6 +328,25 @@ declare module "sst" {
           "type": "conference"
           "url": string
         }
+        "TACT": {
+          "abbreviation": string
+          "date": {
+            "end": string
+            "start": string
+          }
+          "importantDateUrl": string
+          "importantDates": {
+            "abstract": string
+            "notification": string
+          }
+          "lastUpdated": string
+          "location": string
+          "name": string
+          "notes": any
+          "tags": any
+          "type": "workshop"
+          "url": string
+        }
         "TYPES": {
           "abbreviation": string
           "date": {
