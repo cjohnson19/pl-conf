@@ -3,6 +3,12 @@ import { ScheduledEvent } from "./event";
 
 export type EventSorter = (a: ScheduledEvent, b: ScheduledEvent) => number;
 
+export type EventSorterOptions = {
+  key: string,
+  f: EventSorter,
+  label: string,
+};
+
 export function sortWith<T>(l: T[], fns: ((a: T, b: T) => number)[]): T[] {
   return l.toSorted((a, b) =>
     fns.reduce((p, f) => p === 0 ? f(a, b) : p, 0)
@@ -32,3 +38,21 @@ export function compose(s1: EventSorter, s2: EventSorter): EventSorter {
     return r1 === 0 ? s2(a, b) : r1;
   }
 }
+
+export const sorters: EventSorterOptions[] = [
+  {
+    key: "date",
+    f: sortByEventDate,
+    label: "Event date"
+  },
+  {
+    key: "deadline",
+    f: sortByFirstDeadline,
+    label: "Earliest deadline"
+  },
+  {
+    key: "lastUpdated",
+    f: sortByLastUpdated,
+    label: "Last updated",
+  }
+];

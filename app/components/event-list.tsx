@@ -7,15 +7,19 @@ import { applyFilters, EventFilter } from "../lib/event-filter";
 import { SearchInput } from "./search-input";
 import { DateFilter } from "./date-filter";
 import { format } from "date-fns";
-import { PreferenceCollection } from "@/lib/event-prefs";
+import {
+  defaultPreferences,
+  eventKey,
+  PreferenceCollection,
+} from "@/lib/user-prefs";
 import { HiddenFilter } from "./hidden-filter";
 import { Skeleton } from "./ui/skeleton";
 import { OpenSubmissionFilter } from "./open-submission-filter";
-import { EventSorter, sortByEventDate } from "@/lib/event-sorter";
+import { sorters } from "@/lib/event-sorter";
 import { SortOptions } from "./sort-options";
+import { useLocalStorage } from "@/hooks/use-local-storage";
 
 export function EventList({ events }: { events: string }) {
-  const [prefsLoaded, setPrefsLoaded] = useState<boolean>(false);
   const [categoryFilter, setCategoryFilter] = useState<EventFilter>(
     () => () => true,
   );
@@ -25,29 +29,20 @@ export function EventList({ events }: { events: string }) {
     () => () => true,
   );
   const [showHidden, setShowHidden] = useState<boolean>(false);
-  const [userPrefs, setUserPrefs] = useState<PreferenceCollection>({});
-  const [sorter, setSorter] = useState<EventSorter>(() => sortByEventDate);
-
   function filterEvents(es: ScheduledEvent[]): ScheduledEvent[] {
     return applyFilters(
       es.filter(
         (e) =>
           showHidden ||
-          userPrefs[e.name]?.hidden === undefined ||
-          userPrefs[e.name].hidden === false,
+          userPrefs.eventPrefs[eventKey(e)]?.hidden === undefined ||
+          userPrefs.eventPrefs[eventKey(e)].hidden === false,
       ),
       [categoryFilter, textFilter, yearFilter, openSubmissionFilter],
     );
   }
   const didMount = useRef(false);
-
-  useEffect(() => {
-    const storedPrefs = JSON.parse(
-      window.localStorage.getItem("userPrefs") ?? "{}",
-    );
-    setUserPrefs(storedPrefs);
-    setPrefsLoaded(true);
-  }, []);
+  const [userPrefs, setUserPrefs, prefsLoaded] =
+    useLocalStorage<PreferenceCollection>("userPrefsV2", defaultPreferences);
 
   useEffect(() => {
     if (!didMount.current) {
@@ -55,7 +50,7 @@ export function EventList({ events }: { events: string }) {
       return;
     }
     if (prefsLoaded) {
-      window.localStorage.setItem("userPrefs", JSON.stringify(userPrefs));
+      window.localStorage.setItem("userPrefsV2", JSON.stringify(userPrefs));
     }
   }, [userPrefs, prefsLoaded]);
 
@@ -69,40 +64,40 @@ export function EventList({ events }: { events: string }) {
   ];
 
   return (
-    <>
-      <div className="flex flex-col gap-8 px-4 md:px-11 items-center">
-        <div className="flex flex-col gap-2 w-full">
-          <SearchInput value={textFilter} setValue={setTextFilter} />
-          <div className="flex flex-col w-full items-start justify-between gap-2 mb-4 md:flex-row md:items-center">
-            <DateFilter setValue={setYearFilter} years={eventYears} />
-            <CategoryFilter setValue={setCategoryFilter} />
-            <OpenSubmissionFilter setValue={setOpenSubmissionFilter} />
-            <HiddenFilter value={showHidden} setValue={setShowHidden} />
-            <SortOptions setValue={setSorter} />
-          </div>
+    <div className="flex flex-col gap-8 px-4 md:px-11 items-center">
+      <div className="flex flex-col gap-2 w-full">
+        <SearchInput value={textFilter} setValue={setTextFilter} />
+        <div className="flex flex-col w-full items-start justify-between gap-2 mb-4 md:flex-row md:items-center">
+          <DateFilter setValue={setYearFilter} years={eventYears} />
+          <CategoryFilter setValue={setCategoryFilter} />
+          <OpenSubmissionFilter setValue={setOpenSubmissionFilter} />
+          <HiddenFilter value={showHidden} setValue={setShowHidden} />
+          <SortOptions userPrefs={userPrefs} setUserPrefs={setUserPrefs} />
         </div>
-        {!prefsLoaded
-          ? Array.from({ length: 10 }).map((_, i) => (
-              <Skeleton key={i} className="h-48 w-full rounded-2xl"></Skeleton>
-            ))
-          : filterEvents(es)
-              .sort((a, b) => sorter(a, b))
-              .sort((a, b) => {
-                return userPrefs[a.name]?.favorite
-                  ? -1
-                  : userPrefs[b.name]?.favorite
-                  ? 1
-                  : 0;
-              })
-              .map((e: ScheduledEvent) => (
-                <EventCard
-                  key={e.abbreviation}
-                  e={e}
-                  prefs={userPrefs}
-                  setPrefs={setUserPrefs}
-                />
-              ))}
       </div>
-    </>
+      {!prefsLoaded
+        ? Array.from({ length: 10 }).map((_, i) => (
+            <Skeleton key={i} className="h-48 w-full rounded-2xl"></Skeleton>
+          ))
+        : filterEvents(es)
+            .sort((a, b) =>
+              sorters.find(({ key }) => key === userPrefs.sortBy)!.f(a, b),
+            )
+            .sort((a, b) => {
+              return userPrefs.eventPrefs[eventKey(a)]?.favorite
+                ? -1
+                : userPrefs.eventPrefs[eventKey(b)]?.favorite
+                ? 1
+                : 0;
+            })
+            .map((e: ScheduledEvent) => (
+              <EventCard
+                key={e.abbreviation}
+                e={e}
+                prefs={userPrefs}
+                setPrefs={setUserPrefs}
+              />
+            ))}
+    </div>
   );
 }

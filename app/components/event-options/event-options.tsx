@@ -10,7 +10,7 @@ import { Button } from "../ui/button";
 import { ScheduledEvent } from "@/lib/event";
 import { CalendarEvent } from "./calendar-event";
 import { Dispatch, SetStateAction } from "react";
-import { PreferenceCollection } from "@/lib/event-prefs";
+import { eventKey, PreferenceCollection } from "@/lib/user-prefs";
 
 export function EventOptions({
   e,
@@ -21,6 +21,7 @@ export function EventOptions({
   prefs: PreferenceCollection;
   setPrefs: Dispatch<SetStateAction<PreferenceCollection>>;
 }) {
+  const k = eventKey(e);
   return (
     <DropdownMenu modal={false}>
       <DropdownMenuTrigger asChild>
@@ -33,15 +34,18 @@ export function EventOptions({
           onClick={() => {
             setPrefs((prev) => ({
               ...prev,
-              [e.name]: {
-                ...prev[e.name],
-                hidden: !(prev[e.name]?.hidden ?? false),
+              eventPrefs: {
+                ...prev.eventPrefs,
+                [k]: {
+                  ...prev.eventPrefs[eventKey(e)],
+                  hidden: !(prev.eventPrefs[k]?.hidden ?? false),
+                },
               },
             }));
           }}
           className="flex justify-between"
         >
-          {prefs[e.name]?.hidden ?? false ? (
+          {prefs.eventPrefs[k]?.hidden ?? false ? (
             <>
               Unhide <EyeIcon />
             </>

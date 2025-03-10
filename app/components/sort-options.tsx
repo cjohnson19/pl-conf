@@ -1,11 +1,6 @@
 "use client";
-import {
-  EventSorter,
-  sortByEventDate,
-  sortByFirstDeadline,
-  sortByLastUpdated,
-} from "@/lib/event-sorter";
-import { Dispatch, SetStateAction, useState } from "react";
+import { sorters } from "@/lib/event-sorter";
+import { Dispatch, SetStateAction } from "react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -15,49 +10,38 @@ import {
 } from "./ui/dropdown-menu";
 import { Button } from "./ui/button";
 import { ArrowDownUp } from "lucide-react";
+import { PreferenceCollection } from "@/lib/user-prefs";
 
 export function SortOptions({
-  setValue,
+  userPrefs,
+  setUserPrefs,
 }: {
-  setValue: Dispatch<SetStateAction<EventSorter>>;
+  userPrefs: PreferenceCollection;
+  setUserPrefs: Dispatch<SetStateAction<PreferenceCollection>>;
 }) {
-  const [s, sv] = useState<string>("one");
   return (
-    <DropdownMenu>
+    <DropdownMenu modal={false}>
       <DropdownMenuTrigger asChild>
         <Button variant={"outline"}>
           <ArrowDownUp /> Sort by
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent>
-        <DropdownMenuRadioGroup value={s}>
-          <DropdownMenuRadioItem
-            value="one"
-            onClick={() => {
-              sv(() => "one");
-              setValue(() => sortByEventDate);
-            }}
-          >
-            Event date
-          </DropdownMenuRadioItem>
-          <DropdownMenuRadioItem
-            value="two"
-            onClick={() => {
-              sv(() => "two");
-              setValue(() => sortByFirstDeadline);
-            }}
-          >
-            Earliest Deadline
-          </DropdownMenuRadioItem>
-          <DropdownMenuRadioItem
-            value="three"
-            onClick={() => {
-              sv(() => "three");
-              setValue(() => sortByLastUpdated);
-            }}
-          >
-            Last Updated
-          </DropdownMenuRadioItem>
+        <DropdownMenuRadioGroup value={userPrefs.sortBy}>
+          {sorters.map(({ key, label }, i) => (
+            <DropdownMenuRadioItem
+              key={i}
+              value={key}
+              onClick={() => {
+                setUserPrefs((prev) => ({
+                  ...prev,
+                  sortBy: key,
+                }));
+              }}
+            >
+              {label}
+            </DropdownMenuRadioItem>
+          ))}
         </DropdownMenuRadioGroup>
       </DropdownMenuContent>
     </DropdownMenu>

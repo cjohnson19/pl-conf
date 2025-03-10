@@ -20,7 +20,7 @@ import clsx from "clsx";
 import { format } from "date-fns";
 import { FavoriteButton } from "./favorite-button";
 import { EventOptions } from "./event-options/event-options";
-import { PreferenceCollection } from "@/lib/event-prefs";
+import { eventKey, PreferenceCollection } from "@/lib/user-prefs";
 import { Dispatch, SetStateAction } from "react";
 
 export function EventCard({
@@ -53,7 +53,7 @@ export function EventCard({
                 </Tooltip>
               </TooltipProvider>
               <FavoriteButton
-                eventName={e.name}
+                prefKey={eventKey(e)}
                 prefs={prefs}
                 setPrefs={setPrefs}
               />
