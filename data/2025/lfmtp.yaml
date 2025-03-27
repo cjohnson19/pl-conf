@@ -5,5 +5,13 @@ location: Birmingham, UK
 date:
   start: 2025-07-19
   end: 2025-07-19
-format: TBD
+importantDates:
+  abstract: 2025-05-02
+  paper: 2025-05-09
+  notification: 2025-06-06
+importantDateUrl: >-
+  http://lists.seas.upenn.edu/pipermail/types-announce/2025/011849.html
+notes: 
+  - "Awaiting more authoritative deadline URL"
+format: EPTCS
 type: "workshop"

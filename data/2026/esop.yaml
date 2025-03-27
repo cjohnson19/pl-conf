@@ -1,0 +1,16 @@
+name: European Symposium on Programming
+abbreviation: ESOP
+date:
+  start: 2026-04-11
+  end: 2026-04-16
+location: Torino, Italy
+importantDates:
+  paper: 2025-10-16
+  rebuttal: 2025-12-10
+  notification: 2025-12-22
+url: "https://etaps.org/2026/conferences/esop/"
+importantDateUrl: "https://etaps.org/2026/cfp/"
+type: "conference"
+notes:
+  - Features two-round submission scheme. See important dates url for first
+    round details.

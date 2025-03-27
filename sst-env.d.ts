@@ -66,7 +66,6 @@ declare module "sst" {
           }
           "importantDateUrl": string
           "importantDates": {
-            "camera-ready": string
             "notification": string
             "paper": string
             "rebuttal": string
@@ -192,7 +191,11 @@ declare module "sst" {
             "start": string
           }
           "format": string
+          "importantDateUrl": string
           "importantDates": {
+            "abstract": string
+            "notification": string
+            "paper": string
           }
           "lastUpdated": string
           "location": string
