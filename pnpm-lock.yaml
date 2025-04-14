@@ -69,7 +69,7 @@ importers:
         specifier: ^19.0.0
         version: 19.0.0(react@19.0.0)
       sst:
-        specifier: ^3.4.27
+        specifier: 3.4.27
         version: 3.4.27
       tailwind-merge:
         specifier: ^2.5.5
