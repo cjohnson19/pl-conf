@@ -23,7 +23,7 @@ export function SortOptions({
     <DropdownMenu modal={false}>
       <DropdownMenuTrigger asChild>
         <Button variant={"outline"}>
-          <ArrowDownUp /> Sort by
+          <ArrowDownUp /> <span className="hidden md:inline">Sort by</span>
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent>

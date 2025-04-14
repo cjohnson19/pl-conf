@@ -1,5 +1,5 @@
 h1 {
-  @apply scroll-m-20 text-4xl font-extrabold tracking-tight lg:text-5xl;
+  @apply scroll-m-20 text-lg font-extrabold tracking-tight sm:text-xl md:text-2xl;
 }
 
 h2 {
@@ -23,7 +23,7 @@ h6 {
 }
 
 p {
-  @apply leading-7;
+  @apply leading-7 text-xs sm:text-base;
 }
 
 blockquote {
@@ -49,6 +49,7 @@ td {
 code {
   @apply relative rounded bg-muted px-[0.3rem] py-[0.2rem] font-mono text-sm font-semibold;
 }
+
 small {
   @apply text-sm font-medium leading-none;
 }

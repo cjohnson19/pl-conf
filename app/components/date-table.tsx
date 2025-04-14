@@ -32,7 +32,7 @@ export function DateTable({
       <div className="flex gap-2 justify-start items-start">
         {url && (
           <div className="flex flex-row gap-4 items-stretch justify-start flex-wrap">
-            <h4>
+            <h4 className="text-sm sm:text-lg md:text-xl">
               <Link href={url}>Dates & Deadlines</Link>
             </h4>
             {notes.map((note, i) => (
@@ -54,7 +54,7 @@ export function DateTable({
                 <TableRow key={i}>
                   <TableCell>{dateNameToReadable(k as DateName)}</TableCell>
                   <TableCell>{dateToString(v)}</TableCell>
-                  <TableCell align="right">
+                  <TableCell align="right" className="text-muted-foreground">
                     <TimeUntil
                       date={v}
                       className="text-muted-foreground"

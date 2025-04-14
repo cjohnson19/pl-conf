@@ -23,10 +23,13 @@ export function HiddenFilter({
             variant={"outline"}
             onClick={() => setValue((v: boolean) => !v)}
           >
-            {value ? <EyeIcon /> : <EyeOffIcon />}
+            {value ? <EyeOffIcon /> : <EyeIcon />}
+            <span className="hidden md:inline">
+              {value ? "Hide hidden items" : "Show hidden items"}
+            </span>
           </Toggle>
         </TooltipTrigger>
-        <TooltipContent>
+        <TooltipContent className="md:hidden">
           {value ? "Hide hidden items" : "Show hidden items"}
         </TooltipContent>
       </Tooltip>

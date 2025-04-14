@@ -18,6 +18,7 @@ export function CategoryFilter({
         setStrValue(v);
         setValue(() => isCategory(v));
       }}
+      asChild
     >
       <ToggleGroupItem value="conference">Conference</ToggleGroupItem>
       <ToggleGroupItem value="workshop">Workshop</ToggleGroupItem>

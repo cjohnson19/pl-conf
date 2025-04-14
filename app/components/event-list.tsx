@@ -67,12 +67,12 @@ export function EventList({ events }: { events: string }) {
     <div className="flex flex-col gap-8 px-4 md:px-11 items-center">
       <div className="flex flex-col gap-2 w-full">
         <SearchInput value={textFilter} setValue={setTextFilter} />
-        <div className="flex flex-col w-full items-start justify-between gap-2 mb-4 md:flex-row md:items-center">
+        <div className="flex flex-row flex-wrap w-full justify-start gap-2 mb-4 md:items-center">
           <DateFilter setValue={setYearFilter} years={eventYears} />
           <CategoryFilter setValue={setCategoryFilter} />
-          <OpenSubmissionFilter setValue={setOpenSubmissionFilter} />
           <HiddenFilter value={showHidden} setValue={setShowHidden} />
           <SortOptions userPrefs={userPrefs} setUserPrefs={setUserPrefs} />
+          <OpenSubmissionFilter setValue={setOpenSubmissionFilter} />
         </div>
       </div>
       {!prefsLoaded

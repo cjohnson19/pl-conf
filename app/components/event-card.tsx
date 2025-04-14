@@ -32,20 +32,25 @@ export function EventCard({
   prefs: PreferenceCollection;
   setPrefs: Dispatch<SetStateAction<PreferenceCollection>>;
 }) {
+  const abbrevYear = (
+    <>
+      {e.abbreviation} &apos;{format(e.date.start, "yy")}
+    </>
+  );
   return (
     <Card className="w-full bg-muted/80">
-      <CardHeader>
+      <CardHeader className="p-4 sm:p-6">
         <div className="flex flex-col justify-between gap-1 w-full">
           <CardTitle className="flex gap-3 justify-between items-center">
-            <div className="flex gap-2 items-start justify-start">
+            <div className="flex gap-2 items-start justify-start flex-grow">
               <TooltipProvider>
                 <Tooltip delayDuration={100}>
                   <TooltipTrigger asChild>
-                    <h3>
+                    <h3 className="text-sm sm:text-lg md:text-xl">
                       {e.url ? (
-                        <Link href={e.url}>{e.abbreviation}</Link>
+                        <Link href={e.url}>{abbrevYear}</Link>
                       ) : (
-                        e.abbreviation
+                        abbrevYear
                       )}
                     </h3>
                   </TooltipTrigger>

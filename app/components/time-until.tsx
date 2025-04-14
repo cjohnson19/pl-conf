@@ -12,7 +12,6 @@ import React from "react";
 export function TimeUntil({
   date,
   prefix,
-  ...props
 }: {
   date: string;
   prefix?: string;
@@ -42,7 +41,7 @@ export function TimeUntil({
   const sameDay = isSameDay(now, endOfDay(date));
 
   return (
-    <p {...props}>
+    <>
       {prefix ? prefix + " " : null}
       {sameDay
         ? "Today"
@@ -53,6 +52,6 @@ export function TimeUntil({
             zero: false,
             delimiter: ", ",
           })}
-    </p>
+    </>
   );
 }
