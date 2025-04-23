@@ -32,7 +32,7 @@ declare module "sst" {
           "name": string
           "notes": any
           "tags": any
-          "type": "workshop"
+          "type": "symposium"
           "url": string
         }
         "CADE": {
@@ -97,7 +97,7 @@ declare module "sst" {
           "name": string
           "notes": any
           "tags": any
-          "type": "workshop"
+          "type": "conference"
           "url": string
         }
         "FoSSaCS": {
@@ -245,7 +245,7 @@ declare module "sst" {
           "name": string
           "notes": any
           "tags": any
-          "type": "conference"
+          "type": "symposium"
           "url": string
         }
         "LSFA": {
@@ -266,7 +266,7 @@ declare module "sst" {
           "name": string
           "notes": any
           "tags": any
-          "type": "workshop"
+          "type": "symposium"
           "url": string
         }
         "OOPSLA": {
@@ -328,7 +328,7 @@ declare module "sst" {
           "name": string
           "notes": any
           "tags": any
-          "type": "conference"
+          "type": "symposium"
           "url": string
         }
         "TACT": {

@@ -1,13 +1,15 @@
 "use client";
 import { EventFilter, hasYear } from "@/lib/event-filter";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "./ui/select";
 import { Dispatch, SetStateAction, useState } from "react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
+  DropdownMenuTrigger,
+} from "./ui/dropdown-menu";
+import { Button } from "./ui/button";
+import { CalendarRangeIcon } from "lucide-react";
 
 export function DateFilter({
   setValue,
@@ -20,23 +22,28 @@ export function DateFilter({
   return years.length <= 1 ? (
     <></>
   ) : (
-    <Select
-      onValueChange={(v) =>{
-        setStrValue(v);
-        setValue(() => hasYear(v));
-      }}
-      value={strValue}
-    >
-      <SelectTrigger>
-        <SelectValue placeholder="Filter by Year" />
-      </SelectTrigger>
-      <SelectContent>
-        {years.map((year) => (
-          <SelectItem value={year} key={year}>
-            {year}
-          </SelectItem>
-        ))}
-      </SelectContent>
-    </Select>
+    <DropdownMenu modal={false}>
+      <DropdownMenuTrigger asChild>
+        <Button variant={"outline"}>
+          <CalendarRangeIcon /> <span className="hidden md:inline">Year</span>
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent>
+        <DropdownMenuRadioGroup value={strValue}>
+          {years.map((l, i) => (
+            <DropdownMenuRadioItem
+              key={i}
+              value={l}
+              onClick={() => {
+                setStrValue(l);
+                setValue(() => hasYear(l));
+              }}
+            >
+              {l}
+            </DropdownMenuRadioItem>
+          ))}
+        </DropdownMenuRadioGroup>
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 }

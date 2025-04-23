@@ -28,7 +28,9 @@ const DateName = z.enum([
 
 export type DateName = z.infer<typeof DateName>;
 
-const EventType = z.enum(["conference", "workshop", "journal"]);
+export const eventTypes = ["conference", "workshop", "symposium"] as const;
+
+const EventType = z.enum(eventTypes);
 
 export type EventType = z.infer<typeof EventType>;
 
