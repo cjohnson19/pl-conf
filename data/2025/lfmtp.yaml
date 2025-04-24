@@ -9,9 +9,6 @@ importantDates:
   abstract: 2025-05-02
   paper: 2025-05-09
   notification: 2025-06-06
-importantDateUrl: >-
-  http://lists.seas.upenn.edu/pipermail/types-announce/2025/011849.html
-notes: 
-  - "Awaiting more authoritative deadline URL"
+importantDateUrl: "https://lfmtp.github.io/lfmtp-page/workshops/2025/"
 format: EPTCS
 type: "workshop"
