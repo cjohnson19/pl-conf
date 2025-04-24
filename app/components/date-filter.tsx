@@ -18,7 +18,7 @@ export function DateFilter({
   setValue: Dispatch<SetStateAction<EventFilter>>;
   years: string[];
 }) {
-  const [strValue, setStrValue] = useState<string>("");
+  const [strValue, setStrValue] = useState<string>("Any");
   return years.length <= 1 ? (
     <></>
   ) : (
@@ -30,6 +30,15 @@ export function DateFilter({
       </DropdownMenuTrigger>
       <DropdownMenuContent>
         <DropdownMenuRadioGroup value={strValue}>
+          <DropdownMenuRadioItem
+            value={"Any"}
+            onClick={() => {
+              setStrValue("Any");
+              setValue(() => () => true);
+            }}
+          >
+            Any
+          </DropdownMenuRadioItem>
           {years.map((l, i) => (
             <DropdownMenuRadioItem
               key={i}

@@ -48,7 +48,7 @@ export function EventCard({
                   <TooltipTrigger asChild>
                     <h3 className="text-sm sm:text-lg md:text-xl">
                       {e.url ? (
-                        <Link href={e.url}>{abbrevYear}</Link>
+                        <Link href={e.url} target="_blank">{abbrevYear}</Link>
                       ) : (
                         abbrevYear
                       )}

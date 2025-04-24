@@ -1,12 +1,13 @@
 import { Dispatch, SetStateAction } from "react";
-import { EyeIcon, EyeOffIcon } from "lucide-react";
+import { EyeIcon } from "lucide-react";
 import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "./ui/tooltip";
-import { Toggle } from "./ui/toggle";
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
+  DropdownMenuTrigger,
+} from "./ui/dropdown-menu";
+import { Button } from "./ui/button";
 
 export function HiddenFilter({
   value,
@@ -16,23 +17,32 @@ export function HiddenFilter({
   setValue: Dispatch<SetStateAction<boolean>>;
 }) {
   return (
-    <TooltipProvider>
-      <Tooltip delayDuration={100}>
-        <TooltipTrigger asChild>
-          <Toggle
-            variant={"outline"}
-            onClick={() => setValue((v: boolean) => !v)}
+    <DropdownMenu modal={false}>
+      <DropdownMenuTrigger asChild>
+        <Button variant={"outline"}>
+          <EyeIcon /> <span className="hidden md:inline">Hidden Items</span>
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent>
+        <DropdownMenuRadioGroup value={value ? "Show" : "Hide"}>
+          <DropdownMenuRadioItem
+            value={"Hide"}
+            onClick={() => {
+              setValue(() => false);
+            }}
           >
-            {value ? <EyeOffIcon /> : <EyeIcon />}
-            <span className="hidden md:inline">
-              {value ? "Hide hidden items" : "Show hidden items"}
-            </span>
-          </Toggle>
-        </TooltipTrigger>
-        <TooltipContent className="md:hidden">
-          {value ? "Hide hidden items" : "Show hidden items"}
-        </TooltipContent>
-      </Tooltip>
-    </TooltipProvider>
+            Do not show hidden items
+          </DropdownMenuRadioItem>
+          <DropdownMenuRadioItem
+            value={"Show"}
+            onClick={() => {
+              setValue(() => true);
+            }}
+          >
+            Show hidden items
+          </DropdownMenuRadioItem>
+        </DropdownMenuRadioGroup>
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 }

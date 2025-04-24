@@ -33,7 +33,9 @@ export function DateTable({
         {url && (
           <div className="flex flex-row gap-4 items-stretch justify-start flex-wrap">
             <h4 className="text-sm sm:text-lg md:text-xl">
-              <Link href={url}>Dates & Deadlines</Link>
+              <Link href={url} target="_blank">
+                Dates & Deadlines
+              </Link>
             </h4>
             {notes.map((note, i) => (
               <Badge key={i} variant={"default"}>

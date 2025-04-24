@@ -18,7 +18,7 @@ export function CategoryFilter({
 }: {
   setValue: Dispatch<SetStateAction<EventFilter>>;
 }) {
-  const [strValue, setStrValue] = useState<string>("");
+  const [strValue, setStrValue] = useState<string>("Any");
   return (
     <DropdownMenu modal={false}>
       <DropdownMenuTrigger asChild>
