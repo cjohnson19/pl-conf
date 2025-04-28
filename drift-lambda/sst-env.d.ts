@@ -121,6 +121,25 @@ declare module "sst" {
           "type": "conference"
           "url": string
         }
+        "HOPE": {
+          "abbreviation": string
+          "date": {
+            "end": string
+            "start": string
+          }
+          "importantDateUrl": string
+          "importantDates": {
+            "notification": string
+            "paper": string
+          }
+          "lastUpdated": string
+          "location": string
+          "name": string
+          "notes": any
+          "tags": any
+          "type": "workshop"
+          "url": string
+        }
         "ICFP": {
           "abbreviation": string
           "date": {
