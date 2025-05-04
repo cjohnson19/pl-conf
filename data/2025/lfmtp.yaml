@@ -6,8 +6,8 @@ date:
   start: 2025-07-19
   end: 2025-07-19
 importantDates:
-  abstract: 2025-05-02
-  paper: 2025-05-09
+  abstract: 2025-05-09
+  paper: 2025-05-16
   notification: 2025-06-06
 importantDateUrl: "https://lfmtp.github.io/lfmtp-page/workshops/2025/"
 format: EPTCS

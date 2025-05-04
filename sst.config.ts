@@ -98,23 +98,27 @@ export default $config({
       properties: { events },
     });
 
-    const webpageBucket = new sst.aws.Bucket("WebpageBucket", {
-      versioning: true,
-    });
+    // Drift lambda only should run in prod (i.e. not in PRs)
+    if ($app.stage === 'production') {
+      const webpageBucket = new sst.aws.Bucket("WebpageBucket", {
+        versioning: true,
+      });
 
-    const driftEmail = new sst.aws.Email("DriftEmail", {
-      sender: `drift-${$app.stage}@pl-conferences.com`,
-    });
+      const driftEmail = new sst.aws.Email("DriftEmail", {
+        sender: `drift-${$app.stage}@pl-conferences.com`,
+      });
 
-    const driftFunction = new sst.aws.Function("DriftFunction", {
-      handler: "drift-lambda/index.handler",
-      link: [eventLink, webpageBucket, driftEmail],
-    });
+      const driftFunction = new sst.aws.Function("DriftFunction", {
+        handler: "drift-lambda/index.handler",
+        link: [eventLink, webpageBucket, driftEmail],
+      });
 
-    new sst.aws.Cron("DriftCronJob", {
-      function: driftFunction.arn,
-      schedule: "cron(0 17 * * ? *)",
-    });
+      new sst.aws.Cron("DriftCronJob", {
+        function: driftFunction.arn,
+        schedule: "cron(0 17 * * ? *)",
+      });
+
+    }
 
     new sst.aws.Nextjs("PLConf", {
       link: [eventLink],
