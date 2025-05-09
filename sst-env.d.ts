@@ -6,6 +6,15 @@ import "sst"
 export {}
 declare module "sst" {
   export interface Resource {
+    "DriftEmail": {
+      "configSet": string
+      "sender": string
+      "type": "sst.aws.Email"
+    }
+    "DriftFunction": {
+      "name": string
+      "type": "sst.aws.Function"
+    }
     "EventList": {
       "events": {
         "ASL": {
@@ -406,6 +415,10 @@ declare module "sst" {
     "PLConf": {
       "type": "sst.aws.Nextjs"
       "url": string
+    }
+    "WebpageBucket": {
+      "name": string
+      "type": "sst.aws.Bucket"
     }
   }
 }
