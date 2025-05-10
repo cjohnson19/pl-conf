@@ -7,7 +7,9 @@ date:
 url: "https://cs.newpaltz.edu/unif2025/"
 type: "workshop"
 importantDates:
-  paper: 2025-05-07
+  paper: 2025-05-17
   notification: 2025-05-29
   camera-ready: 2025-07-13
-importantDateUrl: "https://cs.newpaltz.edu/unif2025/importantdates.html"
+importantDateUrl: "https://lists.seas.upenn.edu/pipermail/types-announce/2025/011947.html"
+notes:
+  - Submission deadline not reflected on workshop's webpage as of May 10th
