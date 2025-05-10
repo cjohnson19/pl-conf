@@ -1,4 +1,5 @@
-import { Dispatch, SetStateAction } from "react";
+"use client";
+import { Dispatch, SetStateAction, useState } from "react";
 import { EyeIcon } from "lucide-react";
 import {
   DropdownMenu,
@@ -8,14 +9,17 @@ import {
   DropdownMenuTrigger,
 } from "./ui/dropdown-menu";
 import { Button } from "./ui/button";
+import { EventFilter, hiddenFilter } from "@/lib/event-filter";
+import { PreferenceCollection } from "@/lib/user-prefs";
 
 export function HiddenFilter({
-  value,
   setValue,
+  userPrefs,
 }: {
-  value: boolean;
-  setValue: Dispatch<SetStateAction<boolean>>;
+  setValue: Dispatch<SetStateAction<EventFilter>>;
+  userPrefs: PreferenceCollection;
 }) {
+  const [strValue, setStrValue] = useState<string>("visible");
   return (
     <DropdownMenu modal={false}>
       <DropdownMenuTrigger asChild>
@@ -24,22 +28,33 @@ export function HiddenFilter({
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent>
-        <DropdownMenuRadioGroup value={value ? "Show" : "Hide"}>
+        <DropdownMenuRadioGroup value={strValue}>
           <DropdownMenuRadioItem
-            value={"Hide"}
+            value={"visible"}
             onClick={() => {
-              setValue(() => false);
+              setStrValue("visible");
+              setValue(() => hiddenFilter(userPrefs.eventPrefs)("visible"));
             }}
           >
-            Do not show hidden items
+            Do not show hidden
           </DropdownMenuRadioItem>
           <DropdownMenuRadioItem
-            value={"Show"}
+            value={"hidden"}
             onClick={() => {
-              setValue(() => true);
+              setValue(() => hiddenFilter(userPrefs.eventPrefs)("hidden"));
+              setStrValue("hidden");
             }}
           >
-            Show hidden items
+            Show only hidden
+          </DropdownMenuRadioItem>
+          <DropdownMenuRadioItem
+            value={"all"}
+            onClick={() => {
+              setStrValue("all");
+              setValue(() => hiddenFilter(userPrefs.eventPrefs)("all"));
+            }}
+          >
+            Show all
           </DropdownMenuRadioItem>
         </DropdownMenuRadioGroup>
       </DropdownMenuContent>

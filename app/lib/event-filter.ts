@@ -1,6 +1,7 @@
 import { EventType, ScheduledEvent } from "./event";
 import { DateRange } from "react-day-picker";
 import { isAfter as dateIsAfter, isBefore as dateIsBefore, getYear, isFuture } from "date-fns";
+import { eventKey, PreferenceCollection } from "./user-prefs";
 
 function hasDate(s: string): boolean {
   return s !== "TBD";
@@ -35,6 +36,9 @@ export const openToNewSubmissions: (enabled: boolean) => EventFilter = (on) => (
 export const hasFutureDeadline: EventFilter = (e) => {
   return Object.values(e.importantDates).some(isFuture);
 }
+
+export const hiddenFilter: (prefs: PreferenceCollection['eventPrefs']) => (opt: 'all' | 'hidden' | 'visible') => EventFilter = (prefs) => (opt) =>
+  (e) => opt === 'all' ? true : opt === 'hidden' ? (prefs[eventKey(e)]?.hidden === true) : (prefs[eventKey(e)]?.hidden === undefined || prefs[eventKey(e)].hidden === false)
 
 export const isBetween: (range: DateRange) => EventFilter = ({ from, to }) =>
   (e) =>

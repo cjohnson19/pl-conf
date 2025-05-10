@@ -3,7 +3,7 @@ import { ScheduledEvent } from "../lib/event";
 import { EventCard } from "./event-card";
 import { useEffect, useRef, useState } from "react";
 import { CategoryFilter } from "./category-filter";
-import { applyFilters, EventFilter } from "../lib/event-filter";
+import { applyFilters, EventFilter, hiddenFilter } from "../lib/event-filter";
 import { SearchInput } from "./search-input";
 import { DateFilter } from "./date-filter";
 import { format } from "date-fns";
@@ -20,6 +20,9 @@ import { SortOptions } from "./sort-options";
 import { useLocalStorage } from "@/hooks/use-local-storage";
 
 export function EventList({ events }: { events: string }) {
+  const didMount = useRef(false);
+  const [userPrefs, setUserPrefs, prefsLoaded] =
+    useLocalStorage<PreferenceCollection>("userPrefsV2", defaultPreferences);
   const [categoryFilter, setCategoryFilter] = useState<EventFilter>(
     () => () => true,
   );
@@ -28,21 +31,19 @@ export function EventList({ events }: { events: string }) {
   const [openSubmissionFilter, setOpenSubmissionFilter] = useState<EventFilter>(
     () => () => true,
   );
-  const [showHidden, setShowHidden] = useState<boolean>(false);
+  const [showHiddenFilter, setShowHiddenFilter] = useState<EventFilter>(() =>
+    hiddenFilter(userPrefs.eventPrefs)("visible"),
+  );
+  // const [showHidden, setShowHidden] = useState<boolean>(false);
   function filterEvents(es: ScheduledEvent[]): ScheduledEvent[] {
-    return applyFilters(
-      es.filter(
-        (e) =>
-          showHidden ||
-          userPrefs.eventPrefs[eventKey(e)]?.hidden === undefined ||
-          userPrefs.eventPrefs[eventKey(e)].hidden === false,
-      ),
-      [categoryFilter, textFilter, yearFilter, openSubmissionFilter],
-    );
+    return applyFilters(es, [
+      showHiddenFilter,
+      categoryFilter,
+      textFilter,
+      yearFilter,
+      openSubmissionFilter,
+    ]);
   }
-  const didMount = useRef(false);
-  const [userPrefs, setUserPrefs, prefsLoaded] =
-    useLocalStorage<PreferenceCollection>("userPrefsV2", defaultPreferences);
 
   useEffect(() => {
     if (!didMount.current) {
@@ -70,7 +71,7 @@ export function EventList({ events }: { events: string }) {
         <div className="flex flex-row flex-wrap w-full justify-around gap-2 mb-4 md:items-center">
           <DateFilter setValue={setYearFilter} years={eventYears} />
           <CategoryFilter setValue={setCategoryFilter} />
-          <HiddenFilter value={showHidden} setValue={setShowHidden} />
+          <HiddenFilter setValue={setShowHiddenFilter} userPrefs={userPrefs} />
           <SortOptions userPrefs={userPrefs} setUserPrefs={setUserPrefs} />
           <OpenSubmissionFilter setValue={setOpenSubmissionFilter} />
         </div>
