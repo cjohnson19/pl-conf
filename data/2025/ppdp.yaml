@@ -8,8 +8,8 @@ format: ACM
 url: "https://ppdp25.github.io/site/"
 type: "conference"
 importantDates:
-  abstract: 2025-05-18
-  paper: 2025-05-30
+  abstract: 2025-05-26
+  paper: 2025-06-02
   notification: 2025-07-07
   camera-ready: 2025-07-21
 importantDateUrl: "https://ppdp25.github.io/site/cfp/"
