@@ -409,6 +409,27 @@ declare module "sst" {
           "type": "workshop"
           "url": string
         }
+        "VMCAI": {
+          "abbreviation": string
+          "date": {
+            "end": string
+            "start": string
+          }
+          "importantDateUrl": string
+          "importantDates": {
+            "camera-ready": string
+            "notification": string
+            "paper": string
+            "rebuttal": string
+          }
+          "lastUpdated": string
+          "location": string
+          "name": string
+          "notes": any
+          "tags": any
+          "type": "conference"
+          "url": string
+        }
       }
       "type": "sst.sst.Linkable"
     }

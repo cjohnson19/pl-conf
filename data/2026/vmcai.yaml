@@ -1,0 +1,14 @@
+name: Conference on Verification, Model Checking, and Abstract Interpretation
+abbreviation: VMCAI
+date:
+  start: 2026-01-11
+  end: 2026-01-17
+location: Rennes, France
+importantDates:
+  paper: 2025-09-10
+  rebuttal: 2025-09-22
+  notification: 2025-11-06
+  camera-ready: 2025-11-20
+url: "https://conf.researchr.org/home/VMCAI-2026"
+importantDateUrl: "https://conf.researchr.org/home/VMCAI-2026"
+type: "conference"
