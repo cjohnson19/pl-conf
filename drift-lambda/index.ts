@@ -22,7 +22,7 @@ function zip<T, U>(a: T[], b: U[]): [T, U][] {
 }
 const s3Client = new S3Client();
 
-function sameContent(
+function diffContent(
   stored: string | undefined,
   current: string | undefined,
 ): diff.Diff[] {
@@ -202,8 +202,8 @@ export const handler = async () => {
     return [
       abbrev,
       {
-        main: sameContent(storedInfo.main, currentInfo.main),
-        importantDates: sameContent(
+        main: diffContent(storedInfo.main, currentInfo.main),
+        importantDates: diffContent(
           storedInfo.importantDates,
           currentInfo.importantDates,
         ),
