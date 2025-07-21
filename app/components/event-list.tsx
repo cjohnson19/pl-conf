@@ -3,7 +3,7 @@ import { ScheduledEvent } from "../lib/event";
 import { EventCard } from "./event-card";
 import { useEffect, useRef, useState } from "react";
 import { CategoryFilter } from "./category-filter";
-import { applyFilters, EventFilter, hiddenFilter } from "../lib/event-filter";
+import { applyFilters, EventFilter, hiddenFilter, isActive } from "../lib/event-filter";
 import { SearchInput } from "./search-input";
 import { DateFilter } from "./date-filter";
 import { format } from "date-fns";
@@ -37,6 +37,7 @@ export function EventList({ events }: { events: string }) {
   // const [showHidden, setShowHidden] = useState<boolean>(false);
   function filterEvents(es: ScheduledEvent[]): ScheduledEvent[] {
     return applyFilters(es, [
+      isActive,
       showHiddenFilter,
       categoryFilter,
       textFilter,
