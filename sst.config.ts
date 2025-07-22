@@ -102,19 +102,30 @@ export default $config({
       versioning: true,
     });
 
-    const driftEmail = new sst.aws.Email("DriftEmail", {
-      sender: `drift-${$app.stage}@pl-conferences.com`,
-    });
+    // Only deploy drift detection resources in production
+    if ($app.stage === "production") {
+      const driftEmail = new sst.aws.Email("DriftEmail", {
+        sender: `drift-${$app.stage}@pl-conferences.com`,
+      });
 
-    const driftFunction = new sst.aws.Function("DriftFunction", {
-      handler: "drift-lambda/index.handler",
-      link: [eventLink, webpageBucket, driftEmail],
-    });
+      const driftFunction = new sst.aws.Function("DriftFunction", {
+        handler: "drift-lambda/index.handler",
+        link: [eventLink, webpageBucket, driftEmail],
+        nodejs: {
+          install: [
+            "htmlparser2",
+            "@aws-sdk/client-s3",
+            "@aws-sdk/client-sesv2",
+            "fast-diff"
+          ]
+        }
+      });
 
-    new sst.aws.Cron("DriftCronJob", {
-      function: driftFunction.arn,
-      schedule: "cron(0 17 * * ? *)",
-    });
+      new sst.aws.Cron("DriftCronJob", {
+        function: driftFunction.arn,
+        schedule: "cron(0 17 * * ? *)",
+      });
+    }
 
 
     new sst.aws.Nextjs("PLConf", {
