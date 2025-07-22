@@ -1,4 +1,4 @@
-import { dateToString, ScheduledEvent } from "../lib/event";
+import { dateRangeToString, dateRangeToCompactString, ScheduledEvent } from "../lib/event";
 import {
   Card,
   CardContent,
@@ -41,12 +41,12 @@ export function EventCard({
     <Card className="w-full bg-muted/80">
       <CardHeader className="p-4 sm:p-6">
         <div className="flex flex-col justify-between gap-1 w-full">
-          <CardTitle className="flex gap-3 justify-between items-center">
-            <div className="flex gap-2 items-start justify-start flex-grow">
+          <CardTitle className="flex gap-2 justify-between items-start">
+            <div className="flex gap-2 items-start justify-start flex-grow min-w-0">
               <TooltipProvider>
                 <Tooltip delayDuration={100}>
                   <TooltipTrigger asChild>
-                    <h3 className="text-sm sm:text-lg md:text-xl">
+                    <h3 className="text-base sm:text-lg md:text-xl truncate">
                       {e.url ? (
                         <Link href={e.url} target="_blank">{abbrevYear}</Link>
                       ) : (
@@ -63,17 +63,18 @@ export function EventCard({
                 setPrefs={setPrefs}
               />
             </div>
-            <div className="flex gap-2 items-center justify-end">
+            <div className="flex gap-2 items-center justify-end flex-shrink-0">
               <div className="flex flex-col gap-1 items-end">
-                <p className="text-muted-foreground leading-none text-right">
-                  {e.date.start === "TBD" ? (
-                    "TBD"
-                  ) : (
-                    <>{dateToString(e.date.start)}</>
-                  )}
+                <p className="text-muted-foreground leading-none text-right text-xs sm:text-sm">
+                  <span className="hidden sm:inline">
+                    {dateRangeToString(e.date.start, e.date.end)}
+                  </span>
+                  <span className="sm:hidden">
+                    {dateRangeToCompactString(e.date.start, e.date.end)}
+                  </span>
                 </p>
                 <CardDescription>
-                  <p className="text-muted-foreground leading-none text-right">
+                  <p className="text-muted-foreground leading-none text-right text-xs sm:text-sm">
                     {e.location}
                   </p>
                 </CardDescription>

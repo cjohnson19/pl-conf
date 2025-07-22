@@ -1,4 +1,4 @@
-import { format, isBefore } from "date-fns";
+import { format, isBefore, isSameMonth, isSameYear, isSameDay } from "date-fns";
 import { z } from "zod";
 import * as ics from "ics";
 
@@ -67,12 +67,15 @@ export const ScheduledEvent = z
   .refine(
     (data) => {
       if (data.date.start === "TBD" || data.date.end === "TBD") return true;
-      return data.date.start === data.date.end || isBefore(data.date.start, data.date.end);
+      return (
+        data.date.start === data.date.end ||
+        isBefore(data.date.start, data.date.end)
+      );
     },
     {
       message: "Event's start must be the same or before the end",
-      path: ['date']
-    }
+      path: ["date"],
+    },
   );
 
 export function dateNameToReadable(name: DateName): string {
@@ -103,6 +106,71 @@ export function dateToString(date: MaybeDate): string {
   return format(date, "PPP");
 }
 
+export function dateRangeToString(start: MaybeDate, end: MaybeDate): string {
+  // Handle TBD cases
+  if (start === "TBD" || end === "TBD") {
+    return "TBD";
+  }
+
+  const startDate = new Date(start);
+  const endDate = new Date(end);
+
+  // Single day event
+  if (isSameDay(startDate, endDate)) {
+    return format(startDate, "MMMM do, yyyy");
+  }
+
+  // Same month and year
+  if (isSameMonth(startDate, endDate) && isSameYear(startDate, endDate)) {
+    return `${format(startDate, "MMMM do")}–${format(endDate, "do, yyyy")}`;
+  }
+
+  // Same year but different months
+  if (isSameYear(startDate, endDate)) {
+    return `${format(startDate, "MMMM do")} – ${format(
+      endDate,
+      "MMMM do, yyyy",
+    )}`;
+  }
+
+  // Different years
+  return `${format(startDate, "MMMM do, yyyy")} – ${format(
+    endDate,
+    "MMMM do, yyyy",
+  )}`;
+}
+
+export function dateRangeToCompactString(
+  start: MaybeDate,
+  end: MaybeDate,
+): string {
+  // Handle TBD cases
+  if (start === "TBD" || end === "TBD") {
+    return "TBD";
+  }
+
+  const startDate = new Date(start);
+  const endDate = new Date(end);
+
+  // Single day event
+  if (isSameDay(startDate, endDate)) {
+    return format(startDate, "M/d/yy");
+  }
+
+  // Same month and year
+  if (isSameMonth(startDate, endDate) && isSameYear(startDate, endDate)) {
+    return `${format(startDate, "M/d")} – ${format(endDate, "M/d/yy")}`;
+  }
+
+  // Same year but different months
+  if (isSameYear(startDate, endDate)) {
+    return `${format(startDate, "M/d")} – ${format(endDate, "M/d/yy")}`;
+  }
+
+  // Different years
+  return `${format(startDate, "M/d/yy")} – ${format(endDate, "M/d/yy")}`;
+}
+
 export function toICal(
   e: ScheduledEvent,
   includeDates: boolean = false,
@@ -126,32 +194,32 @@ export function toICal(
       ...(!includeDates
         ? []
         : Object.entries(e.importantDates).flatMap(([type, date]) => {
-          if (date === "TBD") {
-            return [];
-          }
-          const d = new Date(date);
-          return [
-            {
-              start: [
-                d.getFullYear(),
-                d.getMonth() + 1,
-                d.getDate(),
-              ] as ics.DateTime,
-              end: [
-                d.getFullYear(),
-                d.getMonth() + 1,
-                d.getDate(),
-              ] as ics.DateTime,
-              title: `${e.abbreviation}: ${dateNameToReadable(
-                type as DateName,
-              )}`,
-              description: `${e.name}: ${dateNameToReadable(
-                type as DateName,
-              )}`,
-              url: e.url,
-            },
-          ];
-        })),
+            if (date === "TBD") {
+              return [];
+            }
+            const d = new Date(date);
+            return [
+              {
+                start: [
+                  d.getFullYear(),
+                  d.getMonth() + 1,
+                  d.getDate(),
+                ] as ics.DateTime,
+                end: [
+                  d.getFullYear(),
+                  d.getMonth() + 1,
+                  d.getDate(),
+                ] as ics.DateTime,
+                title: `${e.abbreviation}: ${dateNameToReadable(
+                  type as DateName,
+                )}`,
+                description: `${e.name}: ${dateNameToReadable(
+                  type as DateName,
+                )}`,
+                url: e.url,
+              },
+            ];
+          })),
     ],
     {
       productId: "pl-conferences/ics",

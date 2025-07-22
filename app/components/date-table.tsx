@@ -32,7 +32,7 @@ export function DateTable({
       <div className="flex gap-2 justify-start items-start">
         {url && (
           <div className="flex flex-row gap-4 items-stretch justify-start flex-wrap">
-            <h4 className="text-sm sm:text-lg md:text-xl">
+            <h4 className="text-base sm:text-lg md:text-xl">
               <Link href={url} target="_blank">
                 Dates & Deadlines
               </Link>
