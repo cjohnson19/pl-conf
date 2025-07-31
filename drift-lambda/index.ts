@@ -196,7 +196,9 @@ async function getStoredEventInfo(): Promise<{
 async function getCurrentEventInfo(): Promise<{
   [K in keyof typeof Resource.EventList.events]: EventWebInfo;
 }> {
-  const es = Object.values(Resource.EventList.events).filter((e) => isAfter(e.date.end, new Date()));
+  const es = Object.values(Resource.EventList.events).filter((e) =>
+    isAfter(e.date.end, new Date()),
+  );
   const mainPages: PromiseSettledResult<Pick<EventWebInfo, "main">>[] =
     await Promise.allSettled(
       es.map(async (e) => {
@@ -471,10 +473,10 @@ export const handler = async () => {
     return [
       abbrev,
       {
-        main: diffContent(currentInfo.main, storedInfo.main),
+        main: diffContent(storedInfo.main, currentInfo.main),
         importantDates: diffContent(
-          currentInfo.importantDates,
           storedInfo.importantDates,
+          currentInfo.importantDates,
         ),
       },
     ];
