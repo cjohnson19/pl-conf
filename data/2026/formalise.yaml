@@ -1,0 +1,13 @@
+name: Conference on Formal Methods in Software Engineering
+abbreviation: FORMALISE
+date:
+  start: 2026-04-12
+  end: 2026-04-13
+location: Rio de Janeiro, Brazil
+importantDates:
+  paper: 2025-10-23
+  notification: 2026-01-05
+  camera-ready: 2026-01-26
+url: "https://conf.researchr.org/home/Formalise-2026"
+importantDateUrl: "https://conf.researchr.org/home/Formalise-2026#Call-for-Papers"
+type: "conference"

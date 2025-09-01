@@ -6,15 +6,6 @@ import "sst"
 export {}
 declare module "sst" {
   export interface Resource {
-    "DriftEmail": {
-      "configSet": string
-      "sender": string
-      "type": "sst.aws.Email"
-    }
-    "DriftFunction": {
-      "name": string
-      "type": "sst.aws.Function"
-    }
     "EventList": {
       "events": {
         "ASL": {
@@ -69,6 +60,47 @@ declare module "sst" {
             "notification": string
             "paper": string
             "rebuttal": string
+          }
+          "lastUpdated": string
+          "location": string
+          "name": string
+          "notes": any
+          "tags": any
+          "type": "conference"
+          "url": string
+        }
+        "FLOPS": {
+          "abbreviation": string
+          "date": {
+            "end": string
+            "start": string
+          }
+          "importantDateUrl": string
+          "importantDates": {
+            "abstract": string
+            "camera-ready": string
+            "notification": string
+            "paper": string
+          }
+          "lastUpdated": string
+          "location": string
+          "name": string
+          "notes": any
+          "tags": any
+          "type": "symposium"
+          "url": string
+        }
+        "FORMALISE": {
+          "abbreviation": string
+          "date": {
+            "end": string
+            "start": string
+          }
+          "importantDateUrl": string
+          "importantDates": {
+            "camera-ready": string
+            "notification": string
+            "paper": string
           }
           "lastUpdated": string
           "location": string
