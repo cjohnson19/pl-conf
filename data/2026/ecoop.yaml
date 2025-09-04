@@ -1,0 +1,17 @@
+name: European Conference on Object-Oriented Programming
+abbreviation: ECOOP
+date:
+  start: 2026-06-29
+  end: 2026-07-03
+location: Brussels, Belgium
+importantDates:
+  paper: 2025-11-27
+  rebuttal: 2026-01-16
+  notification: 2026-01-29
+  camera-ready: 2026-04-30
+url: "https://2026.ecoop.org"
+importantDateUrl: "https://2026.ecoop.org/dates"
+type: "conference"
+notes:
+  - Features two-round submission scheme. See important dates url for second
+    round details.
