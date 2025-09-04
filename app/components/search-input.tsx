@@ -10,7 +10,7 @@ export function SearchInput({
   setValue: Dispatch<SetStateAction<EventFilter>>;
 }) {
   const [debounceValue, setDebounceValue] = React.useState<EventFilter>(
-    () => value,
+    () => value
   );
 
   React.useEffect(() => {

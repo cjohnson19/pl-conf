@@ -1,4 +1,8 @@
-import { dateRangeToString, dateRangeToCompactString, ScheduledEvent } from "../lib/event";
+import {
+  dateRangeToString,
+  dateRangeToCompactString,
+  ScheduledEvent,
+} from "../lib/event";
 import {
   Card,
   CardContent,
@@ -48,7 +52,9 @@ export function EventCard({
                   <TooltipTrigger asChild>
                     <h3 className="text-base sm:text-lg md:text-xl truncate">
                       {e.url ? (
-                        <Link href={e.url} target="_blank">{abbrevYear}</Link>
+                        <Link href={e.url} target="_blank">
+                          {abbrevYear}
+                        </Link>
                       ) : (
                         abbrevYear
                       )}

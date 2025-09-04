@@ -31,7 +31,7 @@ export function useLocalStorage<T>(key: string, initialValue: T) {
         console.error(`Error setting localStorage key "${key}":`, error);
       }
     },
-    [key, storedValue],
+    [key, storedValue]
   );
 
   return [storedValue, setValue, isLoaded] as const;

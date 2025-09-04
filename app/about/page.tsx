@@ -87,9 +87,7 @@ export default async function About() {
 
       <h4 className="mt-4">Are these questions really frequently asked?</h4>
 
-      <p className="mt-2">
-        No, but I like to pretend they would be!
-      </p>
+      <p className="mt-2">No, but I like to pretend they would be!</p>
     </div>
   );
 }

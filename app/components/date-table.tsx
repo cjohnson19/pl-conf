@@ -52,7 +52,9 @@ export function DateTable({
                   <TooltipContent className="max-w-xs">
                     <div className="space-y-1">
                       {notes.map((note, i) => (
-                        <p key={i} className="text-sm">{note}</p>
+                        <p key={i} className="text-sm">
+                          {note}
+                        </p>
                       ))}
                     </div>
                   </TooltipContent>

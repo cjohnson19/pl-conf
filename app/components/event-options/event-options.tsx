@@ -45,7 +45,7 @@ export function EventOptions({
           }}
           className="flex justify-between"
         >
-          {prefs.eventPrefs[k]?.hidden ?? false ? (
+          {(prefs.eventPrefs[k]?.hidden ?? false) ? (
             <>
               Unhide <EyeIcon />
             </>

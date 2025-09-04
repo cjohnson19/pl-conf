@@ -48,15 +48,15 @@ export const hasFutureDeadline: EventFilter = (e) => {
 };
 
 export const hiddenFilter: (
-  prefs: PreferenceCollection["eventPrefs"],
+  prefs: PreferenceCollection["eventPrefs"]
 ) => (opt: "all" | "hidden" | "visible") => EventFilter =
   (prefs) => (opt) => (e) =>
     opt === "all"
       ? true
       : opt === "hidden"
-      ? prefs[eventKey(e)]?.hidden === true
-      : prefs[eventKey(e)]?.hidden === undefined ||
-        prefs[eventKey(e)].hidden === false;
+        ? prefs[eventKey(e)]?.hidden === true
+        : prefs[eventKey(e)]?.hidden === undefined ||
+          prefs[eventKey(e)].hidden === false;
 
 export const isBetween: (range: DateRange) => EventFilter =
   ({ from, to }) =>
@@ -70,7 +70,7 @@ export const isBetween: (range: DateRange) => EventFilter =
 
 export function applyFilters(
   events: ScheduledEvent[],
-  filters: EventFilter[],
+  filters: EventFilter[]
 ): ScheduledEvent[] {
   return events.filter((e) => filters.every((f) => f(e)));
 }

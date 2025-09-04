@@ -8,7 +8,7 @@ export async function GET(
   req: NextRequest,
   {
     params,
-  }: { params: Promise<{ slug: keyof typeof Resource.EventList.events }> },
+  }: { params: Promise<{ slug: keyof typeof Resource.EventList.events }> }
 ): Promise<NextResponse> {
   const event = Resource.EventList.events[(await params).slug];
 
@@ -19,7 +19,7 @@ export async function GET(
       },
       {
         status: 404,
-      },
+      }
     );
   }
 

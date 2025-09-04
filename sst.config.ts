@@ -8,20 +8,24 @@ import { lstat, readdir, readFile } from "node:fs/promises";
 import { join } from "node:path";
 import * as YAML from "yaml";
 
-function duplicates(values: { [k: string]: string }): { date: string, names: string[] }[] {
+function duplicates(values: {
+  [k: string]: string;
+}): { date: string; names: string[] }[] {
   const seen = new Map<string, string[]>();
   for (const [dateName, date] of Object.entries(values)) {
     const curr = seen.get(date);
     if (curr !== undefined) {
-      seen.set(date, [...curr, dateName])
+      seen.set(date, [...curr, dateName]);
     } else {
       seen.set(date, [dateName]);
     }
   }
-  return [...seen.entries()].filter(([, v]) => v.length > 1).map(([k, v]) => ({
-    date: k,
-    names: v
-  }))
+  return [...seen.entries()]
+    .filter(([, v]) => v.length > 1)
+    .map(([k, v]) => ({
+      date: k,
+      names: v,
+    }));
 }
 
 async function lastUpdatedDate(fileName: string): Promise<string> {
@@ -53,13 +57,17 @@ async function fromYamlFile(fileName: string): Promise<ScheduledEvent> {
     throw new Error(
       parseRes.error.errors
         .map((e) => `${fileName} ${e.path}: ${e.message}`)
-        .join("\n"),
+        .join("\n")
     );
   } else {
     const dupes = duplicates(parseRes.data.importantDates);
     if (dupes.length > 0) {
-      const duplicateListings = dupes.map(({ date: value, names }) => `${value}: ${names.join(', ')}`).join("\n");
-      console.warn(`Found duplicated values for the important dates in ${parseRes.data.abbreviation}.\n${duplicateListings}\nDouble check these are not a copy paste mistake.`)
+      const duplicateListings = dupes
+        .map(({ date: value, names }) => `${value}: ${names.join(", ")}`)
+        .join("\n");
+      console.warn(
+        `Found duplicated values for the important dates in ${parseRes.data.abbreviation}.\n${duplicateListings}\nDouble check these are not a copy paste mistake.`
+      );
     }
     return parseRes.data;
   }
@@ -84,14 +92,14 @@ export default $config({
         const conferenceFiles = await readdir(join(dataPath, yearDir));
         const res = await Promise.all(
           conferenceFiles.map(async (fileName) =>
-            fromYamlFile(join(dataPath, yearDir, fileName)),
-          ),
+            fromYamlFile(join(dataPath, yearDir, fileName))
+          )
         );
         return res;
-      }),
+      })
     );
     const events = Object.fromEntries(
-      conferences.flat().map((c) => [c.abbreviation, c]),
+      conferences.flat().map((c) => [c.abbreviation, c])
     );
 
     const eventLink = new sst.Linkable("EventList", {
@@ -116,9 +124,9 @@ export default $config({
             "htmlparser2",
             "@aws-sdk/client-s3",
             "@aws-sdk/client-sesv2",
-            "fast-diff"
-          ]
-        }
+            "fast-diff",
+          ],
+        },
       });
 
       new sst.aws.Cron("DriftCronJob", {
@@ -127,15 +135,14 @@ export default $config({
       });
     }
 
-
     new sst.aws.Nextjs("PLConf", {
       link: [eventLink],
       domain:
         $app.stage === "production"
           ? {
-            name: "pl-conferences.com",
-            redirects: ["www.pl-conferences.com"],
-          }
+              name: "pl-conferences.com",
+              redirects: ["www.pl-conferences.com"],
+            }
           : undefined,
     });
   },

@@ -32,12 +32,12 @@ const s3Client = new S3Client();
 
 function diffContent(
   stored: string | undefined,
-  current: string | undefined,
+  current: string | undefined
 ): DiffResult {
   const f = (v: string) =>
     bind(
       DomUtils.findOne((node) => node.name === "body", parseDocument(v)),
-      (v) => DomUtils.innerText(v),
+      (v) => DomUtils.innerText(v)
     );
   const a = bind(stored, f) ?? "";
   const b = bind(current, f) ?? "";
@@ -89,7 +89,7 @@ function formatDiffSection(diffs: diff.Diff[]): string {
 
       if (contextLines.trim()) {
         html += `<div style="color: #666; margin: 4px 0;">...${escapeHtml(
-          contextLines,
+          contextLines
         )}</div>`;
       }
     } else {
@@ -102,7 +102,7 @@ function formatDiffSection(diffs: diff.Diff[]): string {
       const lines = text.split("\n").filter((line) => line.trim());
       lines.forEach((line) => {
         changeBuffer += `<div style="background: ${bgColor}; color: ${color}; padding: 2px 4px; margin: 1px 0; border-left: 3px solid ${color};">${prefix} ${escapeHtml(
-          line,
+          line
         )}</div>`;
       });
     }
@@ -136,12 +136,12 @@ function formatDiffSummary(addedCount: number, removedCount: number): string {
   const parts = [];
   if (addedCount > 0) {
     parts.push(
-      `<span style="color: #22863a;">+${addedCount} characters added</span>`,
+      `<span style="color: #22863a;">+${addedCount} characters added</span>`
     );
   }
   if (removedCount > 0) {
     parts.push(
-      `<span style="color: #cb2431;">-${removedCount} characters removed</span>`,
+      `<span style="color: #cb2431;">-${removedCount} characters removed</span>`
     );
   }
   return parts.length > 0
@@ -165,7 +165,7 @@ async function getStoredEventInfo(): Promise<{
       return {
         importantDates: await res.Body!.transformToString(),
       };
-    }),
+    })
   );
   const mainPages: PromiseSettledResult<Pick<EventWebInfo, "main">>[] =
     await Promise.allSettled(
@@ -178,7 +178,7 @@ async function getStoredEventInfo(): Promise<{
         return {
           main: await res.Body!.transformToString(),
         };
-      }),
+      })
     );
 
   return Object.fromEntries(
@@ -188,7 +188,7 @@ async function getStoredEventInfo(): Promise<{
         ...(r1.status === "fulfilled" ? r1.value : {}),
         ...(r2.status === "fulfilled" ? r2.value : {}),
       },
-    ]),
+    ])
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
   ) as any;
 }
@@ -197,7 +197,7 @@ async function getCurrentEventInfo(): Promise<{
   [K in keyof typeof Resource.EventList.events]: EventWebInfo;
 }> {
   const es = Object.values(Resource.EventList.events).filter((e) =>
-    isAfter(e.date.end, new Date()),
+    isAfter(e.date.end, new Date())
   );
   const mainPages: PromiseSettledResult<Pick<EventWebInfo, "main">>[] =
     await Promise.allSettled(
@@ -213,7 +213,7 @@ async function getCurrentEventInfo(): Promise<{
         return {
           main: await mainPage.text(),
         };
-      }),
+      })
     );
   const cachedDatePages: PromiseSettledResult<
     Pick<EventWebInfo, "importantDates">
@@ -226,7 +226,7 @@ async function getCurrentEventInfo(): Promise<{
       return {
         importantDates: await datePage.text(),
       };
-    }),
+    })
   );
 
   return Object.fromEntries(
@@ -236,13 +236,13 @@ async function getCurrentEventInfo(): Promise<{
         ...(r1.status === "fulfilled" ? r1.value : {}),
         ...(r2.status === "fulfilled" ? r2.value : {}),
       },
-    ]),
+    ])
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
   ) as any;
 }
 
 function toTable(
-  drifts: [string, { main: DiffResult; importantDates: DiffResult }][],
+  drifts: [string, { main: DiffResult; importantDates: DiffResult }][]
 ) {
   const getUrl = (prop: string, abbrev: string): string =>
     prop in
@@ -257,7 +257,7 @@ function toTable(
 
   // Filter to only show events with changes
   const eventsWithChanges = drifts.filter(
-    ([, drift]) => drift.main.hasChanges || drift.importantDates.hasChanges,
+    ([, drift]) => drift.main.hasChanges || drift.importantDates.hasChanges
   );
 
   if (eventsWithChanges.length === 0) {
@@ -361,12 +361,12 @@ function toTable(
                       <span>Main Page</span>
                       <a href="${getUrl(
                         "url",
-                        abbrev,
+                        abbrev
                       )}" class="view-link" target="_blank">View Page →</a>
                     </div>
                     <div class="change-summary">${formatDiffSummary(
                       drift.main.addedCount,
-                      drift.main.removedCount,
+                      drift.main.removedCount
                     )}</div>
                     <div class="diff-section">
                       ${formatDiffSection(drift.main.diffs)}
@@ -383,12 +383,12 @@ function toTable(
                       <span>Important Dates</span>
                       <a href="${getUrl(
                         "importantDateUrl",
-                        abbrev,
+                        abbrev
                       )}" class="view-link" target="_blank">View Page →</a>
                     </div>
                     <div class="change-summary">${formatDiffSummary(
                       drift.importantDates.addedCount,
-                      drift.importantDates.removedCount,
+                      drift.importantDates.removedCount
                     )}</div>
                     <div class="diff-section">
                       ${formatDiffSection(drift.importantDates.diffs)}
@@ -407,17 +407,17 @@ function toTable(
 }
 
 function generateSummarySection(
-  drifts: [string, { main: DiffResult; importantDates: DiffResult }][],
+  drifts: [string, { main: DiffResult; importantDates: DiffResult }][]
 ): string {
   const totalEvents = drifts.length;
   const eventsWithChanges = drifts.filter(
-    ([, drift]) => drift.main.hasChanges || drift.importantDates.hasChanges,
+    ([, drift]) => drift.main.hasChanges || drift.importantDates.hasChanges
   );
   const mainPageChanges = drifts.filter(
-    ([, drift]) => drift.main.hasChanges,
+    ([, drift]) => drift.main.hasChanges
   ).length;
   const datePageChanges = drifts.filter(
-    ([, drift]) => drift.importantDates.hasChanges,
+    ([, drift]) => drift.importantDates.hasChanges
   ).length;
 
   return `
@@ -476,7 +476,7 @@ export const handler = async () => {
         main: diffContent(storedInfo.main, currentInfo.main),
         importantDates: diffContent(
           storedInfo.importantDates,
-          currentInfo.importantDates,
+          currentInfo.importantDates
         ),
       },
     ];
@@ -562,7 +562,7 @@ export const handler = async () => {
       } else {
         console.warn("No important date url for ", abbrev);
       }
-    },
+    }
   );
 
   await Promise.all(putPromises);

@@ -3,7 +3,12 @@ import { ScheduledEvent } from "../lib/event";
 import { EventCard } from "./event-card";
 import { useEffect, useRef, useState } from "react";
 import { CategoryFilter } from "./category-filter";
-import { applyFilters, EventFilter, hiddenFilter, isActive } from "../lib/event-filter";
+import {
+  applyFilters,
+  EventFilter,
+  hiddenFilter,
+  isActive,
+} from "../lib/event-filter";
 import { SearchInput } from "./search-input";
 import { DateFilter } from "./date-filter";
 import { format } from "date-fns";
@@ -24,15 +29,15 @@ export function EventList({ events }: { events: string }) {
   const [userPrefs, setUserPrefs, prefsLoaded] =
     useLocalStorage<PreferenceCollection>("userPrefsV2", defaultPreferences);
   const [categoryFilter, setCategoryFilter] = useState<EventFilter>(
-    () => () => true,
+    () => () => true
   );
   const [textFilter, setTextFilter] = useState<EventFilter>(() => () => true);
   const [yearFilter, setYearFilter] = useState<EventFilter>(() => () => true);
   const [openSubmissionFilter, setOpenSubmissionFilter] = useState<EventFilter>(
-    () => () => true,
+    () => () => true
   );
   const [showHiddenFilter, setShowHiddenFilter] = useState<EventFilter>(() =>
-    hiddenFilter(userPrefs.eventPrefs)("visible"),
+    hiddenFilter(userPrefs.eventPrefs)("visible")
   );
   // const [showHidden, setShowHidden] = useState<boolean>(false);
   function filterEvents(es: ScheduledEvent[]): ScheduledEvent[] {
@@ -61,7 +66,7 @@ export function EventList({ events }: { events: string }) {
     ...new Set(
       es
         .filter((e) => e.date.start !== "TBD")
-        .map((e) => format(e.date.start, "yyyy")),
+        .map((e) => format(e.date.start, "yyyy"))
     ),
   ];
 
@@ -83,14 +88,14 @@ export function EventList({ events }: { events: string }) {
           ))
         : filterEvents(es)
             .sort((a, b) =>
-              sorters.find(({ key }) => key === userPrefs.sortBy)!.f(a, b),
+              sorters.find(({ key }) => key === userPrefs.sortBy)!.f(a, b)
             )
             .sort((a, b) => {
               return userPrefs.eventPrefs[eventKey(a)]?.favorite
                 ? -1
                 : userPrefs.eventPrefs[eventKey(b)]?.favorite
-                ? 1
-                : 0;
+                  ? 1
+                  : 0;
             })
             .map((e: ScheduledEvent) => (
               <EventCard

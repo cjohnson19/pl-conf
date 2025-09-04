@@ -22,9 +22,12 @@ export function TimeUntil({
     if (now.getTime() > new Date(date).getTime()) {
       return;
     }
-    const interval = setInterval(() => {
-      setNow(new Date());
-    }, 1000 * 60 * 60); // Update hourly, it's not that important to be precise
+    const interval = setInterval(
+      () => {
+        setNow(new Date());
+      },
+      1000 * 60 * 60
+    ); // Update hourly, it's not that important to be precise
 
     return () => {
       clearInterval(interval);
@@ -46,12 +49,12 @@ export function TimeUntil({
       {sameDay
         ? "Today"
         : isPast
-        ? "Past"
-        : formatDuration(duration, {
-            format: ["years", "months", "days"],
-            zero: false,
-            delimiter: ", ",
-          })}
+          ? "Past"
+          : formatDuration(duration, {
+              format: ["years", "months", "days"],
+              zero: false,
+              delimiter: ", ",
+            })}
     </>
   );
 }

@@ -62,7 +62,7 @@ export const ScheduledEvent = z
     {
       message: "A reference url must be provided if there are important dates",
       path: ["importantDateUrl", "importantDates"],
-    },
+    }
   )
   .refine(
     (data) => {
@@ -75,7 +75,7 @@ export const ScheduledEvent = z
     {
       message: "Event's start must be the same or before the end",
       path: ["date"],
-    },
+    }
   );
 
 export function dateNameToReadable(name: DateName): string {
@@ -129,20 +129,20 @@ export function dateRangeToString(start: MaybeDate, end: MaybeDate): string {
   if (isSameYear(startDate, endDate)) {
     return `${format(startDate, "MMMM do")} – ${format(
       endDate,
-      "MMMM do, yyyy",
+      "MMMM do, yyyy"
     )}`;
   }
 
   // Different years
   return `${format(startDate, "MMMM do, yyyy")} – ${format(
     endDate,
-    "MMMM do, yyyy",
+    "MMMM do, yyyy"
   )}`;
 }
 
 export function dateRangeToCompactString(
   start: MaybeDate,
-  end: MaybeDate,
+  end: MaybeDate
 ): string {
   // Handle TBD cases
   if (start === "TBD" || end === "TBD") {
@@ -173,7 +173,7 @@ export function dateRangeToCompactString(
 
 export function toICal(
   e: ScheduledEvent,
-  includeDates: boolean = false,
+  includeDates: boolean = false
 ): string {
   if (e.date.start === "TBD" || e.date.end === "TBD") {
     return "";
@@ -211,10 +211,10 @@ export function toICal(
                   d.getDate(),
                 ] as ics.DateTime,
                 title: `${e.abbreviation}: ${dateNameToReadable(
-                  type as DateName,
+                  type as DateName
                 )}`,
                 description: `${e.name}: ${dateNameToReadable(
-                  type as DateName,
+                  type as DateName
                 )}`,
                 url: e.url,
               },
@@ -224,7 +224,7 @@ export function toICal(
     {
       productId: "pl-conferences/ics",
       method: "PUBLISH",
-    },
+    }
   );
   if (iCalEvent.error) {
     throw new Error(iCalEvent.error.message);
