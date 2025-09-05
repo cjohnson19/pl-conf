@@ -506,6 +506,10 @@ declare module "sst" {
       };
       type: "sst.sst.Linkable";
     };
+    NotificationEmail: {
+      type: "sst.sst.Secret";
+      value: string;
+    };
     PLConf: {
       type: "sst.aws.Nextjs";
       url: string;

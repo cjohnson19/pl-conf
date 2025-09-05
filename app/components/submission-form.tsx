@@ -100,7 +100,9 @@ export function SubmissionForm() {
           type: "success",
           text: `Submission successful! ID: ${result.submissionId}`,
         });
-        e.currentTarget.reset();
+        if (e.currentTarget) {
+          e.currentTarget.reset();
+        }
         setImportantDates([]);
       } else {
         const error = await response.json();

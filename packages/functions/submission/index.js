@@ -2,51 +2,11 @@ import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
 import { SESv2Client, SendEmailCommand } from "@aws-sdk/client-sesv2";
 import { Resource } from "sst";
 import { z } from "zod";
+import { SubmissionSchema } from "@pl-conf/core";
 import YAML from "yaml";
 
 const s3 = new S3Client();
 const ses = new SESv2Client();
-
-// Define the schema locally to avoid import issues
-const DateSchema = z
-  .string()
-  .date()
-  .transform((d) => d.replaceAll("-", "/"));
-
-const TBD = z.literal("TBD");
-const MaybeDate = z.union([TBD, DateSchema]);
-
-const DateName = z.enum([
-  "abstract",
-  "paper",
-  "notification",
-  "rebuttal",
-  "conditional-acceptance",
-  "camera-ready",
-  "revisions",
-]);
-
-const EventType = z.enum(["conference", "workshop", "symposium"]);
-
-const SubmissionSchema = z
-  .object({
-    name: z.string().nonempty(),
-    abbreviation: z.string().nonempty(),
-    date: z
-      .object({
-        start: MaybeDate,
-        end: MaybeDate,
-      })
-      .optional()
-      .default({ start: "TBD", end: "TBD" }),
-    location: z.string().optional(),
-    importantDateUrl: z.string().url().optional(),
-    url: z.string().url().optional(),
-    importantDates: z.record(DateName, z.union([TBD, DateSchema])).default({}),
-    notes: z.string().array().default([]),
-    type: EventType,
-  })
-  .strict();
 
 export const handler = async (event) => {
   const headers = {
@@ -69,7 +29,6 @@ export const handler = async (event) => {
     const body = JSON.parse(event.body);
     const eventData = SubmissionSchema.parse(body);
 
-    // Add current timestamp as lastUpdated
     const eventWithTimestamp = {
       ...eventData,
       lastUpdated: new Date().toISOString().split("T")[0], // YYYY-MM-DD format
@@ -83,34 +42,14 @@ export const handler = async (event) => {
     // Convert event data to YAML
     const yamlContent = YAML.stringify(eventWithTimestamp);
 
-    // Create metadata object
-    const metadata = {
-      submittedAt: new Date().toISOString(),
-      abbreviation: eventData.abbreviation,
-      name: eventData.name,
-    };
-
-    // Store in S3
-    await Promise.all([
-      // Store the event YAML
-      s3.send(
-        new PutObjectCommand({
-          Bucket: Resource.SubmissionsBucket.name,
-          Key: yamlKey,
-          Body: yamlContent,
-          ContentType: "application/x-yaml",
-        })
-      ),
-      // Store the metadata
-      s3.send(
-        new PutObjectCommand({
-          Bucket: Resource.SubmissionsBucket.name,
-          Key: metadataKey,
-          Body: JSON.stringify(metadata, null, 2),
-          ContentType: "application/json",
-        })
-      ),
-    ]);
+    await s3.send(
+      new PutObjectCommand({
+        Bucket: Resource.SubmissionsBucket.name,
+        Key: yamlKey,
+        Body: yamlContent,
+        ContentType: "application/x-yaml",
+      })
+    );
 
     // Send notification email
     try {
@@ -118,7 +57,7 @@ export const handler = async (event) => {
         new SendEmailCommand({
           FromEmailAddress: Resource.SubmissionEmail.sender,
           Destination: {
-            ToAddresses: ["cjohnson19@pm.me"],
+            ToAddresses: [Resource.NotificationEmail.value],
           },
           Content: {
             Simple: {

@@ -1,56 +1,42 @@
-import { DomUtils, parseDocument } from "htmlparser2";
-import { Resource } from "sst";
-import {
-  GetObjectCommand,
-  PutObjectCommand,
-  S3Client,
-} from "@aws-sdk/client-s3";
-import { SESv2Client, SendEmailCommand } from "@aws-sdk/client-sesv2";
-import { isAfter } from "date-fns";
-import diff from "fast-diff";
-
-interface EventWebInfo {
-  main?: string;
-  importantDates?: string;
-}
-
-interface DiffResult {
-  diffs: diff.Diff[];
-  addedCount: number;
-  removedCount: number;
-  hasChanges: boolean;
-}
-
-function bind<T, U>(v: T | undefined | null, f: (x: T) => U): U | undefined {
+"use strict";
+var __importDefault =
+  (this && this.__importDefault) ||
+  function (mod) {
+    return mod && mod.__esModule ? mod : { default: mod };
+  };
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.handler = void 0;
+const htmlparser2_1 = require("htmlparser2");
+const sst_1 = require("sst");
+const client_s3_1 = require("@aws-sdk/client-s3");
+const client_sesv2_1 = require("@aws-sdk/client-sesv2");
+const date_fns_1 = require("date-fns");
+const fast_diff_1 = __importDefault(require("fast-diff"));
+function bind(v, f) {
   return v === undefined || v === null ? undefined : f(v);
 }
-
-function zip<T, U>(a: T[], b: U[]): [T, U][] {
+function zip(a, b) {
   return a.map((_, i) => [a[i], b[i]]);
 }
-const s3Client = new S3Client();
-
-function diffContent(
-  stored: string | undefined,
-  current: string | undefined
-): DiffResult {
-  const f = (v: string) =>
+const s3Client = new client_s3_1.S3Client();
+function diffContent(stored, current) {
+  const f = (v) =>
     bind(
-      DomUtils.findOne((node) => node.name === "body", parseDocument(v)),
-      (v) => DomUtils.innerText(v)
+      htmlparser2_1.DomUtils.findOne(
+        (node) => node.name === "body",
+        (0, htmlparser2_1.parseDocument)(v)
+      ),
+      (v) => htmlparser2_1.DomUtils.innerText(v)
     );
   const a = bind(stored, f) ?? "";
   const b = bind(current, f) ?? "";
-  const diffs = diff(a, b);
-
+  const diffs = (0, fast_diff_1.default)(a, b);
   let addedCount = 0;
   let removedCount = 0;
-
   diffs.forEach(([flag, text]) => {
     if (flag === 1) addedCount += text.length;
     if (flag === -1) removedCount += text.length;
   });
-
   return {
     diffs: diffs.filter(([flag]) => flag !== 0),
     addedCount,
@@ -58,39 +44,30 @@ function diffContent(
     hasChanges: diffs.some(([flag]) => flag !== 0),
   };
 }
-
-function formatDiffSection(diffs: diff.Diff[]): string {
+function formatDiffSection(diffs) {
   if (diffs.length === 0) {
     return '<div style="color: #666; font-style: italic;">No changes detected</div>';
   }
-
   // Group consecutive diffs with context
   let html =
     '<div style="font-family: monospace; font-size: 12px; line-height: 1.4; background: #f8f9fa; padding: 10px; border-radius: 4px; overflow-x: auto;">';
-
   let changeBuffer = "";
   let inChangeBlock = false;
-
   // Process diffs to create readable blocks
   for (let i = 0; i < diffs.length; i++) {
     const [flag, text] = diffs[i];
-
     if (flag === 0) {
       // Context text
       const lines = text.split("\n");
       const contextLines = lines.slice(-2).join("\n"); // Keep last 2 lines as context
-
       if (inChangeBlock && changeBuffer) {
         // Output the change block
         html += formatChangeBlock(changeBuffer);
         changeBuffer = "";
         inChangeBlock = false;
       }
-
       if (contextLines.trim()) {
-        html += `<div style="color: #666; margin: 4px 0;">...${escapeHtml(
-          contextLines
-        )}</div>`;
+        html += `<div style="color: #666; margin: 4px 0;">...${escapeHtml(contextLines)}</div>`;
       }
     } else {
       // Changed text
@@ -98,31 +75,24 @@ function formatDiffSection(diffs: diff.Diff[]): string {
       const prefix = flag === 1 ? "+" : "-";
       const color = flag === 1 ? "#22863a" : "#cb2431";
       const bgColor = flag === 1 ? "#e6ffed" : "#ffeef0";
-
       const lines = text.split("\n").filter((line) => line.trim());
       lines.forEach((line) => {
-        changeBuffer += `<div style="background: ${bgColor}; color: ${color}; padding: 2px 4px; margin: 1px 0; border-left: 3px solid ${color};">${prefix} ${escapeHtml(
-          line
-        )}</div>`;
+        changeBuffer += `<div style="background: ${bgColor}; color: ${color}; padding: 2px 4px; margin: 1px 0; border-left: 3px solid ${color};">${prefix} ${escapeHtml(line)}</div>`;
       });
     }
   }
-
   // Output any remaining changes
   if (changeBuffer) {
     html += formatChangeBlock(changeBuffer);
   }
-
   html += "</div>";
   return html;
 }
-
-function formatChangeBlock(changes: string): string {
+function formatChangeBlock(changes) {
   return `<div style="margin: 8px 0;">${changes}</div>`;
 }
-
-function escapeHtml(text: string): string {
-  const map: { [key: string]: string } = {
+function escapeHtml(text) {
+  const map = {
     "&": "&amp;",
     "<": "&lt;",
     ">": "&gt;",
@@ -131,8 +101,7 @@ function escapeHtml(text: string): string {
   };
   return text.replace(/[&<>"']/g, (m) => map[m]);
 }
-
-function formatDiffSummary(addedCount: number, removedCount: number): string {
+function formatDiffSummary(addedCount, removedCount) {
   const parts = [];
   if (addedCount > 0) {
     parts.push(
@@ -148,39 +117,32 @@ function formatDiffSummary(addedCount: number, removedCount: number): string {
     ? parts.join(", ")
     : '<span style="color: #666;">No changes</span>';
 }
-
-async function getStoredEventInfo(): Promise<{
-  [K in keyof typeof Resource.EventList.events]: EventWebInfo;
-}> {
-  const eventAbbrevs = Object.keys(Resource.EventList.events);
-  const importantDatePages: PromiseSettledResult<
-    Pick<EventWebInfo, "importantDates">
-  >[] = await Promise.allSettled(
+async function getStoredEventInfo() {
+  const eventAbbrevs = Object.keys(sst_1.Resource.EventList.events);
+  const importantDatePages = await Promise.allSettled(
     eventAbbrevs.map(async (abbrev) => {
-      const getImportantDatesCommand = new GetObjectCommand({
-        Bucket: Resource.WebpageBucket.name,
+      const getImportantDatesCommand = new client_s3_1.GetObjectCommand({
+        Bucket: sst_1.Resource.WebpageBucket.name,
         Key: `${abbrev}-dates.html`,
       });
       const res = await s3Client.send(getImportantDatesCommand);
       return {
-        importantDates: await res.Body!.transformToString(),
+        importantDates: await res.Body.transformToString(),
       };
     })
   );
-  const mainPages: PromiseSettledResult<Pick<EventWebInfo, "main">>[] =
-    await Promise.allSettled(
-      eventAbbrevs.map(async (abbrev) => {
-        const getMainCommand = new GetObjectCommand({
-          Bucket: Resource.WebpageBucket.name,
-          Key: `${abbrev}-main.html`,
-        });
-        const res = await s3Client.send(getMainCommand);
-        return {
-          main: await res.Body!.transformToString(),
-        };
-      })
-    );
-
+  const mainPages = await Promise.allSettled(
+    eventAbbrevs.map(async (abbrev) => {
+      const getMainCommand = new client_s3_1.GetObjectCommand({
+        Bucket: sst_1.Resource.WebpageBucket.name,
+        Key: `${abbrev}-main.html`,
+      });
+      const res = await s3Client.send(getMainCommand);
+      return {
+        main: await res.Body.transformToString(),
+      };
+    })
+  );
   return Object.fromEntries(
     zip(mainPages, importantDatePages).map(([r1, r2], i) => [
       eventAbbrevs[i],
@@ -190,34 +152,28 @@ async function getStoredEventInfo(): Promise<{
       },
     ])
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  ) as any;
-}
-
-async function getCurrentEventInfo(): Promise<{
-  [K in keyof typeof Resource.EventList.events]: EventWebInfo;
-}> {
-  const es = Object.values(Resource.EventList.events).filter((e) =>
-    isAfter(e.date.end, new Date())
   );
-  const mainPages: PromiseSettledResult<Pick<EventWebInfo, "main">>[] =
-    await Promise.allSettled(
-      es.map(async (e) => {
-        if (!("url" in e)) {
-          return {};
-        }
-        const mainPage = await fetch(e.url, {
-          headers: {
-            "Accept-Language": "en-US,en;q=0.9,de;q=0.8",
-          },
-        });
-        return {
-          main: await mainPage.text(),
-        };
-      })
-    );
-  const cachedDatePages: PromiseSettledResult<
-    Pick<EventWebInfo, "importantDates">
-  >[] = await Promise.allSettled(
+}
+async function getCurrentEventInfo() {
+  const es = Object.values(sst_1.Resource.EventList.events).filter((e) =>
+    (0, date_fns_1.isAfter)(e.date.end, new Date())
+  );
+  const mainPages = await Promise.allSettled(
+    es.map(async (e) => {
+      if (!("url" in e)) {
+        return {};
+      }
+      const mainPage = await fetch(e.url, {
+        headers: {
+          "Accept-Language": "en-US,en;q=0.9,de;q=0.8",
+        },
+      });
+      return {
+        main: await mainPage.text(),
+      };
+    })
+  );
+  const cachedDatePages = await Promise.allSettled(
     es.map(async (e) => {
       if (!("importantDateUrl" in e)) {
         return {};
@@ -228,7 +184,6 @@ async function getCurrentEventInfo(): Promise<{
       };
     })
   );
-
   return Object.fromEntries(
     zip(mainPages, cachedDatePages).map(([r1, r2], i) => [
       es[i].abbreviation,
@@ -238,28 +193,20 @@ async function getCurrentEventInfo(): Promise<{
       },
     ])
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  ) as any;
+  );
 }
-
-function toTable(
-  drifts: [string, { main: DiffResult; importantDates: DiffResult }][]
-) {
-  const getUrl = (prop: string, abbrev: string): string =>
-    prop in
-    Resource.EventList.events[abbrev as keyof typeof Resource.EventList.events]
-      ? ((
-          Resource.EventList.events[
-            abbrev as keyof typeof Resource.EventList.events
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          ] as any
-        )[prop] as string)
+function toTable(drifts) {
+  const getUrl = (prop, abbrev) =>
+    prop in sst_1.Resource.EventList.events[abbrev]
+      ? sst_1.Resource.EventList.events[
+          abbrev
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        ][prop]
       : "Url not available";
-
   // Filter to only show events with changes
   const eventsWithChanges = drifts.filter(
     ([, drift]) => drift.main.hasChanges || drift.importantDates.hasChanges
   );
-
   if (eventsWithChanges.length === 0) {
     return `
       <div style="font-family: Arial, sans-serif; padding: 20px; text-align: center; color: #666;">
@@ -268,7 +215,6 @@ function toTable(
       </div>
     `;
   }
-
   return `
     <style>
       .drift-table {
@@ -343,10 +289,7 @@ function toTable(
         ${eventsWithChanges
           .map(([abbrev, drift]) => {
             const eventName =
-              Resource.EventList.events[
-                abbrev as keyof typeof Resource.EventList.events
-              ].name || abbrev;
-
+              sst_1.Resource.EventList.events[abbrev].name || abbrev;
             return `
               <tr>
                 <td>
@@ -359,15 +302,9 @@ function toTable(
                       ? `
                     <div class="section-header">
                       <span>Main Page</span>
-                      <a href="${getUrl(
-                        "url",
-                        abbrev
-                      )}" class="view-link" target="_blank">View Page →</a>
+                      <a href="${getUrl("url", abbrev)}" class="view-link" target="_blank">View Page →</a>
                     </div>
-                    <div class="change-summary">${formatDiffSummary(
-                      drift.main.addedCount,
-                      drift.main.removedCount
-                    )}</div>
+                    <div class="change-summary">${formatDiffSummary(drift.main.addedCount, drift.main.removedCount)}</div>
                     <div class="diff-section">
                       ${formatDiffSection(drift.main.diffs)}
                     </div>
@@ -381,15 +318,9 @@ function toTable(
                       ? `
                     <div class="section-header">
                       <span>Important Dates</span>
-                      <a href="${getUrl(
-                        "importantDateUrl",
-                        abbrev
-                      )}" class="view-link" target="_blank">View Page →</a>
+                      <a href="${getUrl("importantDateUrl", abbrev)}" class="view-link" target="_blank">View Page →</a>
                     </div>
-                    <div class="change-summary">${formatDiffSummary(
-                      drift.importantDates.addedCount,
-                      drift.importantDates.removedCount
-                    )}</div>
+                    <div class="change-summary">${formatDiffSummary(drift.importantDates.addedCount, drift.importantDates.removedCount)}</div>
                     <div class="diff-section">
                       ${formatDiffSection(drift.importantDates.diffs)}
                     </div>
@@ -405,10 +336,7 @@ function toTable(
     </table>
   `;
 }
-
-function generateSummarySection(
-  drifts: [string, { main: DiffResult; importantDates: DiffResult }][]
-): string {
+function generateSummarySection(drifts) {
   const totalEvents = drifts.length;
   const eventsWithChanges = drifts.filter(
     ([, drift]) => drift.main.hasChanges || drift.importantDates.hasChanges
@@ -419,15 +347,12 @@ function generateSummarySection(
   const datePageChanges = drifts.filter(
     ([, drift]) => drift.importantDates.hasChanges
   ).length;
-
   return `
     <div style="font-family: Arial, sans-serif; background: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px auto; max-width: 800px;">
       <h2 style="color: #333; margin-top: 0;">Summary</h2>
       <ul style="color: #666; line-height: 1.8;">
         <li><strong>${totalEvents}</strong> conferences monitored</li>
-        <li><strong>${
-          eventsWithChanges.length
-        }</strong> conferences with changes detected</li>
+        <li><strong>${eventsWithChanges.length}</strong> conferences with changes detected</li>
         <li><strong>${mainPageChanges}</strong> main page changes</li>
         <li><strong>${datePageChanges}</strong> important dates page changes</li>
       </ul>
@@ -456,38 +381,29 @@ function generateSummarySection(
     </div>
   `;
 }
-
-export const handler = async () => {
+const handler = async () => {
   const storedEventInfo = await getStoredEventInfo();
   const currentEventInfo = await getCurrentEventInfo();
-
-  const drifts: [
-    string,
-    {
-      main: DiffResult;
-      importantDates: DiffResult;
-    },
-  ][] = Object.entries(currentEventInfo).map(([abbrev, currentInfo]) => {
-    const storedInfo =
-      storedEventInfo[abbrev as keyof typeof Resource.EventList.events];
-    return [
-      abbrev,
-      {
-        main: diffContent(storedInfo.main, currentInfo.main),
-        importantDates: diffContent(
-          storedInfo.importantDates,
-          currentInfo.importantDates
-        ),
-      },
-    ];
-  });
-
-  const sesClient = new SESv2Client();
-
-  const sendCommand: SendEmailCommand = new SendEmailCommand({
-    FromEmailAddress: "drift@pl-conferences.com",
+  const drifts = Object.entries(currentEventInfo).map(
+    ([abbrev, currentInfo]) => {
+      const storedInfo = storedEventInfo[abbrev];
+      return [
+        abbrev,
+        {
+          main: diffContent(storedInfo.main, currentInfo.main),
+          importantDates: diffContent(
+            storedInfo.importantDates,
+            currentInfo.importantDates
+          ),
+        },
+      ];
+    }
+  );
+  const sesClient = new client_sesv2_1.SESv2Client();
+  const sendCommand = new client_sesv2_1.SendEmailCommand({
+    FromEmailAddress: sst_1.Resource.DriftEmail.sender,
     Destination: {
-      ToAddresses: ["cjohnson19@pm.me"],
+      ToAddresses: [sst_1.Resource.NotificationEmail.value],
     },
     Content: {
       Simple: {
@@ -536,15 +452,13 @@ export const handler = async () => {
       },
     },
   });
-
   await sesClient.send(sendCommand);
-
   // Store the current event info for the next run
   const putPromises = Object.entries(currentEventInfo).map(
     async ([abbrev, info]) => {
       if (info.main !== undefined) {
-        const putMainCommand = new PutObjectCommand({
-          Bucket: Resource.WebpageBucket.name,
+        const putMainCommand = new client_s3_1.PutObjectCommand({
+          Bucket: sst_1.Resource.WebpageBucket.name,
           Key: `${abbrev}-main.html`,
           Body: info.main,
         });
@@ -553,8 +467,8 @@ export const handler = async () => {
         console.warn("No main page for ", abbrev);
       }
       if (info.importantDates !== undefined) {
-        const putDatesCommand = new PutObjectCommand({
-          Bucket: Resource.WebpageBucket.name,
+        const putDatesCommand = new client_s3_1.PutObjectCommand({
+          Bucket: sst_1.Resource.WebpageBucket.name,
           Key: `${abbrev}-dates.html`,
           Body: info.importantDates,
         });
@@ -564,6 +478,7 @@ export const handler = async () => {
       }
     }
   );
-
   await Promise.all(putPromises);
 };
+exports.handler = handler;
+//# sourceMappingURL=index.js.map

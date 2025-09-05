@@ -1,7 +1,7 @@
 // eslint-disable-next-line @typescript-eslint/triple-slash-reference
 /// <reference path="./.sst/platform/config.d.ts" />
 
-import { ScheduledEvent } from "@/lib/event";
+import { ScheduledEvent } from "./packages/core/src/event.js";
 import { format } from "date-fns";
 import { exec } from "node:child_process";
 import { lstat, readdir, readFile } from "node:fs/promises";
@@ -114,6 +114,9 @@ export default $config({
       versioning: true,
     });
 
+    // Secret for notification email address
+    const notificationEmailSecret = new sst.Secret("NotificationEmail");
+
     // Submission notification email
     const submissionEmail = new sst.aws.Email("SubmissionEmail", {
       sender: `drift-${$app.stage}@pl-conferences.com`,
@@ -121,8 +124,8 @@ export default $config({
 
     // Event submission Lambda and API
     const submissionFunction = new sst.aws.Function("SubmissionFunction", {
-      handler: "submission-lambda/index.handler",
-      link: [submissionsBucket, submissionEmail],
+      handler: "packages/functions/submission/index.handler",
+      link: [submissionsBucket, submissionEmail, notificationEmailSecret],
       nodejs: {
         install: ["zod", "yaml", "@aws-sdk/client-s3", "@aws-sdk/client-sesv2"],
       },
@@ -150,8 +153,8 @@ export default $config({
       });
 
       const driftFunction = new sst.aws.Function("DriftFunction", {
-        handler: "drift-lambda/index.handler",
-        link: [eventLink, webpageBucket, driftEmail],
+        handler: "packages/functions/drift/index.handler",
+        link: [eventLink, webpageBucket, driftEmail, notificationEmailSecret],
         nodejs: {
           install: [
             "htmlparser2",
