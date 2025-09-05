@@ -6,15 +6,6 @@ import "sst"
 export {}
 declare module "sst" {
   export interface Resource {
-    "DriftEmail": {
-      "configSet": string
-      "sender": string
-      "type": "sst.aws.Email"
-    }
-    "DriftFunction": {
-      "name": string
-      "type": "sst.aws.Function"
-    }
     "EventList": {
       "events": {
         "ASL": {
@@ -90,22 +81,6 @@ declare module "sst" {
             "notification": string
             "paper": string
             "rebuttal": string
-          }
-          "lastUpdated": string
-          "location": string
-          "name": string
-          "notes": any
-          "tags": any
-          "type": "conference"
-          "url": string
-        }
-        "FLOC": {
-          "abbreviation": string
-          "date": {
-            "end": string
-            "start": string
-          }
-          "importantDates": {
           }
           "lastUpdated": string
           "location": string
@@ -308,6 +283,7 @@ declare module "sst" {
             "end": string
             "start": string
           }
+          "format": string
           "importantDateUrl": string
           "importantDates": {
             "abstract": string
@@ -320,7 +296,7 @@ declare module "sst" {
           "name": string
           "notes": any
           "tags": any
-          "type": "symposium"
+          "type": "conference"
           "url": string
         }
         "LOPSTR": {
@@ -374,11 +350,6 @@ declare module "sst" {
           "format": string
           "importantDateUrl": string
           "importantDates": {
-            "camera-ready": string
-            "notification": string
-            "paper": string
-            "rebuttal": string
-            "revisions": string
           }
           "lastUpdated": string
           "location": string
@@ -386,25 +357,6 @@ declare module "sst" {
           "notes": any
           "tags": any
           "type": "conference"
-          "url": string
-        }
-        "PEPM": {
-          "abbreviation": string
-          "date": {
-            "end": string
-            "start": string
-          }
-          "importantDateUrl": string
-          "importantDates": {
-            "notification": string
-            "paper": string
-          }
-          "lastUpdated": string
-          "location": string
-          "name": string
-          "notes": any
-          "tags": any
-          "type": "workshop"
           "url": string
         }
         "PLDI": {
@@ -491,44 +443,6 @@ declare module "sst" {
           "type": "workshop"
           "url": string
         }
-        "TFP": {
-          "abbreviation": string
-          "date": {
-            "end": string
-            "start": string
-          }
-          "importantDateUrl": string
-          "importantDates": {
-            "notification": string
-            "paper": string
-          }
-          "lastUpdated": string
-          "location": string
-          "name": string
-          "notes": any
-          "tags": any
-          "type": "symposium"
-          "url": string
-        }
-        "TPSA": {
-          "abbreviation": string
-          "date": {
-            "end": string
-            "start": string
-          }
-          "importantDateUrl": string
-          "importantDates": {
-            "abstract": string
-            "notification": string
-          }
-          "lastUpdated": string
-          "location": string
-          "name": string
-          "notes": any
-          "tags": any
-          "type": "workshop"
-          "url": string
-        }
         "TYPES": {
           "abbreviation": string
           "date": {
@@ -590,45 +504,6 @@ declare module "sst" {
           "type": "conference"
           "url": string
         }
-        "WITS": {
-          "abbreviation": string
-          "date": {
-            "end": string
-            "start": string
-          }
-          "importantDateUrl": string
-          "importantDates": {
-            "abstract": string
-            "notification": string
-          }
-          "lastUpdated": string
-          "location": string
-          "name": string
-          "notes": any
-          "tags": any
-          "type": "workshop"
-          "url": string
-        }
-        "WRLA": {
-          "abbreviation": string
-          "date": {
-            "end": string
-            "start": string
-          }
-          "importantDateUrl": string
-          "importantDates": {
-            "camera-ready": string
-            "notification": string
-            "paper": string
-          }
-          "lastUpdated": string
-          "location": string
-          "name": string
-          "notes": any
-          "tags": any
-          "type": "workshop"
-          "url": string
-        }
       }
       "type": "sst.sst.Linkable"
     }
@@ -639,10 +514,6 @@ declare module "sst" {
     "PLConf": {
       "type": "sst.aws.Nextjs"
       "url": string
-    }
-    "RateLimitTable": {
-      "name": string
-      "type": "sst.aws.Dynamo"
     }
     "SubmissionApi": {
       "type": "sst.aws.ApiGatewayV2"
