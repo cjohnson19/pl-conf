@@ -1,0 +1,14 @@
+{
+  "name": "@pl-conf/functions",
+  "version": "1.0.0",
+  "description": "Lambda functions for PL Conference project",
+  "type": "module",
+  "dependencies": {
+    "@pl-conf/core": "workspace:*",
+    "@aws-sdk/client-s3": "^3.726.1",
+    "@aws-sdk/client-sesv2": "^3.726.1",
+    "yaml": "^2.4.5",
+    "zod": "^3.23.8",
+    "sst": "3.4.27"
+  }
+}

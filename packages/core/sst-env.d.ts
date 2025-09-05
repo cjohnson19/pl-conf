@@ -506,9 +506,30 @@ declare module "sst" {
       };
       type: "sst.sst.Linkable";
     };
+    NotificationEmail: {
+      type: "sst.sst.Secret";
+      value: string;
+    };
     PLConf: {
       type: "sst.aws.Nextjs";
       url: string;
+    };
+    SubmissionApi: {
+      type: "sst.aws.ApiGatewayV2";
+      url: string;
+    };
+    SubmissionEmail: {
+      configSet: string;
+      sender: string;
+      type: "sst.aws.Email";
+    };
+    SubmissionFunction: {
+      name: string;
+      type: "sst.aws.Function";
+    };
+    SubmissionsBucket: {
+      name: string;
+      type: "sst.aws.Bucket";
     };
     WebpageBucket: {
       name: string;

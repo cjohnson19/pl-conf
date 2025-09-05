@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ModeToggle } from "./theme-toggle";
 import { GithubLink } from "./github-link";
+import { SubmitEventButton } from "./submit-event-button";
 
 export function Header() {
   return (
@@ -10,6 +11,7 @@ export function Header() {
       </h4>
       <div className="flex items-center gap-4">
         <Link href="/about">About</Link>
+        <SubmitEventButton />
         <GithubLink />
         <ModeToggle />
       </div>

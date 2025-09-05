@@ -2,6 +2,9 @@
   "name": "pl-conf",
   "version": "0.1.0",
   "private": true,
+  "workspaces": [
+    "packages/*"
+  ],
   "scripts": {
     "dev": "next dev --turbopack",
     "build": "next build",
@@ -10,6 +13,7 @@
     "prepare": "husky"
   },
   "dependencies": {
+    "@pl-conf/core": "workspace:*",
     "@radix-ui/react-accordion": "^1.2.2",
     "@radix-ui/react-dialog": "^1.1.4",
     "@radix-ui/react-dropdown-menu": "^2.1.4",

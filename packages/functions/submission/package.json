@@ -1,0 +1,22 @@
+{
+  "name": "submission-lambda",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@aws-sdk/client-s3": "^3.726.1",
+    "@aws-sdk/client-sesv2": "^3.726.1",
+    "@pl-conf/shared-schemas": "file:../packages/shared-schemas",
+    "yaml": "^2.4.5",
+    "zod": "^3.23.8",
+    "pl-conf": "file:../",
+    "sst": "3.4.27"
+  }
+}

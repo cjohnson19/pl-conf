@@ -1,0 +1,26 @@
+{
+  "name": "@pl-conf/core",
+  "version": "1.0.0",
+  "description": "Core shared modules for PL Conference project",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch"
+  },
+  "dependencies": {
+    "zod": "^3.23.8",
+    "date-fns": "^4.1.0",
+    "ics": "^3.8.1"
+  },
+  "devDependencies": {
+    "typescript": "^5.0.0"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  }
+}
