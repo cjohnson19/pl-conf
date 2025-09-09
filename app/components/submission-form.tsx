@@ -31,7 +31,11 @@ export function SubmissionForm() {
   const [importantDates, setImportantDates] = useState<ImportantDate[]>([]);
 
   const addImportantDate = () => {
-    setImportantDates([...importantDates, { name: "", date: "" }]);
+    const lastDate =
+      importantDates.length > 0
+        ? importantDates[importantDates.length - 1].date
+        : "";
+    setImportantDates([...importantDates, { name: "", date: lastDate }]);
   };
 
   const updateImportantDate = (
