@@ -6,7 +6,7 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     console.log("API route received body:", body);
 
-    const apiUrl = `${Resource.SubmissionApi.url}/submit`;
+    const apiUrl = Resource.SubmissionApi.url;
     console.log("Forwarding to:", apiUrl);
 
     // Forward the request to the actual submission lambda

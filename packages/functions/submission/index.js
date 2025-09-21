@@ -1,12 +1,119 @@
 import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
 import { SESv2Client, SendEmailCommand } from "@aws-sdk/client-sesv2";
+import {
+  DynamoDBClient,
+  PutItemCommand,
+  GetItemCommand,
+} from "@aws-sdk/client-dynamodb";
 import { Resource } from "sst";
 import { z } from "zod";
 import { SubmissionSchema } from "@pl-conf/core";
 import YAML from "yaml";
+import { createHash } from "crypto";
 
 const s3 = new S3Client();
 const ses = new SESv2Client();
+const dynamodb = new DynamoDBClient();
+
+// Rate limiting: 5 submissions per IP per hour
+const RATE_LIMIT_REQUESTS = 5;
+const RATE_LIMIT_WINDOW = 60 * 60; // 1 hour in seconds
+
+async function checkRateLimit(ip) {
+  const now = Math.floor(Date.now() / 1000);
+  const key = `rate_limit_${ip}_${Math.floor(now / RATE_LIMIT_WINDOW)}`;
+
+  try {
+    const result = await dynamodb.send(
+      new GetItemCommand({
+        TableName: Resource.RateLimitTable.name,
+        Key: { id: { S: key } },
+      })
+    );
+
+    const currentCount = result.Item
+      ? parseInt(result.Item.count?.N || "0")
+      : 0;
+
+    if (currentCount >= RATE_LIMIT_REQUESTS) {
+      return { allowed: false, remaining: 0 };
+    }
+
+    // Increment counter
+    await dynamodb.send(
+      new PutItemCommand({
+        TableName: Resource.RateLimitTable.name,
+        Item: {
+          id: { S: key },
+          count: { N: (currentCount + 1).toString() },
+          ttl: { N: (now + RATE_LIMIT_WINDOW).toString() },
+        },
+      })
+    );
+
+    return { allowed: true, remaining: RATE_LIMIT_REQUESTS - currentCount - 1 };
+  } catch (error) {
+    console.error("Rate limit check failed:", error);
+    // Allow request on error to avoid blocking legitimate users
+    return { allowed: true, remaining: RATE_LIMIT_REQUESTS };
+  }
+}
+
+async function checkDuplicate(submissionHash) {
+  const key = `duplicate_${submissionHash}`;
+  const ttl = Math.floor(Date.now() / 1000) + 24 * 60 * 60; // 24 hours
+
+  try {
+    const result = await dynamodb.send(
+      new GetItemCommand({
+        TableName: Resource.RateLimitTable.name,
+        Key: { id: { S: key } },
+      })
+    );
+
+    if (result.Item) {
+      return { isDuplicate: true };
+    }
+
+    // Store hash to prevent duplicates
+    await dynamodb.send(
+      new PutItemCommand({
+        TableName: Resource.RateLimitTable.name,
+        Item: {
+          id: { S: key },
+          ttl: { N: ttl.toString() },
+        },
+      })
+    );
+
+    return { isDuplicate: false };
+  } catch (error) {
+    console.error("Duplicate check failed:", error);
+    // Allow request on error
+    return { isDuplicate: false };
+  }
+}
+
+function hashSubmission(data) {
+  // Create hash from core submission data
+  const hashData = {
+    name: data.name,
+    abbreviation: data.abbreviation,
+    type: data.type,
+    url: data.url,
+    location: data.location,
+  };
+  return createHash("sha256").update(JSON.stringify(hashData)).digest("hex");
+}
+
+function getClientIP(event) {
+  return (
+    event.requestContext?.http?.sourceIp ||
+    event.headers?.["x-forwarded-for"]?.split(",")[0]?.trim() ||
+    event.headers?.["x-real-ip"] ||
+    "unknown"
+  );
+}
 
 export const handler = async (event) => {
   const headers = {
@@ -25,9 +132,48 @@ export const handler = async (event) => {
   }
 
   try {
+    // Get client IP for rate limiting
+    const clientIP = getClientIP(event);
+
+    // Check rate limiting
+    const rateLimitResult = await checkRateLimit(clientIP);
+    if (!rateLimitResult.allowed) {
+      return {
+        statusCode: 429,
+        headers: {
+          ...headers,
+          "X-RateLimit-Remaining": "0",
+          "X-RateLimit-Reset": Math.floor(
+            Date.now() / 1000 + RATE_LIMIT_WINDOW
+          ).toString(),
+        },
+        body: JSON.stringify({
+          error: "Too many requests",
+          message: "Rate limit exceeded. Please try again later.",
+        }),
+      };
+    }
+
     // Parse and validate the request body
     const body = JSON.parse(event.body);
     const eventData = SubmissionSchema.parse(body);
+
+    // Check for duplicate submissions
+    const submissionHash = hashSubmission(eventData);
+    const duplicateResult = await checkDuplicate(submissionHash);
+    if (duplicateResult.isDuplicate) {
+      return {
+        statusCode: 409,
+        headers: {
+          ...headers,
+          "X-RateLimit-Remaining": rateLimitResult.remaining.toString(),
+        },
+        body: JSON.stringify({
+          error: "Duplicate submission",
+          message: "This event has already been submitted recently.",
+        }),
+      };
+    }
 
     const eventWithTimestamp = {
       ...eventData,
@@ -115,7 +261,10 @@ Review the submission files in the S3 bucket:
 
     return {
       statusCode: 200,
-      headers,
+      headers: {
+        ...headers,
+        "X-RateLimit-Remaining": rateLimitResult.remaining.toString(),
+      },
       body: JSON.stringify({
         message: "Event submission received successfully",
         submissionId: `${timestamp}-${eventData.abbreviation}`,

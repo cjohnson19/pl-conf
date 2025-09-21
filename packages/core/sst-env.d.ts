@@ -283,7 +283,6 @@ declare module "sst" {
             "end": string
             "start": string
           }
-          "format": string
           "importantDateUrl": string
           "importantDates": {
             "abstract": string
@@ -296,7 +295,7 @@ declare module "sst" {
           "name": string
           "notes": any
           "tags": any
-          "type": "conference"
+          "type": "symposium"
           "url": string
         }
         "LOPSTR": {
@@ -514,6 +513,10 @@ declare module "sst" {
     "PLConf": {
       "type": "sst.aws.Nextjs"
       "url": string
+    }
+    "RateLimitTable": {
+      "name": string
+      "type": "sst.aws.Dynamo"
     }
     "SubmissionApi": {
       "type": "sst.aws.ApiGatewayV2"

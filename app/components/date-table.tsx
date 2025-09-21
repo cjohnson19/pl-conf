@@ -8,13 +8,7 @@ import { Table, TableBody, TableCell, TableRow } from "./ui/table";
 import { TimeUntil } from "./time-until";
 import Link from "next/link";
 import { isPast } from "date-fns";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "./ui/tooltip";
-import { Info } from "lucide-react";
+import { NotesTooltip } from "./notes-tooltip";
 
 function hasDeadlines(importantDates: ScheduledEvent["importantDates"]) {
   return Object.keys(importantDates).length > 0;
@@ -43,24 +37,7 @@ export function DateTable({
                 Dates & Deadlines
               </Link>
             </h4>
-            {notes.length > 0 && (
-              <TooltipProvider>
-                <Tooltip delayDuration={100}>
-                  <TooltipTrigger asChild>
-                    <Info className="h-4 w-4 text-muted-foreground hover:text-foreground cursor-help" />
-                  </TooltipTrigger>
-                  <TooltipContent className="max-w-xs">
-                    <div className="space-y-1">
-                      {notes.map((note, i) => (
-                        <p key={i} className="text-sm">
-                          {note}
-                        </p>
-                      ))}
-                    </div>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-            )}
+            {notes.length > 0 && <NotesTooltip notes={notes} />}
           </div>
         )}
       </div>
