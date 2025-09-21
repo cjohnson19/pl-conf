@@ -1,6 +1,6 @@
 "use client";
 import { EventFilter, hasYear } from "@/lib/event-filter";
-import { Dispatch, SetStateAction, useState } from "react";
+import { Dispatch, SetStateAction } from "react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -10,15 +10,19 @@ import {
 } from "./ui/dropdown-menu";
 import { Button } from "./ui/button";
 import { CalendarRangeIcon } from "lucide-react";
+import { FilterPreferences } from "@/lib/user-prefs";
 
 export function DateFilter({
   setValue,
   years,
+  value,
+  onValueChange,
 }: {
   setValue: Dispatch<SetStateAction<EventFilter>>;
   years: string[];
+  value: FilterPreferences["selectedYear"];
+  onValueChange: (value: FilterPreferences["selectedYear"]) => void;
 }) {
-  const [strValue, setStrValue] = useState<string>("Any");
   return years.length <= 1 ? (
     <></>
   ) : (
@@ -29,12 +33,12 @@ export function DateFilter({
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent>
-        <DropdownMenuRadioGroup value={strValue}>
+        <DropdownMenuRadioGroup value={value}>
           <DropdownMenuRadioItem
             value={"Any"}
             onClick={() => {
-              setStrValue("Any");
               setValue(() => () => true);
+              onValueChange("Any");
             }}
           >
             Any
@@ -44,8 +48,8 @@ export function DateFilter({
               key={i}
               value={l}
               onClick={() => {
-                setStrValue(l);
                 setValue(() => hasYear(l));
+                onValueChange(l);
               }}
             >
               {l}

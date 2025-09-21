@@ -1,6 +1,6 @@
 "use client";
 import { EventFilter, isCategory } from "@/lib/event-filter";
-import { Dispatch, SetStateAction, useState } from "react";
+import { Dispatch, SetStateAction } from "react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -12,13 +12,17 @@ import { Button } from "./ui/button";
 import { eventTypes } from "@/lib/event";
 import { capitalize } from "@/lib/utils";
 import { FilterIcon } from "lucide-react";
+import { FilterPreferences } from "@/lib/user-prefs";
 
 export function CategoryFilter({
   setValue,
+  value,
+  onValueChange,
 }: {
   setValue: Dispatch<SetStateAction<EventFilter>>;
+  value: FilterPreferences["selectedCategory"];
+  onValueChange: (value: FilterPreferences["selectedCategory"]) => void;
 }) {
-  const [strValue, setStrValue] = useState<string>("Any");
   return (
     <DropdownMenu modal={false}>
       <DropdownMenuTrigger asChild>
@@ -27,12 +31,12 @@ export function CategoryFilter({
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent>
-        <DropdownMenuRadioGroup value={strValue}>
+        <DropdownMenuRadioGroup value={value}>
           <DropdownMenuRadioItem
             value={"Any"}
             onClick={() => {
-              setStrValue("Any");
               setValue(() => () => true);
+              onValueChange("Any");
             }}
           >
             Any
@@ -42,8 +46,8 @@ export function CategoryFilter({
               key={i}
               value={l}
               onClick={() => {
-                setStrValue(l);
                 setValue(() => isCategory(l));
+                onValueChange(l);
               }}
             >
               {capitalize(l)}

@@ -1,5 +1,5 @@
 "use client";
-import { Dispatch, SetStateAction, useState } from "react";
+import { Dispatch, SetStateAction } from "react";
 import { EyeIcon } from "lucide-react";
 import {
   DropdownMenu,
@@ -10,16 +10,19 @@ import {
 } from "./ui/dropdown-menu";
 import { Button } from "./ui/button";
 import { EventFilter, hiddenFilter } from "@/lib/event-filter";
-import { PreferenceCollection } from "@/lib/user-prefs";
+import { FilterPreferences, PreferenceCollection } from "@/lib/user-prefs";
 
 export function HiddenFilter({
   setValue,
-  userPrefs,
+  value,
+  onValueChange,
+  eventPrefs,
 }: {
   setValue: Dispatch<SetStateAction<EventFilter>>;
-  userPrefs: PreferenceCollection;
+  value: FilterPreferences["hiddenItemsFilter"];
+  onValueChange: (value: FilterPreferences["hiddenItemsFilter"]) => void;
+  eventPrefs: PreferenceCollection["eventPrefs"];
 }) {
-  const [strValue, setStrValue] = useState<string>("visible");
   return (
     <DropdownMenu modal={false}>
       <DropdownMenuTrigger asChild>
@@ -28,12 +31,12 @@ export function HiddenFilter({
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent>
-        <DropdownMenuRadioGroup value={strValue}>
+        <DropdownMenuRadioGroup value={value}>
           <DropdownMenuRadioItem
             value={"visible"}
             onClick={() => {
-              setStrValue("visible");
-              setValue(() => hiddenFilter(userPrefs.eventPrefs)("visible"));
+              setValue(() => hiddenFilter(eventPrefs)("visible"));
+              onValueChange("visible");
             }}
           >
             Do not show hidden
@@ -41,8 +44,8 @@ export function HiddenFilter({
           <DropdownMenuRadioItem
             value={"hidden"}
             onClick={() => {
-              setValue(() => hiddenFilter(userPrefs.eventPrefs)("hidden"));
-              setStrValue("hidden");
+              setValue(() => hiddenFilter(eventPrefs)("hidden"));
+              onValueChange("hidden");
             }}
           >
             Show only hidden
@@ -50,8 +53,8 @@ export function HiddenFilter({
           <DropdownMenuRadioItem
             value={"all"}
             onClick={() => {
-              setStrValue("all");
-              setValue(() => hiddenFilter(userPrefs.eventPrefs)("all"));
+              setValue(() => hiddenFilter(eventPrefs)("all"));
+              onValueChange("all");
             }}
           >
             Show all

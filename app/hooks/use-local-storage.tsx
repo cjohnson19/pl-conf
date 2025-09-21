@@ -1,14 +1,54 @@
 import { useState, useEffect, useCallback } from "react";
 
-export function useLocalStorage<T>(key: string, initialValue: T) {
+// Deep merge function to combine loaded value with initial value
+function deepMerge<T extends Record<string, unknown>>(
+  initial: T,
+  loaded: unknown
+): T {
+  if (!loaded || typeof loaded !== "object" || loaded === null) {
+    return initial;
+  }
+
+  const loadedObj = loaded as Record<string, unknown>;
+  const result = { ...initial };
+
+  for (const key in initial) {
+    if (loadedObj[key] !== undefined) {
+      if (
+        typeof initial[key] === "object" &&
+        initial[key] !== null &&
+        !Array.isArray(initial[key])
+      ) {
+        result[key] = deepMerge(
+          initial[key] as Record<string, unknown>,
+          loadedObj[key]
+        ) as T[Extract<keyof T, string>];
+      } else {
+        result[key] = loadedObj[key] as T[Extract<keyof T, string>];
+      }
+    }
+  }
+
+  return result;
+}
+
+export function useLocalStorage<T extends Record<string, unknown>>(
+  key: string,
+  initialValue: T
+) {
   const [storedValue, setStoredValue] = useState<T>(initialValue);
   const [isLoaded, setIsLoaded] = useState(false);
 
   useEffect(() => {
     try {
       const item = window?.localStorage.getItem(key);
-      const value = item ? JSON.parse(item) : initialValue;
-      setStoredValue(value);
+      if (item) {
+        const loadedValue = JSON.parse(item);
+        const mergedValue = deepMerge(initialValue, loadedValue) as T;
+        setStoredValue(mergedValue);
+      } else {
+        setStoredValue(initialValue);
+      }
     } catch (error) {
       console.error(`Error reading localStorage key "${key}":`, error);
       setStoredValue(initialValue);

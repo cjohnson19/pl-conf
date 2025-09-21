@@ -6,8 +6,11 @@ import { CategoryFilter } from "./category-filter";
 import {
   applyFilters,
   EventFilter,
+  hasYear,
   hiddenFilter,
   isActive,
+  isCategory,
+  openToNewSubmissions,
 } from "../lib/event-filter";
 import { SearchInput } from "./search-input";
 import { DateFilter } from "./date-filter";
@@ -36,8 +39,8 @@ export function EventList({ events }: { events: string }) {
   const [openSubmissionFilter, setOpenSubmissionFilter] = useState<EventFilter>(
     () => () => true
   );
-  const [showHiddenFilter, setShowHiddenFilter] = useState<EventFilter>(() =>
-    hiddenFilter(userPrefs.eventPrefs)("visible")
+  const [showHiddenFilter, setShowHiddenFilter] = useState<EventFilter>(
+    () => () => true
   );
   // const [showHidden, setShowHidden] = useState<boolean>(false);
   function filterEvents(es: ScheduledEvent[]): ScheduledEvent[] {
@@ -61,6 +64,28 @@ export function EventList({ events }: { events: string }) {
     }
   }, [userPrefs, prefsLoaded]);
 
+  useEffect(() => {
+    if (!prefsLoaded) {
+      return;
+    }
+    const selectedCategory = userPrefs.filters.selectedCategory;
+    setCategoryFilter(() =>
+      selectedCategory === "Any" ? () => true : isCategory(selectedCategory)
+    );
+
+    const selectedYear = userPrefs.filters.selectedYear;
+    setYearFilter(() =>
+      selectedYear === "Any" ? () => true : hasYear(selectedYear)
+    );
+
+    setOpenSubmissionFilter(() =>
+      openToNewSubmissions(userPrefs.filters.openSubmissionFilter === "Filter")
+    );
+    setShowHiddenFilter(() =>
+      hiddenFilter(userPrefs.eventPrefs)(userPrefs.filters.hiddenItemsFilter)
+    );
+  }, [userPrefs, prefsLoaded]);
+
   const es = JSON.parse(events) as ScheduledEvent[];
   const eventYears = [
     ...new Set(
@@ -75,11 +100,49 @@ export function EventList({ events }: { events: string }) {
       <div className="flex flex-col gap-2 w-full">
         <SearchInput value={textFilter} setValue={setTextFilter} />
         <div className="flex flex-row flex-wrap w-full justify-around gap-2 mb-4 md:items-center">
-          <DateFilter setValue={setYearFilter} years={eventYears} />
-          <CategoryFilter setValue={setCategoryFilter} />
-          <HiddenFilter setValue={setShowHiddenFilter} userPrefs={userPrefs} />
+          <DateFilter
+            setValue={setYearFilter}
+            years={eventYears}
+            value={userPrefs.filters.selectedYear}
+            onValueChange={(value) =>
+              setUserPrefs((prev) => ({
+                ...prev,
+                filters: { ...prev.filters, selectedYear: value },
+              }))
+            }
+          />
+          <CategoryFilter
+            setValue={setCategoryFilter}
+            value={userPrefs.filters.selectedCategory}
+            onValueChange={(value) =>
+              setUserPrefs((prev) => ({
+                ...prev,
+                filters: { ...prev.filters, selectedCategory: value },
+              }))
+            }
+          />
+          <HiddenFilter
+            setValue={setShowHiddenFilter}
+            value={userPrefs.filters.hiddenItemsFilter}
+            onValueChange={(value) =>
+              setUserPrefs((prev) => ({
+                ...prev,
+                filters: { ...prev.filters, hiddenItemsFilter: value },
+              }))
+            }
+            eventPrefs={userPrefs.eventPrefs}
+          />
           <SortOptions userPrefs={userPrefs} setUserPrefs={setUserPrefs} />
-          <OpenSubmissionFilter setValue={setOpenSubmissionFilter} />
+          <OpenSubmissionFilter
+            setValue={setOpenSubmissionFilter}
+            value={userPrefs.filters.openSubmissionFilter}
+            onValueChange={(value) =>
+              setUserPrefs((prev) => ({
+                ...prev,
+                filters: { ...prev.filters, openSubmissionFilter: value },
+              }))
+            }
+          />
         </div>
       </div>
       {!prefsLoaded

@@ -1,7 +1,7 @@
 "use client";
 
 import { EventFilter, openToNewSubmissions } from "@/lib/event-filter";
-import { Dispatch, SetStateAction, useState } from "react";
+import { Dispatch, SetStateAction } from "react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -11,13 +11,17 @@ import {
 } from "./ui/dropdown-menu";
 import { Button } from "./ui/button";
 import { DoorOpen } from "lucide-react";
+import { FilterPreferences } from "@/lib/user-prefs";
 
 export function OpenSubmissionFilter({
   setValue,
+  value,
+  onValueChange,
 }: {
   setValue: Dispatch<SetStateAction<EventFilter>>;
+  value: FilterPreferences["openSubmissionFilter"];
+  onValueChange: (value: FilterPreferences["openSubmissionFilter"]) => void;
 }) {
-  const [strValue, setStrValue] = useState<string>("All");
   return (
     <DropdownMenu modal={false}>
       <DropdownMenuTrigger asChild>
@@ -27,12 +31,12 @@ export function OpenSubmissionFilter({
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent>
-        <DropdownMenuRadioGroup value={strValue}>
+        <DropdownMenuRadioGroup value={value}>
           <DropdownMenuRadioItem
             value={"All"}
             onClick={() => {
-              setStrValue("All");
               setValue(() => openToNewSubmissions(false));
+              onValueChange("All");
             }}
           >
             All events
@@ -40,8 +44,8 @@ export function OpenSubmissionFilter({
           <DropdownMenuRadioItem
             value={"Filter"}
             onClick={() => {
-              setStrValue("Filter");
               setValue(() => openToNewSubmissions(true));
+              onValueChange("Filter");
             }}
           >
             Only those open to new submissions
