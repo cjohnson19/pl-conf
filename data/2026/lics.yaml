@@ -1,0 +1,14 @@
+name: Logic in Computer Science
+abbreviation: LICS
+date:
+  start: 2026-07-20
+  end: 2026-07-23
+location: Lisbon, Portugal
+importantDates:
+  abstract: 2026-01-15
+  paper: 2026-01-22
+  rebuttal: 2026-03-29
+  notification: 2026-04-16
+url: "https://lics.siglog.org/lics26/"
+importantDateUrl: "https://lics.siglog.org/lics26/"
+type: "symposium"

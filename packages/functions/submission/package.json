@@ -11,6 +11,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@aws-sdk/client-dynamodb": "^3.726.1",
     "@aws-sdk/client-s3": "^3.726.1",
     "@aws-sdk/client-sesv2": "^3.726.1",
     "@pl-conf/shared-schemas": "file:../packages/shared-schemas",

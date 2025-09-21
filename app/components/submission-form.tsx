@@ -99,10 +99,9 @@ export function SubmissionForm() {
       });
 
       if (response.ok) {
-        const result = await response.json();
         setMessage({
           type: "success",
-          text: `Submission successful! ID: ${result.submissionId}`,
+          text: `Submission successful`,
         });
         if (e.currentTarget) {
           e.currentTarget.reset();
@@ -301,7 +300,7 @@ export function SubmissionForm() {
         </div>
 
         <Button type="submit" disabled={isSubmitting} className="w-full">
-          {isSubmitting ? "Submitting..." : "Submit Conference"}
+          {isSubmitting ? "Submitting..." : "Submit Event"}
         </Button>
       </form>
     </div>

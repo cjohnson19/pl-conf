@@ -122,12 +122,32 @@ export default $config({
       sender: `drift-${$app.stage}@pl-conferences.com`,
     });
 
+    // Rate limiting table
+    const rateLimitTable = new sst.aws.Dynamo("RateLimitTable", {
+      fields: {
+        id: "string",
+      },
+      primaryIndex: { hashKey: "id" },
+      ttl: "ttl",
+    });
+
     // Event submission Lambda and API
     const submissionFunction = new sst.aws.Function("SubmissionFunction", {
       handler: "packages/functions/submission/index.handler",
-      link: [submissionsBucket, submissionEmail, notificationEmailSecret],
+      link: [
+        submissionsBucket,
+        submissionEmail,
+        notificationEmailSecret,
+        rateLimitTable,
+      ],
       nodejs: {
-        install: ["zod", "yaml", "@aws-sdk/client-s3", "@aws-sdk/client-sesv2"],
+        install: [
+          "zod",
+          "yaml",
+          "@aws-sdk/client-s3",
+          "@aws-sdk/client-sesv2",
+          "@aws-sdk/client-dynamodb",
+        ],
       },
       timeout: "30 seconds",
     });
@@ -142,9 +162,33 @@ export default $config({
         allowHeaders: ["Content-Type"],
         allowCredentials: false,
       },
+      transform: {
+        stage: {
+          defaultRouteSettings: {
+            throttlingBurstLimit: 20,
+            throttlingRateLimit: 10,
+          },
+        },
+      },
     });
 
-    submissionApi.route("POST /submit", submissionFunction.arn);
+    submissionApi.route("POST /", submissionFunction.arn);
+
+    // CloudWatch alarms for security monitoring
+    new aws.cloudwatch.MetricAlarm("HighLambdaErrors", {
+      alarmDescription: "High number of Lambda errors",
+      metricName: "Errors",
+      namespace: "AWS/Lambda",
+      statistic: "Sum",
+      dimensions: {
+        FunctionName: submissionFunction.name,
+      },
+      period: 300, // 5 minutes
+      evaluationPeriods: 1,
+      threshold: 5,
+      comparisonOperator: "GreaterThanThreshold",
+      treatMissingData: "notBreaching",
+    });
 
     // Only deploy drift detection resources in production
     if ($app.stage === "production") {
@@ -163,6 +207,7 @@ export default $config({
             "fast-diff",
           ],
         },
+        timeout: "5 minutes",
       });
 
       new sst.aws.Cron("DriftCronJob", {
