@@ -1,0 +1,13 @@
+name: International Workshop on Rewriting Logic and its Applications
+abbreviation: WRLA
+date:
+  start: 2026-04-11
+  end: 2026-04-12
+location: Torino, Italy
+importantDates:
+  paper: 2026-01-16
+  notification: 2026-02-27
+  camera-ready: 2026-03-13
+url: "https://wrla2026.github.io"
+importantDateUrl: "https://wrla2026.github.io/cfp.html"
+type: "workshop"

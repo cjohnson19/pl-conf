@@ -545,6 +545,26 @@ declare module "sst" {
           type: "conference";
           url: string;
         };
+        WRLA: {
+          abbreviation: string;
+          date: {
+            end: string;
+            start: string;
+          };
+          importantDateUrl: string;
+          importantDates: {
+            "camera-ready": string;
+            notification: string;
+            paper: string;
+          };
+          lastUpdated: string;
+          location: string;
+          name: string;
+          notes: any;
+          tags: any;
+          type: "workshop";
+          url: string;
+        };
       };
       type: "sst.sst.Linkable";
     };
