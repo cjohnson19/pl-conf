@@ -6,6 +6,15 @@ import "sst";
 export {};
 declare module "sst" {
   export interface Resource {
+    DriftEmail: {
+      configSet: string;
+      sender: string;
+      type: "sst.aws.Email";
+    };
+    DriftFunction: {
+      name: string;
+      type: "sst.aws.Function";
+    };
     EventList: {
       events: {
         ASL: {
@@ -454,6 +463,25 @@ declare module "sst" {
           notes: any;
           tags: any;
           type: "workshop";
+          url: string;
+        };
+        TFP: {
+          abbreviation: string;
+          date: {
+            end: string;
+            start: string;
+          };
+          importantDateUrl: string;
+          importantDates: {
+            notification: string;
+            paper: string;
+          };
+          lastUpdated: string;
+          location: string;
+          name: string;
+          notes: any;
+          tags: any;
+          type: "symposium";
           url: string;
         };
         TYPES: {
