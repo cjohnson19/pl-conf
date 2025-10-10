@@ -17,5 +17,8 @@
     "htmlparser2": "^10.0.0",
     "pl-conf": "file:../",
     "sst": "3.4.27"
+  },
+  "devDependencies": {
+    "@types/htmlparser2": "^4.1.0"
   }
 }

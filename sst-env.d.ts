@@ -372,13 +372,38 @@ declare module "sst" {
           };
           format: string;
           importantDateUrl: string;
-          importantDates: {};
+          importantDates: {
+            "camera-ready": string;
+            notification: string;
+            paper: string;
+            rebuttal: string;
+            revisions: string;
+          };
           lastUpdated: string;
           location: string;
           name: string;
           notes: any;
           tags: any;
           type: "conference";
+          url: string;
+        };
+        PEPM: {
+          abbreviation: string;
+          date: {
+            end: string;
+            start: string;
+          };
+          importantDateUrl: string;
+          importantDates: {
+            notification: string;
+            paper: string;
+          };
+          lastUpdated: string;
+          location: string;
+          name: string;
+          notes: any;
+          tags: any;
+          type: "workshop";
           url: string;
         };
         PLDI: {
@@ -484,6 +509,25 @@ declare module "sst" {
           type: "symposium";
           url: string;
         };
+        TPSA: {
+          abbreviation: string;
+          date: {
+            end: string;
+            start: string;
+          };
+          importantDateUrl: string;
+          importantDates: {
+            abstract: string;
+            notification: string;
+          };
+          lastUpdated: string;
+          location: string;
+          name: string;
+          notes: any;
+          tags: any;
+          type: "workshop";
+          url: string;
+        };
         TYPES: {
           abbreviation: string;
           date: {
@@ -543,6 +587,25 @@ declare module "sst" {
           notes: any;
           tags: any;
           type: "conference";
+          url: string;
+        };
+        WITS: {
+          abbreviation: string;
+          date: {
+            end: string;
+            start: string;
+          };
+          importantDateUrl: string;
+          importantDates: {
+            abstract: string;
+            notification: string;
+          };
+          lastUpdated: string;
+          location: string;
+          name: string;
+          notes: any;
+          tags: any;
+          type: "workshop";
           url: string;
         };
         WRLA: {

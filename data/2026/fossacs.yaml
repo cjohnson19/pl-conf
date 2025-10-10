@@ -1,0 +1,14 @@
+name: Foundations of Software Science and Computation Structures
+abbreviation: FoSSaCS
+date:
+  start: 2026-04-13
+  end: 2026-04-16
+location: Turin, Italy
+url: "https://etaps.org/2026/conferences/fossacs/"
+importantDates:
+  paper: 2025-10-16
+  rebuttal: 2025-12-10
+  notification: 2025-12-22
+  camera-ready: 2026-01-22
+importantDateUrl: "https://etaps.org/2026/cfp/"
+type: "conference"

@@ -1,0 +1,12 @@
+name: Workshop on Partial Evaluation and Program Manipulation
+abbreviation: PEPM
+date:
+  start: 2026-01-13
+  end: 2026-01-13
+location: Rennes, France
+importantDates:
+  paper: 2025-10-24
+  notification: 2025-11-28
+url: "https://popl26.sigplan.org/home/pepm-2026"
+importantDateUrl: "https://popl26.sigplan.org/home/pepm-2026#Call-for-Papers"
+type: "workshop"

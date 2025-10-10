@@ -1,0 +1,14 @@
+name: Theory and Practice of Static Analysis
+abbreviation: TPSA
+date:
+  start: 2026-01-11
+  end: 2026-01-17
+location: Rennes, France
+importantDates:
+  abstract: 2025-10-24
+  notification: 2025-11-18
+url: "https://popl26.sigplan.org/home/tpsa-2026"
+importantDateUrl: "https://popl26.sigplan.org/home/tpsa-2026#Call-for-Presentations"
+type: "workshop"
+notes:
+  - Event dates are not yet confirmed.

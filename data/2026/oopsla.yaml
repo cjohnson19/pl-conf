@@ -1,0 +1,18 @@
+name: Object-oriented Programming, Systems, Languages, and Applications
+type: "conference"
+abbreviation: OOPSLA
+date:
+  start: 2026-10-03
+  end: 2026-10-09
+location: Oakland, California
+format: ACM Proceedings
+url: "https://2026.splashcon.org/track/oopsla-2026"
+importantDateUrl: "https://2026.splashcon.org/track/oopsla-2026#Call-for-Papers"
+importantDates:
+  paper: 2026-03-17
+  rebuttal: 2026-05-21
+  notification: 2026-06-10
+  revisions: 2026-07-21
+  camera-ready: 2026-08-14
+notes:
+  - Round 2 submission dates shown. For Round 1 dates, visit the dates and deadlines URL.
