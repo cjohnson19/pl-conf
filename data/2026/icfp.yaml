@@ -1,0 +1,18 @@
+name: International Conference on Functional Programming
+abbreviation: ICFP
+date:
+  start: 2026-08-24
+  end: 2026-08-29
+location: Indianapolis, United States
+importantDates:
+  paper: 2026-02-19
+  rebuttal: 2026-04-23
+  conditional-acceptance: 2026-05-14
+  revisions: 2026-06-03
+  notification: 2026-06-10
+  camera-ready: 2026-07-01
+notes:
+  - Reviews sent to authors on April 20, 2026
+url: "https://icfp26.sigplan.org/"
+importantDateUrl: "https://icfp26.sigplan.org/dates"
+type: "conference"
