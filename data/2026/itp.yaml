@@ -1,0 +1,14 @@
+name: International Conference on Interactive Theorem Proving
+abbreviation: ITP
+date:
+  start: 2026-07-26
+  end: 2026-07-29
+location: Lisbon, Portugal
+url: "https://itp-conference-2026.github.io/"
+importantDateUrl: "https://itp-conference-2026.github.io/cfp"
+type: "conference"
+importantDates:
+  abstract: 2026-02-12
+  paper: 2026-02-19
+  notification: 2026-04-26
+  camera-ready: 2026-05-24
