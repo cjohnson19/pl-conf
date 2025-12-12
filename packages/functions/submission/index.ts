@@ -11,6 +11,23 @@ import { SubmissionSchema } from "@pl-conf/core";
 import YAML from "yaml";
 import { createHash } from "crypto";
 
+interface APIGatewayEvent {
+  httpMethod: string;
+  body: string;
+  headers: Record<string, string | undefined>;
+  requestContext?: {
+    http?: {
+      sourceIp?: string;
+    };
+  };
+}
+
+interface APIGatewayResponse {
+  statusCode: number;
+  headers: Record<string, string>;
+  body: string;
+}
+
 const s3 = new S3Client();
 const ses = new SESv2Client();
 const dynamodb = new DynamoDBClient();
@@ -19,7 +36,9 @@ const dynamodb = new DynamoDBClient();
 const RATE_LIMIT_REQUESTS = 5;
 const RATE_LIMIT_WINDOW = 60 * 60; // 1 hour in seconds
 
-async function checkRateLimit(ip) {
+async function checkRateLimit(
+  ip: string
+): Promise<{ allowed: boolean; remaining: number }> {
   const now = Math.floor(Date.now() / 1000);
   const key = `rate_limit_${ip}_${Math.floor(now / RATE_LIMIT_WINDOW)}`;
 
@@ -59,7 +78,9 @@ async function checkRateLimit(ip) {
   }
 }
 
-async function checkDuplicate(submissionHash) {
+async function checkDuplicate(
+  submissionHash: string
+): Promise<{ isDuplicate: boolean }> {
   const key = `duplicate_${submissionHash}`;
   const ttl = Math.floor(Date.now() / 1000) + 24 * 60 * 60; // 24 hours
 
@@ -94,7 +115,7 @@ async function checkDuplicate(submissionHash) {
   }
 }
 
-function hashSubmission(data) {
+function hashSubmission(data: z.infer<typeof SubmissionSchema>): string {
   // Create hash from core submission data
   const hashData = {
     name: data.name,
@@ -106,7 +127,7 @@ function hashSubmission(data) {
   return createHash("sha256").update(JSON.stringify(hashData)).digest("hex");
 }
 
-function getClientIP(event) {
+function getClientIP(event: APIGatewayEvent): string {
   return (
     event.requestContext?.http?.sourceIp ||
     event.headers?.["x-forwarded-for"]?.split(",")[0]?.trim() ||
@@ -115,8 +136,10 @@ function getClientIP(event) {
   );
 }
 
-export const handler = async (event) => {
-  const headers = {
+export const handler = async (
+  event: APIGatewayEvent
+): Promise<APIGatewayResponse> => {
+  const headers: Record<string, string> = {
     "Access-Control-Allow-Origin": "*",
     "Access-Control-Allow-Headers": "Content-Type",
     "Access-Control-Allow-Methods": "POST, OPTIONS",
@@ -289,7 +312,7 @@ Review the submission files in the S3 bucket:
       headers,
       body: JSON.stringify({
         error: "Internal server error",
-        message: error.message,
+        message: error instanceof Error ? error.message : "Unknown error",
       }),
     };
   }
