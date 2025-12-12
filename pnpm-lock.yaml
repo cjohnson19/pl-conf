@@ -175,6 +175,34 @@ importers:
         specifier: ^3.23.8
         version: 3.24.1
 
+  packages/functions/drift:
+    dependencies:
+      "@aws-sdk/client-s3":
+        specifier: ^3.726.1
+        version: 3.882.0
+      "@aws-sdk/client-sesv2":
+        specifier: ^3.726.1
+        version: 3.882.0
+      date-fns:
+        specifier: ^4.1.0
+        version: 4.1.0
+      fast-diff:
+        specifier: ^1.3.0
+        version: 1.3.0
+      htmlparser2:
+        specifier: ^10.0.0
+        version: 10.0.0
+      pl-conf:
+        specifier: file:../
+        version: "@pl-conf/functions@file:packages/functions"
+      sst:
+        specifier: 3.4.27
+        version: 3.4.27
+    devDependencies:
+      "@types/htmlparser2":
+        specifier: ^4.1.0
+        version: 4.1.0
+
 packages:
   "@alloc/quick-lru@5.2.0":
     resolution:
@@ -958,6 +986,9 @@ packages:
         integrity: sha512-nn5ozdjYQpUCZlWGuxcJY/KpxkWQs4DcbMCmKojjyrYDEAGy4Ce19NN4v5MduafTwJlbKc99UA8YhSVqq9yPZA==,
       }
     engines: { node: ">=12.4.0" }
+
+  "@pl-conf/functions@file:packages/functions":
+    resolution: { directory: packages/functions, type: directory }
 
   "@radix-ui/number@1.1.0":
     resolution:
@@ -1864,6 +1895,13 @@ packages:
         integrity: sha512-AYnb1nQyY49te+VRAVgmzfcgjYS91mY5P0TKUDCLEM+gNnA+3T6rWITXRLYCpahpqSQbN5cE+gHpnPyXjHWxcw==,
       }
 
+  "@types/htmlparser2@4.1.0":
+    resolution:
+      {
+        integrity: sha512-gjTGZEamCmIoGd0pfZZI5ufese3iTN/5JdWep9UEKwAA9itAViW63znsjD385FvGuAcWpgJRb6Wx+uHFqe8xWg==,
+      }
+    deprecated: This is a stub types definition. htmlparser2 provides its own type definitions, so you do not need this installed.
+
   "@types/json-schema@7.0.15":
     resolution:
       {
@@ -2460,6 +2498,31 @@ packages:
       }
     engines: { node: ">=0.10.0" }
 
+  dom-serializer@2.0.0:
+    resolution:
+      {
+        integrity: sha512-wIkAryiqt/nV5EQKqQpo3SToSOV9J0DnbJqwK7Wv/Trc92zIAYZ4FlMu+JPFW1DfGFt81ZTCGgDEabffXeLyJg==,
+      }
+
+  domelementtype@2.3.0:
+    resolution:
+      {
+        integrity: sha512-OLETBj6w0OsagBwdXnPdN0cnMfF9opN69co+7ZrbfPGrdpPVNBUj02spi6B1N7wChLQiPn4CSH/zJvXw56gmHw==,
+      }
+
+  domhandler@5.0.3:
+    resolution:
+      {
+        integrity: sha512-cgwlv/1iFQiFnU96XXgROh8xTeetsnJiDsTc7TYCLFd9+/WNkIqPTxiM/8pSd8VIrhXGTf1Ny1q1hquVqDJB5w==,
+      }
+    engines: { node: ">= 4" }
+
+  domutils@3.2.2:
+    resolution:
+      {
+        integrity: sha512-6kZKyUajlDuqlHKVX1w7gyslj9MPIXzIFiz/rGu35uC1wMi+kMhQwGhl4lt9unC9Vb9INnY9Z3/ZA3+FhASLaw==,
+      }
+
   dunder-proto@1.0.1:
     resolution:
       {
@@ -2485,6 +2548,20 @@ packages:
         integrity: sha512-0/r0MySGYG8YqlayBZ6MuCfECmHFdJ5qyPh8s8wa5Hnm6SaFLSK1VYCbj+NKp090Nm1caZhD+QTnmxO7esYGyQ==,
       }
     engines: { node: ">=10.13.0" }
+
+  entities@4.5.0:
+    resolution:
+      {
+        integrity: sha512-V0hjH4dGPh9Ao5p0MoRY6BVqtwCjhz6vI5LT8AJ55H+4g9/4vbHx1I54fS0XuclLhDHArPQCiMjDxjaL8fPxhw==,
+      }
+    engines: { node: ">=0.12" }
+
+  entities@6.0.1:
+    resolution:
+      {
+        integrity: sha512-aN97NXWF6AWBTahfVOIrB/NShkzi5H7F9r1s9mD3cDj4Ko5f2qhhVoYMibXF7GlLveb/D2ioWay8lxI97Ven3g==,
+      }
+    engines: { node: ">=0.12" }
 
   environment@1.1.0:
     resolution:
@@ -2734,6 +2811,12 @@ packages:
         integrity: sha512-f3qQ9oQy9j2AhBe/H9VC91wLmKBCCU/gDOnKNAYG5hswO7BLKj09Hc5HYNz9cGI++xlpDCIgDaitVs03ATR84Q==,
       }
 
+  fast-diff@1.3.0:
+    resolution:
+      {
+        integrity: sha512-VxPP4NqbUjj6MaAOafWeUn2cXWLcCtljklUtZf0Ind4XQ+QPtmA0b18zZy0jIQx+ExRVCR/ZQpBmik5lXshNsw==,
+      }
+
   fast-glob@3.3.1:
     resolution:
       {
@@ -2975,6 +3058,12 @@ packages:
         integrity: sha512-0hJU9SCPvmMzIBdZFqNPXWa6dqh7WdH0cII9y+CyS8rG3nL48Bclra9HmKhVVUHyPWNH5Y7xDwAB7bfgSjkUMQ==,
       }
     engines: { node: ">= 0.4" }
+
+  htmlparser2@10.0.0:
+    resolution:
+      {
+        integrity: sha512-TwAZM+zE5Tq3lrEHvOlvwgj1XLWQCtaaibSN11Q+gGBAS7Y1uZSWwXXRe4iF6OXnaq1riyQAPFOBtYc77Mxq0g==,
+      }
 
   husky@9.1.7:
     resolution:
@@ -5353,6 +5442,19 @@ snapshots:
 
   "@nolyfill/is-core-module@1.0.39": {}
 
+  "@pl-conf/functions@file:packages/functions":
+    dependencies:
+      "@aws-sdk/client-s3": 3.882.0
+      "@aws-sdk/client-sesv2": 3.882.0
+      "@pl-conf/core": link:packages/core
+      sst: 3.4.27
+      yaml: 2.8.1
+      zod: 3.24.1
+    transitivePeerDependencies:
+      - aws-crt
+      - hono
+      - valibot
+
   "@radix-ui/number@1.1.0": {}
 
   "@radix-ui/primitive@1.1.1": {}
@@ -6110,6 +6212,10 @@ snapshots:
 
   "@types/estree@1.0.6": {}
 
+  "@types/htmlparser2@4.1.0":
+    dependencies:
+      htmlparser2: 10.0.0
+
   "@types/json-schema@7.0.15": {}
 
   "@types/json5@0.0.29": {}
@@ -6481,6 +6587,24 @@ snapshots:
     dependencies:
       esutils: 2.0.3
 
+  dom-serializer@2.0.0:
+    dependencies:
+      domelementtype: 2.3.0
+      domhandler: 5.0.3
+      entities: 4.5.0
+
+  domelementtype@2.3.0: {}
+
+  domhandler@5.0.3:
+    dependencies:
+      domelementtype: 2.3.0
+
+  domutils@3.2.2:
+    dependencies:
+      dom-serializer: 2.0.0
+      domelementtype: 2.3.0
+      domhandler: 5.0.3
+
   dunder-proto@1.0.1:
     dependencies:
       call-bind-apply-helpers: 1.0.1
@@ -6495,6 +6619,10 @@ snapshots:
     dependencies:
       graceful-fs: 4.2.11
       tapable: 2.2.1
+
+  entities@4.5.0: {}
+
+  entities@6.0.1: {}
 
   environment@1.1.0: {}
 
@@ -6795,6 +6923,8 @@ snapshots:
 
   fast-deep-equal@3.1.3: {}
 
+  fast-diff@1.3.0: {}
+
   fast-glob@3.3.1:
     dependencies:
       "@nodelib/fs.stat": 2.0.5
@@ -6938,6 +7068,13 @@ snapshots:
   hasown@2.0.2:
     dependencies:
       function-bind: 1.1.2
+
+  htmlparser2@10.0.0:
+    dependencies:
+      domelementtype: 2.3.0
+      domhandler: 5.0.3
+      domutils: 3.2.2
+      entities: 6.0.1
 
   husky@9.1.7: {}
 
