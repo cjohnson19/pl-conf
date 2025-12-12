@@ -225,6 +225,9 @@ export default $config({
               redirects: ["www.pl-conferences.com"],
             }
           : undefined,
+      environment: {
+        NODE_ENV: "production",
+      },
     });
   },
   console: {

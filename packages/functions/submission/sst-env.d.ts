@@ -6,15 +6,6 @@ import "sst";
 export {};
 declare module "sst" {
   export interface Resource {
-    DriftEmail: {
-      configSet: string;
-      sender: string;
-      type: "sst.aws.Email";
-    };
-    DriftFunction: {
-      name: string;
-      type: "sst.aws.Function";
-    };
     EventList: {
       events: {
         ASL: {
@@ -56,6 +47,67 @@ declare module "sst" {
           notes: any;
           tags: any;
           type: "conference";
+          url: string;
+        };
+        CAV: {
+          abbreviation: string;
+          date: {
+            end: string;
+            start: string;
+          };
+          importantDateUrl: string;
+          importantDates: {
+            notification: string;
+            paper: string;
+            rebuttal: string;
+          };
+          lastUpdated: string;
+          location: string;
+          name: string;
+          notes: any;
+          tags: any;
+          type: "conference";
+          url: string;
+        };
+        CP: {
+          abbreviation: string;
+          date: {
+            end: string;
+            start: string;
+          };
+          importantDateUrl: string;
+          importantDates: {
+            abstract: string;
+            "camera-ready": string;
+            notification: string;
+            paper: string;
+            rebuttal: string;
+          };
+          lastUpdated: string;
+          location: string;
+          name: string;
+          notes: any;
+          tags: any;
+          type: "conference";
+          url: string;
+        };
+        CSF: {
+          abbreviation: string;
+          date: {
+            end: string;
+            start: string;
+          };
+          importantDateUrl: string;
+          importantDates: {
+            notification: string;
+            paper: string;
+          };
+          lastUpdated: string;
+          location: string;
+          name: string;
+          notes: any;
+          tags: any;
+          type: "symposium";
           url: string;
         };
         ECOOP: {
@@ -248,8 +300,32 @@ declare module "sst" {
           };
           importantDateUrl: string;
           importantDates: {
+            abstract: string;
             notification: string;
             paper: string;
+            revisions: string;
+          };
+          lastUpdated: string;
+          location: string;
+          name: string;
+          notes: any;
+          tags: any;
+          type: "conference";
+          url: string;
+        };
+        IJCAR: {
+          abbreviation: string;
+          date: {
+            end: string;
+            start: string;
+          };
+          importantDateUrl: string;
+          importantDates: {
+            abstract: string;
+            "camera-ready": string;
+            notification: string;
+            paper: string;
+            rebuttal: string;
           };
           lastUpdated: string;
           location: string;
@@ -271,6 +347,28 @@ declare module "sst" {
             "camera-ready": string;
             notification: string;
             paper: string;
+          };
+          lastUpdated: string;
+          location: string;
+          name: string;
+          notes: any;
+          tags: any;
+          type: "conference";
+          url: string;
+        };
+        KR: {
+          abbreviation: string;
+          date: {
+            end: string;
+            start: string;
+          };
+          importantDateUrl: string;
+          importantDates: {
+            abstract: string;
+            "camera-ready": string;
+            notification: string;
+            paper: string;
+            rebuttal: string;
           };
           lastUpdated: string;
           location: string;
@@ -440,6 +538,28 @@ declare module "sst" {
             "camera-ready": string;
             notification: string;
             paper: string;
+          };
+          lastUpdated: string;
+          location: string;
+          name: string;
+          notes: any;
+          tags: any;
+          type: "conference";
+          url: string;
+        };
+        SAT: {
+          abbreviation: string;
+          date: {
+            end: string;
+            start: string;
+          };
+          importantDateUrl: string;
+          importantDates: {
+            abstract: string;
+            "camera-ready": string;
+            notification: string;
+            paper: string;
+            rebuttal: string;
           };
           lastUpdated: string;
           location: string;
