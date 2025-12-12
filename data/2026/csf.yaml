@@ -1,0 +1,15 @@
+name: Computer Security Foundations
+abbreviation: CSF
+date:
+  start: 2026-07-26
+  end: 2026-07-29
+location: Lisbon, Portugal
+url: "https://csf2026.ieee-security.org/"
+importantDateUrl: "https://csf2026.ieee-security.org/"
+type: "symposium"
+importantDates:
+  paper: 2026-01-29
+  notification: 2026-04-01
+notes:
+  - CSF uses multiple submission cycles. Dates shown are for the Winter cycle (most
+    relevant for July 2026 conference). See website for Summer and Fall cycle dates.

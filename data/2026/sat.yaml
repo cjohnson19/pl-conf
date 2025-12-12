@@ -1,0 +1,15 @@
+name: Theory and Applications of Satisfiability Testing
+abbreviation: SAT
+date:
+  start: 2026-07-20
+  end: 2026-07-23
+location: Lisbon, Portugal
+url: "https://satisfiability.org/SAT26/"
+importantDateUrl: "https://satisfiability.org/SAT26/pages/dates.html"
+type: "conference"
+importantDates:
+  abstract: 2026-02-20
+  paper: 2026-02-27
+  rebuttal: 2026-04-17
+  notification: 2026-04-30
+  camera-ready: 2026-05-14

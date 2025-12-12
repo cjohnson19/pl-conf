@@ -1,0 +1,17 @@
+name: International Conference on Logic Programming
+abbreviation: ICLP
+date:
+  start: 2026-07-20
+  end: 2026-07-23
+location: Lisbon, Portugal
+url: "https://www.semsys.aau.at/events/iclp2026/"
+importantDateUrl: "https://www.semsys.aau.at/events/iclp2026/content/0-callforpapers.html"
+type: "conference"
+importantDates:
+  abstract: 2026-01-24
+  paper: 2026-01-31
+  revisions: 2026-03-27
+  notification: 2026-04-17
+notes:
+  - First notification for regular papers: March 5, 2026
+  - Short paper submission deadline: March 27, 2026

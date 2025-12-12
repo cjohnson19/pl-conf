@@ -1,0 +1,15 @@
+name: Principles and Practice of Constraint Programming
+abbreviation: CP
+date:
+  start: 2026-07-20
+  end: 2026-07-23
+location: Lisbon, Portugal
+url: "https://cp2026.a4cp.org/"
+importantDateUrl: "https://cp2026.a4cp.org/"
+type: "conference"
+importantDates:
+  abstract: 2026-02-28
+  paper: 2026-03-07
+  rebuttal: 2026-04-12
+  notification: 2026-04-30
+  camera-ready: 2026-05-07

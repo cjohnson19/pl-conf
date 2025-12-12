@@ -1,0 +1,15 @@
+name: International Joint Conference on Automated Reasoning
+abbreviation: IJCAR
+date:
+  start: 2026-07-26
+  end: 2026-07-29
+location: Lisbon, Portugal
+url: "https://www.floc26.org/ijcar"
+importantDateUrl: "https://www.floc26.org/ijcar"
+type: "conference"
+importantDates:
+  abstract: 2026-02-06
+  paper: 2026-02-13
+  rebuttal: 2026-03-31
+  notification: 2026-04-14
+  camera-ready: 2026-06-15

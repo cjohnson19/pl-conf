@@ -1,0 +1,13 @@
+name: Computer Aided Verification
+abbreviation: CAV
+date:
+  start: 2026-07-26
+  end: 2026-07-29
+location: Lisbon, Portugal
+url: "https://conferences.i-cav.org/2026/"
+importantDateUrl: "https://conferences.i-cav.org/2026/cfp/"
+type: "conference"
+importantDates:
+  paper: 2026-01-28
+  rebuttal: 2026-04-01
+  notification: 2026-04-17
