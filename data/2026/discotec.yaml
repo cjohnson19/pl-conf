@@ -1,0 +1,15 @@
+name: International Federated Conference on Distributed Computing Techniques
+abbreviation: DisCoTec
+date:
+  start: 2026-06-08
+  end: 2026-06-12
+location: Urbino, Italy
+format: Springer LNCS-IFIP
+importantDates:
+  abstract: 2026-01-30
+  paper: 2026-02-06
+  notification: 2026-03-27
+  camera-ready: 2026-04-03
+url: "https://www.discotec.org/2026/"
+importantDateUrl: "https://www.discotec.org/2026/dates"
+type: "conference"
