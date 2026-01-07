@@ -40,6 +40,10 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-.sst
+# Generated files
+/generated
 
-.open-next
+# CDK
+cdk.out/
+
+dist/

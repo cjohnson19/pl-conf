@@ -19,7 +19,8 @@
       }
     ],
     "paths": {
-      "@/*": ["./app/*"]
+      "@/*": ["./app/*"],
+      "@generated": ["./generated/events"]
     }
   },
   "include": [

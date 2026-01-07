@@ -5,11 +5,15 @@ import {
   PutItemCommand,
   GetItemCommand,
 } from "@aws-sdk/client-dynamodb";
-import { Resource } from "sst";
 import { z } from "zod";
 import { SubmissionSchema } from "@pl-conf/core";
 import YAML from "yaml";
 import { createHash } from "crypto";
+
+const RATE_LIMIT_TABLE_NAME = process.env.RATE_LIMIT_TABLE_NAME!;
+const SUBMISSIONS_BUCKET_NAME = process.env.SUBMISSIONS_BUCKET_NAME!;
+const SUBMISSION_EMAIL_SENDER = process.env.SUBMISSION_EMAIL_SENDER!;
+const NOTIFICATION_EMAIL = process.env.NOTIFICATION_EMAIL!;
 
 interface APIGatewayEvent {
   httpMethod: string;
@@ -34,7 +38,7 @@ const dynamodb = new DynamoDBClient();
 
 // Rate limiting: 5 submissions per IP per hour
 const RATE_LIMIT_REQUESTS = 5;
-const RATE_LIMIT_WINDOW = 60 * 60; // 1 hour in seconds
+const RATE_LIMIT_WINDOW = 60 * 60;
 
 async function checkRateLimit(
   ip: string
@@ -45,7 +49,7 @@ async function checkRateLimit(
   try {
     const result = await dynamodb.send(
       new GetItemCommand({
-        TableName: Resource.RateLimitTable.name,
+        TableName: RATE_LIMIT_TABLE_NAME,
         Key: { id: { S: key } },
       })
     );
@@ -58,10 +62,9 @@ async function checkRateLimit(
       return { allowed: false, remaining: 0 };
     }
 
-    // Increment counter
     await dynamodb.send(
       new PutItemCommand({
-        TableName: Resource.RateLimitTable.name,
+        TableName: RATE_LIMIT_TABLE_NAME,
         Item: {
           id: { S: key },
           count: { N: (currentCount + 1).toString() },
@@ -73,7 +76,6 @@ async function checkRateLimit(
     return { allowed: true, remaining: RATE_LIMIT_REQUESTS - currentCount - 1 };
   } catch (error) {
     console.error("Rate limit check failed:", error);
-    // Allow request on error to avoid blocking legitimate users
     return { allowed: true, remaining: RATE_LIMIT_REQUESTS };
   }
 }
@@ -87,7 +89,7 @@ async function checkDuplicate(
   try {
     const result = await dynamodb.send(
       new GetItemCommand({
-        TableName: Resource.RateLimitTable.name,
+        TableName: RATE_LIMIT_TABLE_NAME,
         Key: { id: { S: key } },
       })
     );
@@ -99,7 +101,7 @@ async function checkDuplicate(
     // Store hash to prevent duplicates
     await dynamodb.send(
       new PutItemCommand({
-        TableName: Resource.RateLimitTable.name,
+        TableName: RATE_LIMIT_TABLE_NAME,
         Item: {
           id: { S: key },
           ttl: { N: ttl.toString() },
@@ -116,7 +118,6 @@ async function checkDuplicate(
 }
 
 function hashSubmission(data: z.infer<typeof SubmissionSchema>): string {
-  // Create hash from core submission data
   const hashData = {
     name: data.name,
     abbreviation: data.abbreviation,
@@ -155,10 +156,8 @@ export const handler = async (
   }
 
   try {
-    // Get client IP for rate limiting
     const clientIP = getClientIP(event);
 
-    // Check rate limiting
     const rateLimitResult = await checkRateLimit(clientIP);
     if (!rateLimitResult.allowed) {
       return {
@@ -177,11 +176,9 @@ export const handler = async (
       };
     }
 
-    // Parse and validate the request body
     const body = JSON.parse(event.body);
     const eventData = SubmissionSchema.parse(body);
 
-    // Check for duplicate submissions
     const submissionHash = hashSubmission(eventData);
     const duplicateResult = await checkDuplicate(submissionHash);
     if (duplicateResult.isDuplicate) {
@@ -200,33 +197,30 @@ export const handler = async (
 
     const eventWithTimestamp = {
       ...eventData,
-      lastUpdated: new Date().toISOString().split("T")[0], // YYYY-MM-DD format
+      lastUpdated: new Date().toISOString().split("T")[0],
     };
 
-    // Generate filenames
     const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
     const yamlKey = `pending/${timestamp}-${eventData.abbreviation}.yaml`;
     const metadataKey = `pending/${timestamp}-${eventData.abbreviation}.json`;
 
-    // Convert event data to YAML
     const yamlContent = YAML.stringify(eventWithTimestamp);
 
     await s3.send(
       new PutObjectCommand({
-        Bucket: Resource.SubmissionsBucket.name,
+        Bucket: SUBMISSIONS_BUCKET_NAME,
         Key: yamlKey,
         Body: yamlContent,
         ContentType: "application/x-yaml",
       })
     );
 
-    // Send notification email
     try {
       await ses.send(
         new SendEmailCommand({
-          FromEmailAddress: Resource.SubmissionEmail.sender,
+          FromEmailAddress: SUBMISSION_EMAIL_SENDER,
           Destination: {
-            ToAddresses: [Resource.NotificationEmail.value],
+            ToAddresses: [NOTIFICATION_EMAIL],
           },
           Content: {
             Simple: {
@@ -279,7 +273,6 @@ Review the submission files in the S3 bucket:
       );
     } catch (emailError) {
       console.error("Failed to send notification email:", emailError);
-      // Don't fail the entire request if email fails
     }
 
     return {

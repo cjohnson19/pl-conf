@@ -1,5 +1,12 @@
 packages:
   - packages/*
+  - cdk
+
+ignoredBuiltDependencies:
+  - sharp
+
+onlyBuiltDependencies:
+  - esbuild
 
 overrides:
   "@eslint/plugin-kit@<0.3.4": ">=0.3.4"

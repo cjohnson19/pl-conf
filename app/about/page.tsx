@@ -31,17 +31,6 @@ export default async function About() {
       </p>
 
       <p className="mt-4">
-        Some of the most immediate features in the pipeline include:
-      </p>
-
-      <ul className="mt-2">
-        <li>Add tags to events</li>
-        <li>Filtering by tags</li>
-        <li>Filtering by year</li>
-        <li>Include description for events</li>
-      </ul>
-
-      <p className="mt-4">
         If you have any suggestions or feedback, feel free to reach out to me.
         You can find my contact information on my personal site,{" "}
         <Link
@@ -78,8 +67,8 @@ export default async function About() {
       <p className="mt-2">
         You should <b>always</b> check the linked website to confirm the dates
         listed here. However, every day{" "}
-        <a href="https://github.com/cjohnson19/pl-conf/tree/main/drift-lambda">
-          I check the websites
+        <a href="https://github.com/cjohnson19/pl-conf/tree/main/packages/functions/drift/index.ts">
+          we check the websites
         </a>{" "}
         to see if any of their content has changed. If something changes, I
         should know about it within a day and be able to update the site.

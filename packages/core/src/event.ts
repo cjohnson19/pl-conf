@@ -79,7 +79,6 @@ export const ScheduledEvent = z
     }
   );
 
-// Submission schema used by the lambda (subset of ScheduledEvent)
 export const SubmissionSchema = z
   .object({
     name: z.string().nonempty(),
@@ -151,14 +150,14 @@ export function dateRangeToString(start: MaybeDate, end: MaybeDate): string {
 
   // Same year but different months
   if (isSameYear(startDate, endDate)) {
-    return `${format(startDate, "MMMM do")} – ${format(
+    return `${format(startDate, "MMMM do")}–${format(
       endDate,
       "MMMM do, yyyy"
     )}`;
   }
 
   // Different years
-  return `${format(startDate, "MMMM do, yyyy")} – ${format(
+  return `${format(startDate, "MMMM do, yyyy")}–${format(
     endDate,
     "MMMM do, yyyy"
   )}`;
@@ -168,7 +167,6 @@ export function dateRangeToCompactString(
   start: MaybeDate,
   end: MaybeDate
 ): string {
-  // Handle TBD cases
   if (start === "TBD" || end === "TBD") {
     return "TBD";
   }
@@ -176,23 +174,19 @@ export function dateRangeToCompactString(
   const startDate = new Date(start);
   const endDate = new Date(end);
 
-  // Single day event
   if (isSameDay(startDate, endDate)) {
     return format(startDate, "M/d/yy");
   }
 
-  // Same month and year
   if (isSameMonth(startDate, endDate) && isSameYear(startDate, endDate)) {
-    return `${format(startDate, "M/d")} – ${format(endDate, "M/d/yy")}`;
+    return `${format(startDate, "M/d")}–${format(endDate, "M/d/yy")}`;
   }
 
-  // Same year but different months
   if (isSameYear(startDate, endDate)) {
-    return `${format(startDate, "M/d")} – ${format(endDate, "M/d/yy")}`;
+    return `${format(startDate, "M/d")}–${format(endDate, "M/d/yy")}`;
   }
 
-  // Different years
-  return `${format(startDate, "M/d/yy")} – ${format(endDate, "M/d/yy")}`;
+  return `${format(startDate, "M/d/yy")}–${format(endDate, "M/d/yy")}`;
 }
 
 export function toICal(

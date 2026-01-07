@@ -8,23 +8,31 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
 } from "../ui/dropdown-menu";
-import { redirect, RedirectType } from "next/navigation";
 import Link from "next/link";
 
+const ICAL_API_URL = process.env.NEXT_PUBLIC_ICAL_API_URL || "";
+
+function getICalUrl(abbreviation: string, includeDates: boolean): string {
+  if (!ICAL_API_URL) {
+    console.warn("NEXT_PUBLIC_ICAL_API_URL is not configured");
+    return "#";
+  }
+  return `${ICAL_API_URL}/ical/${abbreviation}?dates=${includeDates}`;
+}
+
 export function CalendarEvent({ e }: { e: ScheduledEvent }) {
+  const withDatesUrl = getICalUrl(e.abbreviation, true);
+  const withoutDatesUrl = getICalUrl(e.abbreviation, false);
+
   return (
     <DropdownMenuSub>
       <DropdownMenuSubTrigger>Add to calendar</DropdownMenuSubTrigger>
       <DropdownMenuSubContent>
         <DropdownMenuLabel>Online calendar</DropdownMenuLabel>
-        <DropdownMenuItem
-          onClick={() => {
-            redirect(toGoogleCalendarLink(e));
-          }}
-        >
+        <DropdownMenuItem asChild>
           <Link
             target="_blank"
-            className="no-underline"
+            className="cursor-pointer"
             href={toGoogleCalendarLink(e)}
             aria-label={`Add ${e.abbreviation} event to Google Calendar`}
           >
@@ -34,20 +42,20 @@ export function CalendarEvent({ e }: { e: ScheduledEvent }) {
         <DropdownMenuSeparator />
         <DropdownMenuLabel>Download .ics file</DropdownMenuLabel>
         <DropdownMenuItem
-          onClick={() => {
-            redirect(`/ical/${e.abbreviation}?dates=true`, RedirectType.push);
-          }}
+          asChild
           aria-label={`Download ${e.abbreviation} event with important dates and deadlines`}
         >
-          With deadlines
+          <Link href={withDatesUrl} download className="cursor-pointer">
+            With deadlines
+          </Link>
         </DropdownMenuItem>
         <DropdownMenuItem
-          onClick={() => {
-            redirect(`/ical/${e.abbreviation}?dates=false`, RedirectType.push);
-          }}
+          asChild
           aria-label={`Download ${e.abbreviation} event without important dates and deadlines`}
         >
-          Main dates only
+          <Link href={withoutDatesUrl} download className="cursor-pointer">
+            Main dates only
+          </Link>
         </DropdownMenuItem>
       </DropdownMenuSubContent>
     </DropdownMenuSub>

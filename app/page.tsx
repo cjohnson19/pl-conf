@@ -1,8 +1,8 @@
 import { EventList } from "./components/event-list";
-import { Resource } from "sst";
+import { events } from "@generated";
 
 export default async function Home() {
-  const events = Object.entries(Resource.EventList.events).map(([, e]) => e);
+  const eventList = Object.entries(events).map(([, e]) => e);
 
-  return <EventList events={JSON.stringify(events)} />;
+  return <EventList events={JSON.stringify(eventList)} />;
 }

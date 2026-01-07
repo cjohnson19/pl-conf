@@ -1,5 +1,4 @@
 import { DomUtils, parseDocument } from "htmlparser2";
-import { Resource } from "sst";
 import {
   GetObjectCommand,
   PutObjectCommand,
@@ -8,6 +7,7 @@ import {
 import { SESv2Client, SendEmailCommand } from "@aws-sdk/client-sesv2";
 import { isAfter } from "date-fns";
 import diff from "fast-diff";
+import { events } from "../../../generated/events";
 
 interface EventWebInfo {
   main?: string;
@@ -149,16 +149,19 @@ function formatDiffSummary(addedCount: number, removedCount: number): string {
     : '<span style="color: #666;">No changes</span>';
 }
 
-async function getStoredEventInfo(): Promise<{
-  [K in keyof typeof Resource.EventList.events]: EventWebInfo;
-}> {
-  const eventAbbrevs = Object.keys(Resource.EventList.events);
+const WEBPAGE_BUCKET_NAME = process.env.WEBPAGE_BUCKET_NAME!;
+const NOTIFICATION_EMAIL = process.env.NOTIFICATION_EMAIL!;
+const DRIFT_EMAIL_SENDER =
+  process.env.DRIFT_EMAIL_SENDER || "drift-production@pl-conferences.com";
+
+async function getStoredEventInfo(): Promise<Record<string, EventWebInfo>> {
+  const eventAbbrevs = Object.keys(events);
   const importantDatePages: PromiseSettledResult<
     Pick<EventWebInfo, "importantDates">
   >[] = await Promise.allSettled(
     eventAbbrevs.map(async (abbrev) => {
       const getImportantDatesCommand = new GetObjectCommand({
-        Bucket: Resource.WebpageBucket.name,
+        Bucket: WEBPAGE_BUCKET_NAME,
         Key: `${abbrev}-dates.html`,
       });
       const res = await s3Client.send(getImportantDatesCommand);
@@ -171,7 +174,7 @@ async function getStoredEventInfo(): Promise<{
     await Promise.allSettled(
       eventAbbrevs.map(async (abbrev) => {
         const getMainCommand = new GetObjectCommand({
-          Bucket: Resource.WebpageBucket.name,
+          Bucket: WEBPAGE_BUCKET_NAME,
           Key: `${abbrev}-main.html`,
         });
         const res = await s3Client.send(getMainCommand);
@@ -193,16 +196,14 @@ async function getStoredEventInfo(): Promise<{
   ) as any;
 }
 
-async function getCurrentEventInfo(): Promise<{
-  [K in keyof typeof Resource.EventList.events]: EventWebInfo;
-}> {
-  const es = Object.values(Resource.EventList.events).filter((e) =>
+async function getCurrentEventInfo(): Promise<Record<string, EventWebInfo>> {
+  const es = Object.values(events).filter((e) =>
     isAfter(e.date.end, new Date())
   );
   const mainPages: PromiseSettledResult<Pick<EventWebInfo, "main">>[] =
     await Promise.allSettled(
       es.map(async (e) => {
-        if (!("url" in e)) {
+        if (e.url === undefined) {
           return {};
         }
         const mainPage = await fetch(e.url, {
@@ -219,7 +220,7 @@ async function getCurrentEventInfo(): Promise<{
     Pick<EventWebInfo, "importantDates">
   >[] = await Promise.allSettled(
     es.map(async (e) => {
-      if (!("importantDateUrl" in e)) {
+      if (e.importantDateUrl === undefined) {
         return {};
       }
       const datePage = await fetch(e.importantDateUrl);
@@ -244,16 +245,14 @@ async function getCurrentEventInfo(): Promise<{
 function toTable(
   drifts: [string, { main: DiffResult; importantDates: DiffResult }][]
 ) {
-  const getUrl = (prop: string, abbrev: string): string =>
-    prop in
-    Resource.EventList.events[abbrev as keyof typeof Resource.EventList.events]
-      ? ((
-          Resource.EventList.events[
-            abbrev as keyof typeof Resource.EventList.events
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          ] as any
-        )[prop] as string)
+  const getUrl = (prop: string, abbrev: string): string => {
+    const event = events[abbrev];
+    if (!event) return "Url not available";
+    return prop in event
+      ? // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        ((event as any)[prop] as string)
       : "Url not available";
+  };
 
   // Filter to only show events with changes
   const eventsWithChanges = drifts.filter(
@@ -342,10 +341,7 @@ function toTable(
       <tbody>
         ${eventsWithChanges
           .map(([abbrev, drift]) => {
-            const eventName =
-              Resource.EventList.events[
-                abbrev as keyof typeof Resource.EventList.events
-              ].name || abbrev;
+            const eventName = events[abbrev]?.name || abbrev;
 
             return `
               <tr>
@@ -468,8 +464,7 @@ export const handler = async () => {
       importantDates: DiffResult;
     },
   ][] = Object.entries(currentEventInfo).map(([abbrev, currentInfo]) => {
-    const storedInfo =
-      storedEventInfo[abbrev as keyof typeof Resource.EventList.events];
+    const storedInfo = storedEventInfo[abbrev];
     return [
       abbrev,
       {
@@ -485,9 +480,9 @@ export const handler = async () => {
   const sesClient = new SESv2Client();
 
   const sendCommand: SendEmailCommand = new SendEmailCommand({
-    FromEmailAddress: "drift-production@pl-conferences.com",
+    FromEmailAddress: DRIFT_EMAIL_SENDER,
     Destination: {
-      ToAddresses: [Resource.NotificationEmail.value],
+      ToAddresses: [NOTIFICATION_EMAIL],
     },
     Content: {
       Simple: {
@@ -544,7 +539,7 @@ export const handler = async () => {
     async ([abbrev, info]) => {
       if (info.main !== undefined) {
         const putMainCommand = new PutObjectCommand({
-          Bucket: Resource.WebpageBucket.name,
+          Bucket: WEBPAGE_BUCKET_NAME,
           Key: `${abbrev}-main.html`,
           Body: info.main,
         });
@@ -554,7 +549,7 @@ export const handler = async () => {
       }
       if (info.importantDates !== undefined) {
         const putDatesCommand = new PutObjectCommand({
-          Bucket: Resource.WebpageBucket.name,
+          Bucket: WEBPAGE_BUCKET_NAME,
           Key: `${abbrev}-dates.html`,
           Body: info.importantDates,
         });

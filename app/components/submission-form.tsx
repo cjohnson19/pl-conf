@@ -90,7 +90,9 @@ export function SubmissionForm() {
     };
 
     try {
-      const response = await fetch("/api/submit", {
+      const apiUrl =
+        process.env.NEXT_PUBLIC_SUBMISSION_API_URL || "/api/submit";
+      const response = await fetch(apiUrl, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

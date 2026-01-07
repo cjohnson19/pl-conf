@@ -2,19 +2,6 @@
 
 A web application that tracks programming language conferences and workshops.
 
-## Features
-
-- Search conferences and workshops by name
-- Filter events by year, type (conference/workshop), and submission status
-- Sort events by various criteria including date and name
-- Mark events as favorites for easy tracking
-- Hide events you're not interested in
-- Export events to calendar (ICS format)
-- Toggle between dark and light themes
-- Submit new conference information via form
-- Daily automated checks for updated conference information
-- Email notifications when conference details change
-
 ## Adding Conferences
 
 You can add conference information in two ways:
@@ -67,18 +54,20 @@ someone's inbox too much.
 
 ## Development
 
-This project uses SST with a monorepo structure:
+This project uses a monorepo structure:
 
 - `app/` - Next.js frontend application
 - `packages/core/` - Shared Zod schemas and utilities
-- `packages/functions/` - Lambda functions for form submissions and drift detection
+- `packages/functions/` - Lambda functions for form submission, drift detection,
+  and iCal file creating
 - `data/` - YAML files containing conference information
+- `generated/` - Auto-generated event data (do not edit directly)
+- `scripts/` - Build and deployment scripts
 
 ### Prerequisites
 
-- Node.js and pnpm
-- AWS credentials configured
-- SST CLI (`npm install -g sst`)
+- Node.js 22+
+- pnpm
 
 ### Running locally
 
@@ -86,21 +75,29 @@ This project uses SST with a monorepo structure:
 # Install dependencies
 pnpm install
 
-# Start development environment
-npx sst dev
+# Build the core package
+pnpm --filter @pl-conf/core run build
+
+# Start the development server
+pnpm run dev
 ```
 
-## Configuration
+The development server will start at `http://localhost:3000`.
 
-The application uses SST secrets for sensitive configuration:
+### Project structure
 
-- `NotificationEmail` - Email address for notifications (both submissions and drift alerts)
+Event data is stored in YAML files under `data/{year}/`. When you run `pnpm run dev` or `pnpm run build`, the `scripts/generate-events.ts` script automatically:
 
-Set secrets using:
+1. Reads all YAML files from `data/`
+2. Validates them against the Zod schema in `packages/core`
+3. Generates `generated/events.ts` and `generated/events.json`
 
-```bash
-npx sst secret set NotificationEmail "your-email@example.com"
-```
+### Available scripts
+
+- `pnpm run dev` - Start Next.js development server
+- `pnpm run build` - Build the Next.js static site
+- `pnpm run generate` - Regenerate event data from YAML files
+- `pnpm run lint` - Run ESLint
 
 ## License
 

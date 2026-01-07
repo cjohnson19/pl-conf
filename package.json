@@ -6,8 +6,12 @@
     "packages/*"
   ],
   "scripts": {
-    "dev": "next dev --turbopack",
-    "build": "next build",
+    "generate": "tsx scripts/generate-events.ts",
+    "dev": "npm run generate && next dev --turbopack",
+    "build": "npm run generate && next build",
+    "build:lambdas": "npm run generate && pnpm --filter @pl-conf/functions run build",
+    "build:all": "npm run build && npm run build:lambdas",
+    "deploy": "tsx scripts/deploy.ts",
     "start": "next start",
     "lint": "next lint",
     "prepare": "husky"
@@ -34,7 +38,6 @@
     "react": "^19.0.0",
     "react-day-picker": "^8.10.1",
     "react-dom": "^19.0.0",
-    "sst": "3.4.27",
     "tailwind-merge": "^2.5.5",
     "tailwindcss-animate": "^1.0.7",
     "yaml": "^2.6.1",
@@ -52,6 +55,7 @@
     "postcss": "^8",
     "prettier": "^3.6.2",
     "tailwindcss": "^3.4.1",
+    "tsx": "^4.19.0",
     "typescript": "^5.7.2"
   },
   "lint-staged": {
