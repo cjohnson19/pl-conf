@@ -25,7 +25,11 @@ export function EventOptions({
   return (
     <DropdownMenu modal={false}>
       <DropdownMenuTrigger asChild>
-        <Button variant={"ghost"} size={"icon"}>
+        <Button
+          variant={"ghost"}
+          size={"icon"}
+          aria-label={`Perform actions on the ${e.abbreviation}`}
+        >
           <Menu />
         </Button>
       </DropdownMenuTrigger>
