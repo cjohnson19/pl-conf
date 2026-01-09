@@ -1,0 +1,12 @@
+name: International Conference on Types for Proofs and Programs
+abbreviation: TYPES
+date:
+  start: 2026-05-04
+  end: 2026-05-08
+location: Gothenburg, Sweden
+url: "https://types2026.cse.chalmers.se/"
+importantDateUrl: "https://types2026.cse.chalmers.se/call-for-contributions.html"
+type: "conference"
+importantDates:
+  paper: 2026-01-20
+  notification: 2026-02-20
