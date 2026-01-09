@@ -23,9 +23,23 @@ import {
 import clsx from "clsx";
 import { format } from "date-fns";
 import { FavoriteButton } from "./favorite-button";
-import { EventOptions } from "./event-options/event-options";
+import dynamic from "next/dynamic";
 import { eventKey, PreferenceCollection } from "@/lib/user-prefs";
 import { Dispatch, SetStateAction } from "react";
+import { Button } from "./ui/button";
+import { Menu } from "lucide-react";
+
+const EventOptions = dynamic(
+  () => import("./event-options/event-options").then((mod) => mod.EventOptions),
+  {
+    ssr: false,
+    loading: () => (
+      <Button variant="ghost" size="icon" disabled>
+        <Menu />
+      </Button>
+    ),
+  }
+);
 
 export function EventCard({
   e,

@@ -1,5 +1,4 @@
 import { EventType, ScheduledEvent } from "./event";
-import { DateRange } from "react-day-picker";
 import {
   isAfter as dateIsAfter,
   isBefore as dateIsBefore,
@@ -58,7 +57,7 @@ export const hiddenFilter: (
         : prefs[eventKey(e)]?.hidden === undefined ||
           prefs[eventKey(e)].hidden === false;
 
-export const isBetween: (range: DateRange) => EventFilter =
+export const isBetween: (range: { from?: Date; to?: Date }) => EventFilter =
   ({ from, to }) =>
   (e) =>
     hasDate(e.date.start) &&
