@@ -12,6 +12,7 @@ export function GithubLink() {
       onClick={() =>
         redirect("https://github.com/cjohnson19/pl-conf", RedirectType.push)
       }
+      aria-label="Visit website's GitHub page"
     >
       <Github />
       <span className="sr-only">GitHub</span>

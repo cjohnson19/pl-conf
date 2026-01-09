@@ -26,7 +26,7 @@ export function CategoryFilter({
   return (
     <DropdownMenu modal={false}>
       <DropdownMenuTrigger asChild>
-        <Button variant={"outline"}>
+        <Button variant={"outline"} aria-label="Filter by event's category">
           <FilterIcon /> <span className="hidden md:inline">Category</span>
         </Button>
       </DropdownMenuTrigger>

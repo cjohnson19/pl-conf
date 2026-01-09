@@ -26,7 +26,10 @@ export function HiddenFilter({
   return (
     <DropdownMenu modal={false}>
       <DropdownMenuTrigger asChild>
-        <Button variant={"outline"}>
+        <Button
+          variant={"outline"}
+          aria-label="Toggle visibility of event's marked as hidden"
+        >
           <EyeIcon /> <span className="hidden md:inline">Hidden Items</span>
         </Button>
       </DropdownMenuTrigger>

@@ -22,7 +22,7 @@ export function SortOptions({
   return (
     <DropdownMenu modal={false}>
       <DropdownMenuTrigger asChild>
-        <Button variant={"outline"}>
+        <Button variant={"outline"} aria-label="Change sorting value">
           <ArrowDownUp /> <span className="hidden md:inline">Sort by</span>
         </Button>
       </DropdownMenuTrigger>
