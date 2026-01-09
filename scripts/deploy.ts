@@ -99,7 +99,12 @@ async function main() {
   });
 
   console.log("\nUploading to S3...");
-  run(`aws s3 sync out/ s3://${websiteBucketName}/ --delete`);
+  run(
+    `aws s3 sync out/_next/static/ s3://${websiteBucketName}/_next/static --delete --cache-control "public, max-age=31536000, immutable"`
+  );
+  run(
+    `aws s3 sync out/ s3://${websiteBucketName}/ --delete --cache-control "public, max-age=0, must-revalidate" --exclude "_next/static/*"`
+  );
 
   console.log("\nInvalidating CloudFront cache...");
   run(
