@@ -1,17 +1,12 @@
-import { Dispatch, SetStateAction } from "react";
+"use client";
+
 import { Button } from "./ui/button";
 import { StarIcon } from "lucide-react";
-import { PreferenceCollection } from "@/lib/user-prefs";
+import { usePreferences } from "./preferences-provider";
 
-export function FavoriteButton({
-  prefKey: key,
-  prefs,
-  setPrefs,
-}: {
-  prefKey: string;
-  prefs: PreferenceCollection;
-  setPrefs: Dispatch<SetStateAction<PreferenceCollection>>;
-}) {
+export function FavoriteButton({ prefKey: key }: { prefKey: string }) {
+  const { prefs, setPrefs } = usePreferences();
+
   return (
     <Button
       variant={"ghost"}
@@ -23,7 +18,7 @@ export function FavoriteButton({
           eventPrefs: {
             ...prefs.eventPrefs,
             [key]: {
-              ...prefs.eventPrefs.key,
+              ...prefs.eventPrefs[key],
               favorite: !(prev.eventPrefs[key]?.favorite ?? false),
             },
           },

@@ -9,19 +9,13 @@ import {
 import { Button } from "../ui/button";
 import { ScheduledEvent } from "@/lib/event";
 import { CalendarEvent } from "./calendar-event";
-import { Dispatch, SetStateAction } from "react";
-import { eventKey, PreferenceCollection } from "@/lib/user-prefs";
+import { eventKey } from "@/lib/user-prefs";
+import { usePreferences } from "../preferences-provider";
 
-export function EventOptions({
-  e,
-  prefs,
-  setPrefs,
-}: {
-  e: ScheduledEvent;
-  prefs: PreferenceCollection;
-  setPrefs: Dispatch<SetStateAction<PreferenceCollection>>;
-}) {
+export function EventOptions({ e }: { e: ScheduledEvent }) {
+  const { prefs, setPrefs } = usePreferences();
   const k = eventKey(e);
+
   return (
     <DropdownMenu modal={false}>
       <DropdownMenuTrigger asChild>

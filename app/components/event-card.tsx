@@ -14,74 +14,38 @@ import {
 import Link from "next/link";
 import { EventBadges } from "./event-badges";
 import { DateTable } from "./date-table";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "./ui/tooltip";
 import clsx from "clsx";
 import { format } from "date-fns";
 import { FavoriteButton } from "./favorite-button";
-import dynamic from "next/dynamic";
-import { eventKey, PreferenceCollection } from "@/lib/user-prefs";
-import { Dispatch, SetStateAction } from "react";
-import { Button } from "./ui/button";
-import { Menu } from "lucide-react";
+import { EventTitleTooltip } from "./event-title-tooltip";
+import { eventKey } from "@/lib/user-prefs";
+import { EventOptionsWrapper } from "./event-options-wrapper";
 
-const EventOptions = dynamic(
-  () => import("./event-options/event-options").then((mod) => mod.EventOptions),
-  {
-    ssr: false,
-    loading: () => (
-      <Button variant="ghost" size="icon" disabled>
-        <Menu />
-      </Button>
-    ),
-  }
-);
-
-export function EventCard({
-  e,
-  prefs,
-  setPrefs,
-}: {
-  e: ScheduledEvent;
-  prefs: PreferenceCollection;
-  setPrefs: Dispatch<SetStateAction<PreferenceCollection>>;
-}) {
+export function EventCard({ e }: { e: ScheduledEvent }) {
   const abbrevYear = (
     <>
       {e.abbreviation} &apos;{format(e.date.start, "yy")}
     </>
   );
+
   return (
     <Card className="w-full bg-muted/80">
       <CardHeader className="p-4 sm:p-6">
         <div className="flex flex-col justify-between gap-1 w-full">
           <CardTitle className="flex gap-2 justify-between items-start">
             <div className="flex gap-2 items-start justify-start flex-grow min-w-0">
-              <TooltipProvider>
-                <Tooltip delayDuration={100}>
-                  <TooltipTrigger asChild>
-                    <h3 className="text-base sm:text-lg md:text-xl truncate">
-                      {e.url ? (
-                        <Link href={e.url} target="_blank">
-                          {abbrevYear}
-                        </Link>
-                      ) : (
-                        abbrevYear
-                      )}
-                    </h3>
-                  </TooltipTrigger>
-                  <TooltipContent>{e.name}</TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-              <FavoriteButton
-                prefKey={eventKey(e)}
-                prefs={prefs}
-                setPrefs={setPrefs}
-              />
+              <EventTitleTooltip name={e.name}>
+                <h3 className="text-base sm:text-lg md:text-xl truncate">
+                  {e.url ? (
+                    <Link href={e.url} target="_blank">
+                      {abbrevYear}
+                    </Link>
+                  ) : (
+                    abbrevYear
+                  )}
+                </h3>
+              </EventTitleTooltip>
+              <FavoriteButton prefKey={eventKey(e)} />
             </div>
             <div className="flex gap-2 items-center justify-end flex-shrink-0">
               <div className="flex flex-col gap-1 items-end">
@@ -99,7 +63,7 @@ export function EventCard({
                   </p>
                 </CardDescription>
               </div>
-              <EventOptions e={e} prefs={prefs} setPrefs={setPrefs} />
+              <EventOptionsWrapper e={e} />
             </div>
           </CardTitle>
           <div className="flex gap-4 items-center justify-between">

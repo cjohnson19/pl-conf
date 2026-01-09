@@ -1,7 +1,8 @@
 "use client";
+
 import { ScheduledEvent } from "../lib/event";
 import { EventCard } from "./event-card";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { CategoryFilter } from "./category-filter";
 import {
   applyFilters,
@@ -14,23 +15,22 @@ import {
 } from "../lib/event-filter";
 import { SearchInput } from "./search-input";
 import { DateFilter } from "./date-filter";
-import { format } from "date-fns";
-import {
-  defaultPreferences,
-  eventKey,
-  PreferenceCollection,
-} from "@/lib/user-prefs";
 import { HiddenFilter } from "./hidden-filter";
-import { Skeleton } from "./ui/skeleton";
 import { OpenSubmissionFilter } from "./open-submission-filter";
 import { sorters } from "@/lib/event-sorter";
 import { SortOptions } from "./sort-options";
-import { useLocalStorage } from "@/hooks/use-local-storage";
+import { PreferencesProvider, usePreferences } from "./preferences-provider";
+import { eventKey } from "@/lib/user-prefs";
 
-export function EventList({ events }: { events: string }) {
-  const didMount = useRef(false);
-  const [userPrefs, setUserPrefs, prefsLoaded] =
-    useLocalStorage<PreferenceCollection>("userPrefsV2", defaultPreferences);
+function EventListInner({
+  events,
+  eventYears,
+}: {
+  events: ScheduledEvent[];
+  eventYears: string[];
+}) {
+  const { prefs, setPrefs, prefsLoaded } = usePreferences();
+
   const [categoryFilter, setCategoryFilter] = useState<EventFilter>(
     () => () => true
   );
@@ -42,7 +42,7 @@ export function EventList({ events }: { events: string }) {
   const [showHiddenFilter, setShowHiddenFilter] = useState<EventFilter>(
     () => () => true
   );
-  // const [showHidden, setShowHidden] = useState<boolean>(false);
+
   function filterEvents(es: ScheduledEvent[]): ScheduledEvent[] {
     return applyFilters(es, [
       isActive,
@@ -55,45 +55,37 @@ export function EventList({ events }: { events: string }) {
   }
 
   useEffect(() => {
-    if (!didMount.current) {
-      didMount.current = true;
-      return;
-    }
-    if (prefsLoaded) {
-      window.localStorage.setItem("userPrefsV2", JSON.stringify(userPrefs));
-    }
-  }, [userPrefs, prefsLoaded]);
-
-  useEffect(() => {
     if (!prefsLoaded) {
       return;
     }
-    const selectedCategory = userPrefs.filters.selectedCategory;
+    const selectedCategory = prefs.filters.selectedCategory;
     setCategoryFilter(() =>
       selectedCategory === "Any" ? () => true : isCategory(selectedCategory)
     );
 
-    const selectedYear = userPrefs.filters.selectedYear;
+    const selectedYear = prefs.filters.selectedYear;
     setYearFilter(() =>
       selectedYear === "Any" ? () => true : hasYear(selectedYear)
     );
 
     setOpenSubmissionFilter(() =>
-      openToNewSubmissions(userPrefs.filters.openSubmissionFilter === "Filter")
+      openToNewSubmissions(prefs.filters.openSubmissionFilter === "Filter")
     );
     setShowHiddenFilter(() =>
-      hiddenFilter(userPrefs.eventPrefs)(userPrefs.filters.hiddenItemsFilter)
+      hiddenFilter(prefs.eventPrefs)(prefs.filters.hiddenItemsFilter)
     );
-  }, [userPrefs, prefsLoaded]);
+  }, [prefs, prefsLoaded]);
 
-  const es = JSON.parse(events) as ScheduledEvent[];
-  const eventYears = [
-    ...new Set(
-      es
-        .filter((e) => e.date.start !== "TBD")
-        .map((e) => format(e.date.start, "yyyy"))
-    ),
-  ];
+  // Use pre-filtered events from server, apply additional client-side filters
+  const displayEvents = filterEvents(events)
+    .sort((a, b) => sorters.find(({ key }) => key === prefs.sortBy)!.f(a, b))
+    .sort((a, b) => {
+      return prefs.eventPrefs[eventKey(a)]?.favorite
+        ? -1
+        : prefs.eventPrefs[eventKey(b)]?.favorite
+          ? 1
+          : 0;
+    });
 
   return (
     <div className="flex flex-col gap-8 px-4 md:px-11 items-center">
@@ -103,9 +95,9 @@ export function EventList({ events }: { events: string }) {
           <DateFilter
             setValue={setYearFilter}
             years={eventYears}
-            value={userPrefs.filters.selectedYear}
+            value={prefs.filters.selectedYear}
             onValueChange={(value) =>
-              setUserPrefs((prev) => ({
+              setPrefs((prev) => ({
                 ...prev,
                 filters: { ...prev.filters, selectedYear: value },
               }))
@@ -113,9 +105,9 @@ export function EventList({ events }: { events: string }) {
           />
           <CategoryFilter
             setValue={setCategoryFilter}
-            value={userPrefs.filters.selectedCategory}
+            value={prefs.filters.selectedCategory}
             onValueChange={(value) =>
-              setUserPrefs((prev) => ({
+              setPrefs((prev) => ({
                 ...prev,
                 filters: { ...prev.filters, selectedCategory: value },
               }))
@@ -123,21 +115,21 @@ export function EventList({ events }: { events: string }) {
           />
           <HiddenFilter
             setValue={setShowHiddenFilter}
-            value={userPrefs.filters.hiddenItemsFilter}
+            value={prefs.filters.hiddenItemsFilter}
             onValueChange={(value) =>
-              setUserPrefs((prev) => ({
+              setPrefs((prev) => ({
                 ...prev,
                 filters: { ...prev.filters, hiddenItemsFilter: value },
               }))
             }
-            eventPrefs={userPrefs.eventPrefs}
+            eventPrefs={prefs.eventPrefs}
           />
-          <SortOptions userPrefs={userPrefs} setUserPrefs={setUserPrefs} />
+          <SortOptions userPrefs={prefs} setUserPrefs={setPrefs} />
           <OpenSubmissionFilter
             setValue={setOpenSubmissionFilter}
-            value={userPrefs.filters.openSubmissionFilter}
+            value={prefs.filters.openSubmissionFilter}
             onValueChange={(value) =>
-              setUserPrefs((prev) => ({
+              setPrefs((prev) => ({
                 ...prev,
                 filters: { ...prev.filters, openSubmissionFilter: value },
               }))
@@ -145,29 +137,23 @@ export function EventList({ events }: { events: string }) {
           />
         </div>
       </div>
-      {!prefsLoaded
-        ? Array.from({ length: 10 }).map((_, i) => (
-            <Skeleton key={i} className="h-48 w-full rounded-2xl"></Skeleton>
-          ))
-        : filterEvents(es)
-            .sort((a, b) =>
-              sorters.find(({ key }) => key === userPrefs.sortBy)!.f(a, b)
-            )
-            .sort((a, b) => {
-              return userPrefs.eventPrefs[eventKey(a)]?.favorite
-                ? -1
-                : userPrefs.eventPrefs[eventKey(b)]?.favorite
-                  ? 1
-                  : 0;
-            })
-            .map((e: ScheduledEvent) => (
-              <EventCard
-                key={e.abbreviation}
-                e={e}
-                prefs={userPrefs}
-                setPrefs={setUserPrefs}
-              />
-            ))}
+      {displayEvents.map((e: ScheduledEvent) => (
+        <EventCard key={e.abbreviation} e={e} />
+      ))}
     </div>
+  );
+}
+
+export function EventListContainer({
+  events,
+  eventYears,
+}: {
+  events: ScheduledEvent[];
+  eventYears: string[];
+}) {
+  return (
+    <PreferencesProvider>
+      <EventListInner events={events} eventYears={eventYears} />
+    </PreferencesProvider>
   );
 }
