@@ -16,10 +16,12 @@ export function TimeUntil({
   date: string;
   prefix?: string;
 } & React.ComponentPropsWithoutRef<"p">) {
-  const [now, setNow] = React.useState(new Date());
+  const [now, setNow] = React.useState<Date | null>(null);
 
   React.useEffect(() => {
-    if (now.getTime() > new Date(date).getTime()) {
+    setNow(new Date());
+
+    if (new Date().getTime() > new Date(date).getTime()) {
       return;
     }
     const interval = setInterval(
@@ -32,7 +34,11 @@ export function TimeUntil({
     return () => {
       clearInterval(interval);
     };
-  });
+  }, [date]);
+
+  if (!now) {
+    return null;
+  }
 
   const timeUntilDuration: Interval = {
     start: now,
