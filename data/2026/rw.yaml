@@ -1,0 +1,12 @@
+name: Rust Verification Workshop
+abbreviation: RW
+date:
+  start: 2026-04-13
+  end: 2026-04-14
+location: Turin, Italy
+url: "https://sites.google.com/view/rustverify2026"
+importantDateUrl: "https://lists.seas.upenn.edu/pipermail/types-announce/2026/012276.html"
+type: "workshop"
+importantDates:
+  paper: 2026-02-06
+  notification: 2026-02-13
