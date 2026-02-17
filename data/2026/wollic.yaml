@@ -5,11 +5,16 @@ date:
   end: 2026-08-06
 location: Lima, Peru
 url: "https://wollic.org/wollic2026/"
+importantDateUrl: >
+  https://lists.seas.upenn.edu/pipermail/types-announce/2026/012324.html
 submissionUrl: "https://easychair.org/conferences/?conf=wollic2026"
-importantDateUrl: "https://wollic.org/wollic2026/cfp.html"
 type: "workshop"
 importantDates:
-  abstract: 2026-02-16
-  paper: 2026-02-22
+  abstract: 2026-03-02
+  paper: 2026-03-02
   notification: 2026-05-05
   camera-ready: 2026-05-20
+notes:
+  - Main webpage down as of February 17. Link now points to mailing list
+    archive.
+  - Online presentations welcome
