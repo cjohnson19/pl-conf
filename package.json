@@ -13,7 +13,6 @@
     "build:all": "npm run build && npm run build:lambdas",
     "deploy": "tsx scripts/deploy.ts",
     "start": "next start",
-    "lint": "next lint",
     "prepare": "husky"
   },
   "dependencies": {

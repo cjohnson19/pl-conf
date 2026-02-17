@@ -37,6 +37,7 @@ export const ScheduledEvent = z
     importantDateUrl: z.string().url().optional(),
     format: z.string().optional(),
     url: z.string().url().optional(),
+    submissionUrl: z.string().url().optional(),
     importantDates: z.record(DateName, z.union([TBD, DateSchema])).default({}),
     notes: z.string().array().default([]),
     type: EventType,
@@ -57,7 +58,6 @@ export const ScheduledEvent = z
     message: "Event's start must be the same or before the end",
     path: ["date"],
 });
-// Submission schema used by the lambda (subset of ScheduledEvent)
 export const SubmissionSchema = z
     .object({
     name: z.string().nonempty(),
@@ -72,6 +72,7 @@ export const SubmissionSchema = z
     location: z.string().optional(),
     importantDateUrl: z.string().url().optional(),
     url: z.string().url().optional(),
+    submissionUrl: z.string().url().optional(),
     importantDates: z.record(DateName, z.union([TBD, DateSchema])).default({}),
     notes: z.string().array().default([]),
     type: EventType,
@@ -119,32 +120,27 @@ export function dateRangeToString(start, end) {
     }
     // Same year but different months
     if (isSameYear(startDate, endDate)) {
-        return `${format(startDate, "MMMM do")} – ${format(endDate, "MMMM do, yyyy")}`;
+        return `${format(startDate, "MMMM do")}–${format(endDate, "MMMM do, yyyy")}`;
     }
     // Different years
-    return `${format(startDate, "MMMM do, yyyy")} – ${format(endDate, "MMMM do, yyyy")}`;
+    return `${format(startDate, "MMMM do, yyyy")}–${format(endDate, "MMMM do, yyyy")}`;
 }
 export function dateRangeToCompactString(start, end) {
-    // Handle TBD cases
     if (start === "TBD" || end === "TBD") {
         return "TBD";
     }
     const startDate = new Date(start);
     const endDate = new Date(end);
-    // Single day event
     if (isSameDay(startDate, endDate)) {
         return format(startDate, "M/d/yy");
     }
-    // Same month and year
     if (isSameMonth(startDate, endDate) && isSameYear(startDate, endDate)) {
-        return `${format(startDate, "M/d")} – ${format(endDate, "M/d/yy")}`;
+        return `${format(startDate, "M/d")}–${format(endDate, "M/d/yy")}`;
     }
-    // Same year but different months
     if (isSameYear(startDate, endDate)) {
-        return `${format(startDate, "M/d")} – ${format(endDate, "M/d/yy")}`;
+        return `${format(startDate, "M/d")}–${format(endDate, "M/d/yy")}`;
     }
-    // Different years
-    return `${format(startDate, "M/d/yy")} – ${format(endDate, "M/d/yy")}`;
+    return `${format(startDate, "M/d/yy")}–${format(endDate, "M/d/yy")}`;
 }
 export function toICal(e, includeDates = false) {
     if (e.date.start === "TBD" || e.date.end === "TBD") {

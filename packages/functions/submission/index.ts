@@ -237,6 +237,7 @@ Abbreviation: ${eventData.abbreviation}
 Type: ${eventData.type}
 ${eventData.location ? `Location: ${eventData.location}` : ""}
 ${eventData.url ? `URL: ${eventData.url}` : ""}
+${eventData.submissionUrl ? `Submission URL: ${eventData.submissionUrl}` : ""}
 
 Event Dates:
 Start: ${eventData.date?.start !== "TBD" ? eventData.date.start : "TBD"}
