@@ -23,6 +23,7 @@ export declare const ScheduledEvent: z.ZodEffects<z.ZodEffects<z.ZodObject<{
     importantDateUrl: z.ZodOptional<z.ZodString>;
     format: z.ZodOptional<z.ZodString>;
     url: z.ZodOptional<z.ZodString>;
+    submissionUrl: z.ZodOptional<z.ZodString>;
     importantDates: z.ZodDefault<z.ZodRecord<z.ZodEnum<["abstract", "paper", "notification", "rebuttal", "conditional-acceptance", "camera-ready", "revisions"]>, z.ZodUnion<[z.ZodLiteral<"TBD">, z.ZodEffects<z.ZodString, string, string>]>>>;
     notes: z.ZodDefault<z.ZodArray<z.ZodString, "many">>;
     type: z.ZodEnum<["conference", "workshop", "symposium"]>;
@@ -44,6 +45,7 @@ export declare const ScheduledEvent: z.ZodEffects<z.ZodEffects<z.ZodObject<{
     importantDateUrl?: string | undefined;
     format?: string | undefined;
     url?: string | undefined;
+    submissionUrl?: string | undefined;
 }, {
     type: "conference" | "workshop" | "symposium";
     name: string;
@@ -57,6 +59,7 @@ export declare const ScheduledEvent: z.ZodEffects<z.ZodEffects<z.ZodObject<{
     importantDateUrl?: string | undefined;
     format?: string | undefined;
     url?: string | undefined;
+    submissionUrl?: string | undefined;
     importantDates?: Partial<Record<"abstract" | "paper" | "notification" | "rebuttal" | "conditional-acceptance" | "camera-ready" | "revisions", string>> | undefined;
     notes?: string[] | undefined;
     tags?: string[] | undefined;
@@ -76,6 +79,7 @@ export declare const ScheduledEvent: z.ZodEffects<z.ZodEffects<z.ZodObject<{
     importantDateUrl?: string | undefined;
     format?: string | undefined;
     url?: string | undefined;
+    submissionUrl?: string | undefined;
 }, {
     type: "conference" | "workshop" | "symposium";
     name: string;
@@ -89,6 +93,7 @@ export declare const ScheduledEvent: z.ZodEffects<z.ZodEffects<z.ZodObject<{
     importantDateUrl?: string | undefined;
     format?: string | undefined;
     url?: string | undefined;
+    submissionUrl?: string | undefined;
     importantDates?: Partial<Record<"abstract" | "paper" | "notification" | "rebuttal" | "conditional-acceptance" | "camera-ready" | "revisions", string>> | undefined;
     notes?: string[] | undefined;
     tags?: string[] | undefined;
@@ -108,6 +113,7 @@ export declare const ScheduledEvent: z.ZodEffects<z.ZodEffects<z.ZodObject<{
     importantDateUrl?: string | undefined;
     format?: string | undefined;
     url?: string | undefined;
+    submissionUrl?: string | undefined;
 }, {
     type: "conference" | "workshop" | "symposium";
     name: string;
@@ -121,6 +127,7 @@ export declare const ScheduledEvent: z.ZodEffects<z.ZodEffects<z.ZodObject<{
     importantDateUrl?: string | undefined;
     format?: string | undefined;
     url?: string | undefined;
+    submissionUrl?: string | undefined;
     importantDates?: Partial<Record<"abstract" | "paper" | "notification" | "rebuttal" | "conditional-acceptance" | "camera-ready" | "revisions", string>> | undefined;
     notes?: string[] | undefined;
     tags?: string[] | undefined;
@@ -141,6 +148,7 @@ export declare const SubmissionSchema: z.ZodObject<{
     location: z.ZodOptional<z.ZodString>;
     importantDateUrl: z.ZodOptional<z.ZodString>;
     url: z.ZodOptional<z.ZodString>;
+    submissionUrl: z.ZodOptional<z.ZodString>;
     importantDates: z.ZodDefault<z.ZodRecord<z.ZodEnum<["abstract", "paper", "notification", "rebuttal", "conditional-acceptance", "camera-ready", "revisions"]>, z.ZodUnion<[z.ZodLiteral<"TBD">, z.ZodEffects<z.ZodString, string, string>]>>>;
     notes: z.ZodDefault<z.ZodArray<z.ZodString, "many">>;
     type: z.ZodEnum<["conference", "workshop", "symposium"]>;
@@ -157,6 +165,7 @@ export declare const SubmissionSchema: z.ZodObject<{
     location?: string | undefined;
     importantDateUrl?: string | undefined;
     url?: string | undefined;
+    submissionUrl?: string | undefined;
 }, {
     type: "conference" | "workshop" | "symposium";
     name: string;
@@ -168,6 +177,7 @@ export declare const SubmissionSchema: z.ZodObject<{
     location?: string | undefined;
     importantDateUrl?: string | undefined;
     url?: string | undefined;
+    submissionUrl?: string | undefined;
     importantDates?: Partial<Record<"abstract" | "paper" | "notification" | "rebuttal" | "conditional-acceptance" | "camera-ready" | "revisions", string>> | undefined;
     notes?: string[] | undefined;
 }>;

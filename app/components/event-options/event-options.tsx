@@ -11,6 +11,7 @@ import { ScheduledEvent } from "@/lib/event";
 import { CalendarEvent } from "./calendar-event";
 import { eventKey } from "@/lib/user-prefs";
 import { usePreferences } from "../preferences-provider";
+import Link from "next/link";
 
 export function EventOptions({ e }: { e: ScheduledEvent }) {
   const { prefs, setPrefs } = usePreferences();
@@ -54,6 +55,17 @@ export function EventOptions({ e }: { e: ScheduledEvent }) {
           )}
         </DropdownMenuItem>
         <CalendarEvent e={e} />
+        {e.submissionUrl && (
+          <DropdownMenuItem asChild>
+            <Link
+              href={e.submissionUrl}
+              target="_blank"
+              className="cursor-pointer"
+            >
+              Visit submission page
+            </Link>
+          </DropdownMenuItem>
+        )}
       </DropdownMenuContent>
     </DropdownMenu>
   );

@@ -79,6 +79,7 @@ export function SubmissionForm() {
       abbreviation: formData.get("abbreviation"),
       type: formData.get("type"),
       url: formData.get("url") || undefined,
+      submissionUrl: formData.get("submissionUrl") || undefined,
       location: formData.get("location") || undefined,
       importantDateUrl: formData.get("importantDateUrl") || undefined,
       date: {
@@ -217,6 +218,21 @@ export function SubmissionForm() {
             Conference URL
           </label>
           <Input id="url" name="url" type="url" placeholder="https://..." />
+        </div>
+
+        <div>
+          <label
+            htmlFor="submissionUrl"
+            className="block text-sm font-medium mb-2"
+          >
+            Submission System URL
+          </label>
+          <Input
+            id="submissionUrl"
+            name="submissionUrl"
+            type="url"
+            placeholder="https://hotcrp.com/... or https://easychair.org/..."
+          />
         </div>
 
         <div>
