@@ -75,7 +75,7 @@ export function applyFilters(
 }
 
 export const hasText: (text: string) => EventFilter = (text) => {
-  const t = text.toLowerCase();
+  const t = text.toLowerCase().trim();
   return (e) =>
     t === "" ||
     e.name.toLowerCase().includes(t) ||
