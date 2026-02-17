@@ -4,6 +4,7 @@ import {
   isBefore as dateIsBefore,
   getYear,
   isFuture,
+  isToday,
 } from "date-fns";
 import { eventKey, PreferenceCollection } from "./user-prefs";
 
@@ -39,7 +40,7 @@ export const openToNewSubmissions: (enabled: boolean) => EventFilter =
     if (!on) return true;
     const dates = Object.values(e.importantDates).sort();
     if (dates.length === 0) return false;
-    return isFuture(dates[0]);
+    return isFuture(dates[0]) || isToday(dates[0]);
   };
 
 export const hasFutureDeadline: EventFilter = (e) => {
