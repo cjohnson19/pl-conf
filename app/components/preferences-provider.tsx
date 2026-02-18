@@ -6,8 +6,6 @@ import {
   ReactNode,
   SetStateAction,
   useContext,
-  useEffect,
-  useRef,
 } from "react";
 import { defaultPreferences, PreferenceCollection } from "@/lib/user-prefs";
 import { useLocalStorage } from "@/hooks/use-local-storage";
@@ -21,21 +19,10 @@ type PreferencesContextType = {
 const PreferencesContext = createContext<PreferencesContextType | null>(null);
 
 export function PreferencesProvider({ children }: { children: ReactNode }) {
-  const didMount = useRef(false);
   const [prefs, setPrefs, prefsLoaded] = useLocalStorage<PreferenceCollection>(
     "userPrefsV2",
     defaultPreferences
   );
-
-  useEffect(() => {
-    if (!didMount.current) {
-      didMount.current = true;
-      return;
-    }
-    if (prefsLoaded) {
-      window.localStorage.setItem("userPrefsV2", JSON.stringify(prefs));
-    }
-  }, [prefs, prefsLoaded]);
 
   return (
     <PreferencesContext.Provider value={{ prefs, setPrefs, prefsLoaded }}>
