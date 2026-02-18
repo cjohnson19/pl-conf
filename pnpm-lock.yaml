@@ -107,6 +107,9 @@ importers:
       "@types/react-dom":
         specifier: ^19
         version: 19.0.2(@types/react@19.0.2)
+      baseline-browser-mapping:
+        specifier: ^2.9.19
+        version: 2.9.19
       eslint:
         specifier: ^9
         version: 9.17.0(jiti@1.21.7)
@@ -3685,6 +3688,13 @@ packages:
       {
         integrity: sha512-ZMq4gd9ngV5aTMa5p9+UfY0b3skwhHELaDkhEHetMdX0LRkW9kzaym4oo/Eh+Ghm0CCDuMTsRIGM/ytUc1ZYmw==,
       }
+
+  baseline-browser-mapping@2.9.19:
+    resolution:
+      {
+        integrity: sha512-ipDqC8FrAl/76p2SSWKSI+H9tFwm7vYqXQrItCuiVPt26Km0jS+NzSsBWAaBusvSbQcfJG+JitdMm+wZAgTYqg==,
+      }
+    hasBin: true
 
   basic-ftp@5.1.0:
     resolution:
@@ -9601,6 +9611,8 @@ snapshots:
     dependencies:
       bare-path: 3.0.0
     optional: true
+
+  baseline-browser-mapping@2.9.19: {}
 
   basic-ftp@5.1.0: {}
 
