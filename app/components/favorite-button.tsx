@@ -9,6 +9,7 @@ export function FavoriteButton({ prefKey: key }: { prefKey: string }) {
 
   return (
     <Button
+      className="favorite-button"
       variant={"ghost"}
       size={"icon"}
       aria-label={`Toggle favorite status of ${key}`}

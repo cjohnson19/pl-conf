@@ -7,9 +7,8 @@ import {
   DropdownMenuTrigger,
 } from "../ui/dropdown-menu";
 import { Button } from "../ui/button";
-import { ScheduledEvent } from "@/lib/event";
+import { eventKey, ScheduledEvent } from "@/lib/event";
 import { CalendarEvent } from "./calendar-event";
-import { eventKey } from "@/lib/user-prefs";
 import { usePreferences } from "../preferences-provider";
 import Link from "next/link";
 

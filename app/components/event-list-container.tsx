@@ -1,6 +1,6 @@
 "use client";
 
-import { ScheduledEvent } from "../lib/event";
+import { eventKey, ScheduledEvent } from "../lib/event";
 import { EventCard } from "./event-card";
 import { Skeleton } from "./ui/skeleton";
 import { useEffect, useState } from "react";
@@ -21,7 +21,6 @@ import { OpenSubmissionFilter } from "./open-submission-filter";
 import { sorters } from "@/lib/event-sorter";
 import { SortOptions } from "./sort-options";
 import { PreferencesProvider, usePreferences } from "./preferences-provider";
-import { eventKey } from "@/lib/user-prefs";
 
 function EventListInner({
   events,

@@ -183,6 +183,7 @@ export declare const SubmissionSchema: z.ZodObject<{
 }>;
 export type ScheduledEvent = z.infer<typeof ScheduledEvent>;
 export type SubmissionSchema = z.infer<typeof SubmissionSchema>;
+export declare function eventKey(e: ScheduledEvent): string;
 export declare function dateNameToReadable(name: DateName): string;
 export declare function dateToString(date: MaybeDate): string;
 export declare function dateRangeToString(start: MaybeDate, end: MaybeDate): string;

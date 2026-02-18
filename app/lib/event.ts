@@ -1,6 +1,7 @@
 export {
   ScheduledEvent,
   SubmissionSchema,
+  eventKey,
   eventTypes,
   type MaybeDate,
   type DateName,

@@ -1,5 +1,3 @@
-import { getYear } from "date-fns";
-import { ScheduledEvent } from "./event";
 import { EventSorterOptions } from "./event-sorter";
 
 export type EventPreferences = {
@@ -30,7 +28,3 @@ export const defaultPreferences = {
     openSubmissionFilter: "All" as const,
   },
 };
-
-export function eventKey(e: ScheduledEvent): string {
-  return `${e.abbreviation}-${getYear(e.date.start)}`;
-}

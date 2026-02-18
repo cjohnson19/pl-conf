@@ -1,4 +1,4 @@
-import { EventType, ScheduledEvent } from "./event";
+import { eventKey, EventType, ScheduledEvent } from "./event";
 import {
   isAfter as dateIsAfter,
   isBefore as dateIsBefore,
@@ -6,7 +6,7 @@ import {
   isFuture,
   isToday,
 } from "date-fns";
-import { eventKey, PreferenceCollection } from "./user-prefs";
+import { PreferenceCollection } from "./user-prefs";
 
 function hasDate(s: string): boolean {
   return s !== "TBD";

@@ -1,4 +1,4 @@
-import { format, isBefore, isSameMonth, isSameYear, isSameDay } from "date-fns";
+import { format, isBefore, isSameMonth, isSameYear, isSameDay, getYear, } from "date-fns";
 import { z } from "zod";
 import * as ics from "ics";
 const DateSchema = z
@@ -78,6 +78,9 @@ export const SubmissionSchema = z
     type: EventType,
 })
     .strict();
+export function eventKey(e) {
+    return `${e.abbreviation}-${getYear(e.date.start)}`;
+}
 // Utility functions
 export function dateNameToReadable(name) {
     switch (name) {

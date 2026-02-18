@@ -2,6 +2,7 @@
   "name": "pl-conf",
   "version": "0.1.0",
   "private": true,
+  "type": "module",
   "workspaces": [
     "packages/*"
   ],
@@ -13,6 +14,7 @@
     "build:all": "npm run build && npm run build:lambdas",
     "deploy": "tsx scripts/deploy.ts",
     "start": "next start",
+    "test": "vitest run",
     "prepare": "husky"
   },
   "dependencies": {
@@ -52,12 +54,19 @@
     "lint-staged": "^16.1.6",
     "postcss": "^8",
     "prettier": "^3.6.2",
+    "puppeteer": "^24.37.4",
     "tailwindcss": "^3.4.1",
     "tsx": "^4.19.0",
-    "typescript": "^5.7.2"
+    "typescript": "^5.7.2",
+    "vitest": "^4.0.18"
   },
   "lint-staged": {
     "**/*": "prettier --write --ignore-unknown"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "puppeteer"
+    ]
   },
   "browserslist": [
     "Chrome >= 100",
