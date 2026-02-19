@@ -6,8 +6,9 @@
 
 import { execSync } from "child_process";
 import * as path from "path";
+import { fileURLToPath } from "url";
 
-const ROOT_DIR = path.join(__dirname, "..");
+const ROOT_DIR = path.join(path.dirname(fileURLToPath(import.meta.url)), "..");
 const CDK_DIR = path.join(ROOT_DIR, "cdk");
 
 function run(
@@ -113,7 +114,9 @@ async function main() {
 
   console.log("\n" + "=".repeat(60));
   console.log("Deployment complete");
-  console.log(`Website URL: ${outputs.WebsiteUrl}`);
+  console.log(
+    `Website URL: ${domainName ? `https://${domainName}` : outputs.WebsiteUrl}`
+  );
   console.log("=".repeat(60));
 }
 
