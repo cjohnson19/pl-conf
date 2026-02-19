@@ -3,13 +3,14 @@ abbreviation: ESOP
 date:
   start: 2026-04-11
   end: 2026-04-16
-location: Torino, Italy
+location: Turin, Italy
 importantDates:
   paper: 2025-10-16
   rebuttal: 2025-12-10
   notification: 2025-12-22
   camera-ready: 2026-01-22
 url: "https://etaps.org/2026/conferences/esop/"
+submissionUrl: "https://esop26.hotcrp.com/"
 importantDateUrl: "https://etaps.org/2026/cfp/"
 type: "conference"
 notes:
