@@ -1,5 +1,5 @@
 import { events } from "@generated";
-import { eventKey, ScheduledEvent } from "@pl-conf/core";
+import { eventKey, isActive } from "@pl-conf/core";
 import puppeteer, { ElementHandle, type Browser, type Page } from "puppeteer";
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
 
@@ -25,10 +25,8 @@ afterAll(async () => {
   await browser.close();
 });
 
-function currentOrFutureEvents(): ScheduledEvent[] {
-  return Object.values(events).filter(
-    (e) => e.date.end !== "TBD" && new Date(e.date.end) > new Date()
-  );
+function currentOrFutureEvents() {
+  return Object.values(events).filter(isActive);
 }
 
 async function eventCardAbbreviation(elem: ElementHandle): Promise<string> {

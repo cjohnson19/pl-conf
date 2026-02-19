@@ -1,6 +1,6 @@
 import React, { Dispatch, SetStateAction } from "react";
 import { Input } from "./ui/input";
-import { EventFilter, hasText } from "@/lib/event-filter";
+import { EventFilter, matchesText } from "@/lib/event-filter";
 
 export function SearchInput({
   value,
@@ -24,7 +24,7 @@ export function SearchInput({
     <Input
       type="text"
       placeholder="Search"
-      onChange={(e) => setDebounceValue(() => hasText(e.target.value))}
+      onChange={(e) => setDebounceValue(() => matchesText(e.target.value))}
       autoFocus={true}
     />
   );

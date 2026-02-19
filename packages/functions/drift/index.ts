@@ -5,7 +5,7 @@ import {
   S3Client,
 } from "@aws-sdk/client-s3";
 import { SESv2Client, SendEmailCommand } from "@aws-sdk/client-sesv2";
-import { isAfter } from "date-fns";
+import { isActive } from "@pl-conf/core";
 import diff from "fast-diff";
 import { events } from "../../../generated/events";
 
@@ -197,9 +197,7 @@ async function getStoredEventInfo(): Promise<Record<string, EventWebInfo>> {
 }
 
 async function getCurrentEventInfo(): Promise<Record<string, EventWebInfo>> {
-  const es = Object.values(events).filter((e) =>
-    isAfter(e.date.end, new Date())
-  );
+  const es = Object.values(events).filter(isActive);
   const mainPages: PromiseSettledResult<Pick<EventWebInfo, "main">>[] =
     await Promise.allSettled(
       es.map(async (e) => {
