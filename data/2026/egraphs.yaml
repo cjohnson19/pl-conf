@@ -2,11 +2,13 @@ name: EGRAPHS
 abbreviation: EGRAPHS
 location: Boulder, Colorado
 date:
-  start: "TBD"
-  end: "TBD"
+  start: 2026-06-15
+  end: 2026-06-19
 importantDates:
   paper: 2026-04-17
 url: "https://pldi26.sigplan.org/home/egraphs-2026"
 submissionUrl: "https://egraphs2026.hotcrp.com/"
 importantDateUrl: "https://pldi26.sigplan.org/home/egraphs-2026#Call-for-Papers"
 type: "workshop"
+notes:
+  - "Co-located with PLDI 2026 (June 15-19); specific workshop day not yet announced"
