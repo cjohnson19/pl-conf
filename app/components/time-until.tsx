@@ -55,7 +55,7 @@ export function TimeUntil({
       {sameDay
         ? "Today"
         : isPast
-          ? "Past"
+          ? "Passed"
           : formatDuration(duration, {
               format: ["years", "months", "days"],
               zero: false,
