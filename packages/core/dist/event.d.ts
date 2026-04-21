@@ -6,7 +6,18 @@ export type DateName = z.infer<typeof DateName>;
 export declare const eventTypes: readonly ["conference", "workshop", "symposium"];
 declare const EventType: z.ZodEnum<["conference", "workshop", "symposium"]>;
 export type EventType = z.infer<typeof EventType>;
-export declare const ScheduledEvent: z.ZodEffects<z.ZodEffects<z.ZodObject<{
+declare const Round: z.ZodObject<{
+    name: z.ZodOptional<z.ZodString>;
+    importantDates: z.ZodDefault<z.ZodRecord<z.ZodEnum<["abstract", "paper", "notification", "rebuttal", "conditional-acceptance", "camera-ready", "revisions"]>, z.ZodUnion<[z.ZodLiteral<"TBD">, z.ZodEffects<z.ZodString, string, string>]>>>;
+}, "strict", z.ZodTypeAny, {
+    importantDates: Partial<Record<"abstract" | "paper" | "notification" | "rebuttal" | "conditional-acceptance" | "camera-ready" | "revisions", string>>;
+    name?: string | undefined;
+}, {
+    name?: string | undefined;
+    importantDates?: Partial<Record<"abstract" | "paper" | "notification" | "rebuttal" | "conditional-acceptance" | "camera-ready" | "revisions", string>> | undefined;
+}>;
+export type Round = z.infer<typeof Round>;
+export declare const ScheduledEvent: z.ZodEffects<z.ZodEffects<z.ZodEffects<z.ZodObject<{
     name: z.ZodString;
     abbreviation: z.ZodString;
     date: z.ZodDefault<z.ZodOptional<z.ZodObject<{
@@ -21,10 +32,20 @@ export declare const ScheduledEvent: z.ZodEffects<z.ZodEffects<z.ZodObject<{
     }>>>;
     location: z.ZodOptional<z.ZodString>;
     importantDateUrl: z.ZodOptional<z.ZodString>;
+    submissionSchemeUrl: z.ZodOptional<z.ZodString>;
     format: z.ZodOptional<z.ZodString>;
     url: z.ZodOptional<z.ZodString>;
     submissionUrl: z.ZodOptional<z.ZodString>;
-    importantDates: z.ZodDefault<z.ZodRecord<z.ZodEnum<["abstract", "paper", "notification", "rebuttal", "conditional-acceptance", "camera-ready", "revisions"]>, z.ZodUnion<[z.ZodLiteral<"TBD">, z.ZodEffects<z.ZodString, string, string>]>>>;
+    rounds: z.ZodDefault<z.ZodArray<z.ZodObject<{
+        name: z.ZodOptional<z.ZodString>;
+        importantDates: z.ZodDefault<z.ZodRecord<z.ZodEnum<["abstract", "paper", "notification", "rebuttal", "conditional-acceptance", "camera-ready", "revisions"]>, z.ZodUnion<[z.ZodLiteral<"TBD">, z.ZodEffects<z.ZodString, string, string>]>>>;
+    }, "strict", z.ZodTypeAny, {
+        importantDates: Partial<Record<"abstract" | "paper" | "notification" | "rebuttal" | "conditional-acceptance" | "camera-ready" | "revisions", string>>;
+        name?: string | undefined;
+    }, {
+        name?: string | undefined;
+        importantDates?: Partial<Record<"abstract" | "paper" | "notification" | "rebuttal" | "conditional-acceptance" | "camera-ready" | "revisions", string>> | undefined;
+    }>, "many">>;
     notes: z.ZodDefault<z.ZodArray<z.ZodString, "many">>;
     type: z.ZodEnum<["conference", "workshop", "symposium"]>;
     tags: z.ZodDefault<z.ZodArray<z.ZodString, "many">>;
@@ -37,12 +58,16 @@ export declare const ScheduledEvent: z.ZodEffects<z.ZodEffects<z.ZodObject<{
         start: string;
         end: string;
     };
-    importantDates: Partial<Record<"abstract" | "paper" | "notification" | "rebuttal" | "conditional-acceptance" | "camera-ready" | "revisions", string>>;
+    rounds: {
+        importantDates: Partial<Record<"abstract" | "paper" | "notification" | "rebuttal" | "conditional-acceptance" | "camera-ready" | "revisions", string>>;
+        name?: string | undefined;
+    }[];
     notes: string[];
     tags: string[];
     lastUpdated: string;
     location?: string | undefined;
     importantDateUrl?: string | undefined;
+    submissionSchemeUrl?: string | undefined;
     format?: string | undefined;
     url?: string | undefined;
     submissionUrl?: string | undefined;
@@ -57,10 +82,14 @@ export declare const ScheduledEvent: z.ZodEffects<z.ZodEffects<z.ZodObject<{
     } | undefined;
     location?: string | undefined;
     importantDateUrl?: string | undefined;
+    submissionSchemeUrl?: string | undefined;
     format?: string | undefined;
     url?: string | undefined;
     submissionUrl?: string | undefined;
-    importantDates?: Partial<Record<"abstract" | "paper" | "notification" | "rebuttal" | "conditional-acceptance" | "camera-ready" | "revisions", string>> | undefined;
+    rounds?: {
+        name?: string | undefined;
+        importantDates?: Partial<Record<"abstract" | "paper" | "notification" | "rebuttal" | "conditional-acceptance" | "camera-ready" | "revisions", string>> | undefined;
+    }[] | undefined;
     notes?: string[] | undefined;
     tags?: string[] | undefined;
 }>, {
@@ -71,33 +100,20 @@ export declare const ScheduledEvent: z.ZodEffects<z.ZodEffects<z.ZodObject<{
         start: string;
         end: string;
     };
-    importantDates: Partial<Record<"abstract" | "paper" | "notification" | "rebuttal" | "conditional-acceptance" | "camera-ready" | "revisions", string>>;
+    rounds: {
+        importantDates: Partial<Record<"abstract" | "paper" | "notification" | "rebuttal" | "conditional-acceptance" | "camera-ready" | "revisions", string>>;
+        name?: string | undefined;
+    }[];
     notes: string[];
     tags: string[];
     lastUpdated: string;
     location?: string | undefined;
     importantDateUrl?: string | undefined;
+    submissionSchemeUrl?: string | undefined;
     format?: string | undefined;
     url?: string | undefined;
     submissionUrl?: string | undefined;
-}, {
-    type: "conference" | "workshop" | "symposium";
-    name: string;
-    abbreviation: string;
-    lastUpdated: string;
-    date?: {
-        start: string;
-        end: string;
-    } | undefined;
-    location?: string | undefined;
-    importantDateUrl?: string | undefined;
-    format?: string | undefined;
-    url?: string | undefined;
-    submissionUrl?: string | undefined;
-    importantDates?: Partial<Record<"abstract" | "paper" | "notification" | "rebuttal" | "conditional-acceptance" | "camera-ready" | "revisions", string>> | undefined;
-    notes?: string[] | undefined;
-    tags?: string[] | undefined;
-}>, {
+}, unknown>, {
     type: "conference" | "workshop" | "symposium";
     name: string;
     abbreviation: string;
@@ -105,33 +121,41 @@ export declare const ScheduledEvent: z.ZodEffects<z.ZodEffects<z.ZodObject<{
         start: string;
         end: string;
     };
-    importantDates: Partial<Record<"abstract" | "paper" | "notification" | "rebuttal" | "conditional-acceptance" | "camera-ready" | "revisions", string>>;
+    rounds: {
+        importantDates: Partial<Record<"abstract" | "paper" | "notification" | "rebuttal" | "conditional-acceptance" | "camera-ready" | "revisions", string>>;
+        name?: string | undefined;
+    }[];
     notes: string[];
     tags: string[];
     lastUpdated: string;
     location?: string | undefined;
     importantDateUrl?: string | undefined;
+    submissionSchemeUrl?: string | undefined;
     format?: string | undefined;
     url?: string | undefined;
     submissionUrl?: string | undefined;
-}, {
+}, unknown>, {
     type: "conference" | "workshop" | "symposium";
     name: string;
     abbreviation: string;
-    lastUpdated: string;
-    date?: {
+    date: {
         start: string;
         end: string;
-    } | undefined;
+    };
+    rounds: {
+        importantDates: Partial<Record<"abstract" | "paper" | "notification" | "rebuttal" | "conditional-acceptance" | "camera-ready" | "revisions", string>>;
+        name?: string | undefined;
+    }[];
+    notes: string[];
+    tags: string[];
+    lastUpdated: string;
     location?: string | undefined;
     importantDateUrl?: string | undefined;
+    submissionSchemeUrl?: string | undefined;
     format?: string | undefined;
     url?: string | undefined;
     submissionUrl?: string | undefined;
-    importantDates?: Partial<Record<"abstract" | "paper" | "notification" | "rebuttal" | "conditional-acceptance" | "camera-ready" | "revisions", string>> | undefined;
-    notes?: string[] | undefined;
-    tags?: string[] | undefined;
-}>;
+}, unknown>;
 export declare const SubmissionSchema: z.ZodObject<{
     name: z.ZodString;
     abbreviation: z.ZodString;
@@ -155,12 +179,12 @@ export declare const SubmissionSchema: z.ZodObject<{
 }, "strict", z.ZodTypeAny, {
     type: "conference" | "workshop" | "symposium";
     name: string;
+    importantDates: Partial<Record<"abstract" | "paper" | "notification" | "rebuttal" | "conditional-acceptance" | "camera-ready" | "revisions", string>>;
     abbreviation: string;
     date: {
         start: string;
         end: string;
     };
-    importantDates: Partial<Record<"abstract" | "paper" | "notification" | "rebuttal" | "conditional-acceptance" | "camera-ready" | "revisions", string>>;
     notes: string[];
     location?: string | undefined;
     importantDateUrl?: string | undefined;
@@ -170,6 +194,7 @@ export declare const SubmissionSchema: z.ZodObject<{
     type: "conference" | "workshop" | "symposium";
     name: string;
     abbreviation: string;
+    importantDates?: Partial<Record<"abstract" | "paper" | "notification" | "rebuttal" | "conditional-acceptance" | "camera-ready" | "revisions", string>> | undefined;
     date?: {
         start: string;
         end: string;
@@ -178,12 +203,13 @@ export declare const SubmissionSchema: z.ZodObject<{
     importantDateUrl?: string | undefined;
     url?: string | undefined;
     submissionUrl?: string | undefined;
-    importantDates?: Partial<Record<"abstract" | "paper" | "notification" | "rebuttal" | "conditional-acceptance" | "camera-ready" | "revisions", string>> | undefined;
     notes?: string[] | undefined;
 }>;
 export type ScheduledEvent = z.infer<typeof ScheduledEvent>;
 export type SubmissionSchema = z.infer<typeof SubmissionSchema>;
 export declare function eventKey(e: ScheduledEvent): string;
+export declare function allDeadlines(e: ScheduledEvent): [DateName, MaybeDate][];
+export declare function hasMultipleRounds(e: ScheduledEvent): boolean;
 export declare function dateNameToReadable(name: DateName): string;
 export declare function dateToString(date: MaybeDate): string;
 export declare function dateRangeToString(start: MaybeDate, end: MaybeDate): string;

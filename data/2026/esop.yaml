@@ -4,15 +4,20 @@ date:
   start: 2026-04-11
   end: 2026-04-16
 location: Turin, Italy
-importantDates:
-  paper: 2025-10-16
-  rebuttal: 2025-12-10
-  notification: 2025-12-22
-  camera-ready: 2026-01-22
+rounds:
+  - name: Round 1
+    importantDates:
+      paper: 2025-06-03
+      rebuttal: 2025-07-23
+      notification: 2025-08-01
+  - name: Round 2
+    importantDates:
+      paper: 2025-10-16
+      rebuttal: 2025-12-10
+      notification: 2025-12-22
+      camera-ready: 2026-01-22
 url: "https://etaps.org/2026/conferences/esop/"
 submissionUrl: "https://esop26.hotcrp.com/"
 importantDateUrl: "https://etaps.org/2026/cfp/"
+submissionSchemeUrl: "https://etaps.org/2026/conferences/esop/"
 type: "conference"
-notes:
-  - Features two-round submission scheme. See important dates url for first
-    round details.

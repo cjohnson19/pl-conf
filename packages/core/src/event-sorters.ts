@@ -1,5 +1,5 @@
 import { compareAsc, compareDesc } from "date-fns";
-import { ScheduledEvent } from "./event.js";
+import { allDeadlines, ScheduledEvent } from "./event.js";
 
 export type EventSorter = (a: ScheduledEvent, b: ScheduledEvent) => number;
 
@@ -11,8 +11,12 @@ export function sortByFirstDeadline(
   a: ScheduledEvent,
   b: ScheduledEvent
 ): number {
-  const aDate = Object.values(a.importantDates).sort()[0];
-  const bDate = Object.values(b.importantDates).sort()[0];
+  const aDate = allDeadlines(a)
+    .map(([, d]) => d)
+    .sort()[0];
+  const bDate = allDeadlines(b)
+    .map(([, d]) => d)
+    .sort()[0];
   if (aDate === undefined && bDate === undefined) return 0;
   if (aDate === undefined) return 1;
   if (bDate === undefined) return -1;

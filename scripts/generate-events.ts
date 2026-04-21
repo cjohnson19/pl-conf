@@ -63,15 +63,18 @@ async function fromYamlFile(fileName: string): Promise<ScheduledEvent> {
         .join("\n")
     );
   } else {
-    const dupes = duplicates(parseRes.data.importantDates);
-    if (dupes.length > 0) {
-      const duplicateListings = dupes
-        .map(({ date: value, names }) => `${value}: ${names.join(", ")}`)
-        .join("\n");
-      console.warn(
-        `Found duplicated values for the important dates in ${parseRes.data.abbreviation}.\n${duplicateListings}\nDouble check these are not a copy paste mistake.`
-      );
-    }
+    parseRes.data.rounds.forEach((round) => {
+      const dupes = duplicates(round.importantDates);
+      if (dupes.length > 0) {
+        const duplicateListings = dupes
+          .map(({ date: value, names }) => `${value}: ${names.join(", ")}`)
+          .join("\n");
+        const roundLabel = round.name ? ` (${round.name})` : "";
+        console.warn(
+          `Found duplicated values for the important dates in ${parseRes.data.abbreviation}${roundLabel}.\n${duplicateListings}\nDouble check these are not a copy paste mistake.`
+        );
+      }
+    });
     return parseRes.data;
   }
 }

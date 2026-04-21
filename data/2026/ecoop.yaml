@@ -4,15 +4,20 @@ date:
   start: 2026-06-29
   end: 2026-07-03
 location: Brussels, Belgium
-importantDates:
-  paper: 2025-11-27
-  rebuttal: 2026-01-16
-  notification: 2026-01-29
-  camera-ready: 2026-04-27
+rounds:
+  - name: Round 1
+    importantDates:
+      paper: 2025-11-27
+      rebuttal: 2026-01-16
+      notification: 2026-01-29
+  - name: Round 2
+    importantDates:
+      paper: 2026-02-12
+      rebuttal: 2026-03-27
+      notification: 2026-04-09
+      camera-ready: 2026-04-27
 url: "https://2026.ecoop.org"
 submissionUrl: "https://ecoop26.hotcrp.com"
 importantDateUrl: "https://2026.ecoop.org/dates"
+submissionSchemeUrl: "https://2026.ecoop.org/track/ecoop-2026-technical-papers"
 type: "conference"
-notes:
-  - Features two-round submission scheme. See important dates url for second
-    round details.

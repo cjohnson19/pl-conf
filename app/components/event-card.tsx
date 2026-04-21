@@ -1,4 +1,5 @@
 import {
+  allDeadlines,
   dateRangeToString,
   dateRangeToCompactString,
   ScheduledEvent,
@@ -73,13 +74,13 @@ export function EventCard({ e }: { e: ScheduledEvent }) {
       </CardHeader>
       <CardContent
         className={clsx("flex flex-col gap-4", {
-          "p-0":
-            Object.keys(e.importantDates).length === 0 && !e.importantDateUrl,
+          "p-0": allDeadlines(e).length === 0 && !e.importantDateUrl,
         })}
       >
         <DateTable
-          importantDates={e.importantDates}
-          url={e.importantDateUrl}
+          rounds={e.rounds}
+          importantDateUrl={e.importantDateUrl}
+          submissionSchemeUrl={e.submissionSchemeUrl}
           notes={e.notes}
         />
       </CardContent>

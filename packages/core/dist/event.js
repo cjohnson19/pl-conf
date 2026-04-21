@@ -21,8 +21,14 @@ const DateName = z.enum([
 ]);
 export const eventTypes = ["conference", "workshop", "symposium"];
 const EventType = z.enum(eventTypes);
-// Full event schema used by the website
-export const ScheduledEvent = z
+const ImportantDates = z.record(DateName, MaybeDate);
+const Round = z
+    .object({
+    name: z.string().nonempty().optional(),
+    importantDates: ImportantDates.default({}),
+})
+    .strict();
+const ScheduledEventNormalized = z
     .object({
     name: z.string().nonempty(),
     abbreviation: z.string().nonempty(),
@@ -35,19 +41,39 @@ export const ScheduledEvent = z
         .default({ start: "TBD", end: "TBD" }),
     location: z.string().optional(),
     importantDateUrl: z.string().url().optional(),
+    submissionSchemeUrl: z.string().url().optional(),
     format: z.string().optional(),
     url: z.string().url().optional(),
     submissionUrl: z.string().url().optional(),
-    importantDates: z.record(DateName, z.union([TBD, DateSchema])).default({}),
+    rounds: z.array(Round).default([]),
     notes: z.string().array().default([]),
     type: EventType,
     tags: z.array(z.string()).default([]),
     lastUpdated: DateSchema,
 })
-    .strict()
-    .refine((data) => Object.keys(data.importantDates).length === 0 || data.importantDateUrl, {
+    .strict();
+export const ScheduledEvent = z
+    .preprocess((raw) => {
+    if (raw === null || typeof raw !== "object")
+        return raw;
+    const r = raw;
+    const hasFlat = "importantDates" in r && r.importantDates !== undefined;
+    const hasRounds = "rounds" in r && r.rounds !== undefined;
+    if (hasFlat && hasRounds) {
+        // Let strict() reject — importantDates is not a known key on the
+        // normalized schema, so the error will be "Unrecognized key(s):
+        // 'importantDates'" which is a reasonable signal.
+        return raw;
+    }
+    if (hasFlat) {
+        const { importantDates, ...rest } = r;
+        return { ...rest, rounds: [{ importantDates }] };
+    }
+    return raw;
+}, ScheduledEventNormalized)
+    .refine((data) => data.rounds.every((r) => Object.keys(r.importantDates).length === 0) || data.importantDateUrl, {
     message: "A reference url must be provided if there are important dates",
-    path: ["importantDateUrl", "importantDates"],
+    path: ["importantDateUrl"],
 })
     .refine((data) => {
     if (data.date?.start === "TBD" || data.date?.end === "TBD")
@@ -73,13 +99,19 @@ export const SubmissionSchema = z
     importantDateUrl: z.string().url().optional(),
     url: z.string().url().optional(),
     submissionUrl: z.string().url().optional(),
-    importantDates: z.record(DateName, z.union([TBD, DateSchema])).default({}),
+    importantDates: ImportantDates.default({}),
     notes: z.string().array().default([]),
     type: EventType,
 })
     .strict();
 export function eventKey(e) {
     return `${e.abbreviation}-${getYear(e.date.start)}`;
+}
+export function allDeadlines(e) {
+    return e.rounds.flatMap((r) => Object.entries(r.importantDates));
+}
+export function hasMultipleRounds(e) {
+    return e.rounds.length > 1 || e.rounds.some((r) => r.name !== undefined);
 }
 // Utility functions
 export function dateNameToReadable(name) {
@@ -163,11 +195,13 @@ export function toICal(e, includeDates = false) {
         },
         ...(!includeDates
             ? []
-            : Object.entries(e.importantDates).flatMap(([type, date]) => {
+            : e.rounds.flatMap((round) => Object.entries(round.importantDates).flatMap(([type, date]) => {
                 if (date === "TBD") {
                     return [];
                 }
                 const d = new Date(date);
+                const readable = dateNameToReadable(type);
+                const roundLabel = round.name ? `${round.name} – ` : "";
                 return [
                     {
                         start: [
@@ -180,12 +214,12 @@ export function toICal(e, includeDates = false) {
                             d.getMonth() + 1,
                             d.getDate(),
                         ],
-                        title: `${e.abbreviation}: ${dateNameToReadable(type)}`,
-                        description: `${e.name}: ${dateNameToReadable(type)}`,
+                        title: `${e.abbreviation}: ${roundLabel}${readable}`,
+                        description: `${e.name}: ${roundLabel}${readable}`,
                         url: e.url,
                     },
                 ];
-            })),
+            }))),
     ], {
         productId: "pl-conferences/ics",
         method: "PUBLISH",
