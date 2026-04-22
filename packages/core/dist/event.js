@@ -71,7 +71,8 @@ export const ScheduledEvent = z
     }
     return raw;
 }, ScheduledEventNormalized)
-    .refine((data) => data.rounds.every((r) => Object.keys(r.importantDates).length === 0) || data.importantDateUrl, {
+    .refine((data) => data.rounds.every((r) => Object.keys(r.importantDates).length === 0) ||
+    data.importantDateUrl, {
     message: "A reference url must be provided if there are important dates",
     path: ["importantDateUrl"],
 })
@@ -137,6 +138,16 @@ export function dateToString(date) {
         return "TBD";
     }
     return format(date, "PPP");
+}
+export function dateToCompactString(date, locale) {
+    if (date === "TBD") {
+        return "TBD";
+    }
+    return new Intl.DateTimeFormat(locale, {
+        year: "2-digit",
+        month: "2-digit",
+        day: "2-digit",
+    }).format(new Date(date));
 }
 export function dateRangeToString(start, end) {
     // Handle TBD cases

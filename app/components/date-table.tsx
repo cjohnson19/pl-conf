@@ -5,6 +5,7 @@ import {
   Round,
   ScheduledEvent,
 } from "../lib/event";
+import { CompactDate } from "./compact-date";
 import { Table, TableBody, TableCell, TableRow } from "./ui/table";
 import {
   Accordion,
@@ -53,7 +54,12 @@ function DeadlineTable({ round }: { round: Round }) {
           .map(([k, v], i) => (
             <TableRow key={i}>
               <TableCell>{dateNameToReadable(k as DateName)}</TableCell>
-              <TableCell>{dateToString(v)}</TableCell>
+              <TableCell>
+                <span className="hidden sm:inline">{dateToString(v)}</span>
+                <span className="sm:hidden">
+                  <CompactDate date={v} />
+                </span>
+              </TableCell>
               <TableCell align="right" className="text-muted-foreground">
                 <TimeUntil date={v} className="text-muted-foreground" />
               </TableCell>

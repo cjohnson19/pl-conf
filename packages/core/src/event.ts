@@ -183,6 +183,20 @@ export function dateToString(date: MaybeDate): string {
   return format(date, "PPP");
 }
 
+export function dateToCompactString(
+  date: MaybeDate,
+  locale?: string | string[]
+): string {
+  if (date === "TBD") {
+    return "TBD";
+  }
+  return new Intl.DateTimeFormat(locale, {
+    year: "2-digit",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(new Date(date));
+}
+
 export function dateRangeToString(start: MaybeDate, end: MaybeDate): string {
   // Handle TBD cases
   if (start === "TBD" || end === "TBD") {

@@ -212,6 +212,7 @@ export declare function allDeadlines(e: ScheduledEvent): [DateName, MaybeDate][]
 export declare function hasMultipleRounds(e: ScheduledEvent): boolean;
 export declare function dateNameToReadable(name: DateName): string;
 export declare function dateToString(date: MaybeDate): string;
+export declare function dateToCompactString(date: MaybeDate, locale?: string | string[]): string;
 export declare function dateRangeToString(start: MaybeDate, end: MaybeDate): string;
 export declare function dateRangeToCompactString(start: MaybeDate, end: MaybeDate): string;
 export declare function toICal(e: ScheduledEvent, includeDates?: boolean): string;
