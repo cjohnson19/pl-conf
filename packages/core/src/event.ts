@@ -170,77 +170,34 @@ export function dateNameToReadable(name: DateName): string {
 
 type LocaleArg = string | string[] | undefined;
 
-const longDateOptions: Intl.DateTimeFormatOptions = {
-  year: "numeric",
-  month: "long",
-  day: "numeric",
-};
+const dateFormatStyles = {
+  long: { year: "numeric", month: "long", day: "numeric" },
+  short: { year: "numeric", month: "short", day: "numeric" },
+  compact: { year: "2-digit", month: "2-digit", day: "2-digit" },
+  year2: { year: "2-digit" },
+} as const satisfies Record<string, Intl.DateTimeFormatOptions>;
 
-const shortDateOptions: Intl.DateTimeFormatOptions = {
-  year: "numeric",
-  month: "short",
-  day: "numeric",
-};
+export type DateFormatStyle = keyof typeof dateFormatStyles;
 
-const compactDateOptions: Intl.DateTimeFormatOptions = {
-  year: "2-digit",
-  month: "2-digit",
-  day: "2-digit",
-};
-
-export function dateToString(date: MaybeDate, locale?: LocaleArg): string {
-  if (date === "TBD") {
-    return "TBD";
-  }
-  return new Intl.DateTimeFormat(locale, longDateOptions).format(
-    new Date(date)
-  );
-}
-
-export function dateToShortString(date: MaybeDate, locale?: LocaleArg): string {
-  if (date === "TBD") {
-    return "TBD";
-  }
-  return new Intl.DateTimeFormat(locale, shortDateOptions).format(
-    new Date(date)
-  );
-}
-
-export function dateToCompactString(
+export function formatDate(
   date: MaybeDate,
+  style: DateFormatStyle,
   locale?: LocaleArg
 ): string {
-  if (date === "TBD") {
-    return "TBD";
-  }
-  return new Intl.DateTimeFormat(locale, compactDateOptions).format(
+  if (date === "TBD") return "TBD";
+  return new Intl.DateTimeFormat(locale, dateFormatStyles[style]).format(
     new Date(date)
   );
 }
 
-export function dateRangeToString(
+export function formatDateRange(
   start: MaybeDate,
   end: MaybeDate,
+  style: DateFormatStyle,
   locale?: LocaleArg
 ): string {
-  if (start === "TBD" || end === "TBD") {
-    return "TBD";
-  }
-  return new Intl.DateTimeFormat(locale, longDateOptions).formatRange(
-    new Date(start),
-    new Date(end)
-  );
-}
-
-export function dateRangeToCompactString(
-  start: MaybeDate,
-  end: MaybeDate,
-  locale?: LocaleArg
-): string {
-  if (start === "TBD" || end === "TBD") {
-    return "TBD";
-  }
-  return new Intl.DateTimeFormat(locale, compactDateOptions).formatRange(
+  if (start === "TBD" || end === "TBD") return "TBD";
+  return new Intl.DateTimeFormat(locale, dateFormatStyles[style]).formatRange(
     new Date(start),
     new Date(end)
   );

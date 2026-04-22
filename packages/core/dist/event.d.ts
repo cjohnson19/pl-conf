@@ -213,11 +213,29 @@ export declare function firstDeadline(e: ScheduledEvent): MaybeDate | undefined;
 export declare function hasMultipleRounds(e: ScheduledEvent): boolean;
 export declare function dateNameToReadable(name: DateName): string;
 type LocaleArg = string | string[] | undefined;
-export declare function dateToString(date: MaybeDate, locale?: LocaleArg): string;
-export declare function dateToShortString(date: MaybeDate, locale?: LocaleArg): string;
-export declare function dateToCompactString(date: MaybeDate, locale?: LocaleArg): string;
-export declare function dateRangeToString(start: MaybeDate, end: MaybeDate, locale?: LocaleArg): string;
-export declare function dateRangeToCompactString(start: MaybeDate, end: MaybeDate, locale?: LocaleArg): string;
+declare const dateFormatStyles: {
+    readonly long: {
+        readonly year: "numeric";
+        readonly month: "long";
+        readonly day: "numeric";
+    };
+    readonly short: {
+        readonly year: "numeric";
+        readonly month: "short";
+        readonly day: "numeric";
+    };
+    readonly compact: {
+        readonly year: "2-digit";
+        readonly month: "2-digit";
+        readonly day: "2-digit";
+    };
+    readonly year2: {
+        readonly year: "2-digit";
+    };
+};
+export type DateFormatStyle = keyof typeof dateFormatStyles;
+export declare function formatDate(date: MaybeDate, style: DateFormatStyle, locale?: LocaleArg): string;
+export declare function formatDateRange(start: MaybeDate, end: MaybeDate, style: DateFormatStyle, locale?: LocaleArg): string;
 export declare function toICal(e: ScheduledEvent, includeDates?: boolean): string;
 export declare function toGoogleCalendarLink(e: ScheduledEvent): string;
 export {};

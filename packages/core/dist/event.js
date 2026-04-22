@@ -134,50 +134,21 @@ export function dateNameToReadable(name) {
             return "Rebuttal";
     }
 }
-const longDateOptions = {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
+const dateFormatStyles = {
+    long: { year: "numeric", month: "long", day: "numeric" },
+    short: { year: "numeric", month: "short", day: "numeric" },
+    compact: { year: "2-digit", month: "2-digit", day: "2-digit" },
+    year2: { year: "2-digit" },
 };
-const shortDateOptions = {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-};
-const compactDateOptions = {
-    year: "2-digit",
-    month: "2-digit",
-    day: "2-digit",
-};
-export function dateToString(date, locale) {
-    if (date === "TBD") {
+export function formatDate(date, style, locale) {
+    if (date === "TBD")
         return "TBD";
-    }
-    return new Intl.DateTimeFormat(locale, longDateOptions).format(new Date(date));
+    return new Intl.DateTimeFormat(locale, dateFormatStyles[style]).format(new Date(date));
 }
-export function dateToShortString(date, locale) {
-    if (date === "TBD") {
+export function formatDateRange(start, end, style, locale) {
+    if (start === "TBD" || end === "TBD")
         return "TBD";
-    }
-    return new Intl.DateTimeFormat(locale, shortDateOptions).format(new Date(date));
-}
-export function dateToCompactString(date, locale) {
-    if (date === "TBD") {
-        return "TBD";
-    }
-    return new Intl.DateTimeFormat(locale, compactDateOptions).format(new Date(date));
-}
-export function dateRangeToString(start, end, locale) {
-    if (start === "TBD" || end === "TBD") {
-        return "TBD";
-    }
-    return new Intl.DateTimeFormat(locale, longDateOptions).formatRange(new Date(start), new Date(end));
-}
-export function dateRangeToCompactString(start, end, locale) {
-    if (start === "TBD" || end === "TBD") {
-        return "TBD";
-    }
-    return new Intl.DateTimeFormat(locale, compactDateOptions).formatRange(new Date(start), new Date(end));
+    return new Intl.DateTimeFormat(locale, dateFormatStyles[style]).formatRange(new Date(start), new Date(end));
 }
 export function toICal(e, includeDates = false) {
     if (e.date.start === "TBD" || e.date.end === "TBD") {

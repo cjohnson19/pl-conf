@@ -1,4 +1,9 @@
-import { allDeadlines, ScheduledEvent, eventKey } from "../lib/event";
+import {
+  allDeadlines,
+  formatDate,
+  ScheduledEvent,
+  eventKey,
+} from "../lib/event";
 import {
   Card,
   CardContent,
@@ -17,13 +22,7 @@ import { EventOptionsWrapper } from "./event-options-wrapper";
 import { LocaleDate, LocaleDateRange } from "./locale-date";
 
 export function EventCard({ e }: { e: ScheduledEvent }) {
-  const year =
-    e.date.start === "TBD"
-      ? "TBD"
-      : new Intl.DateTimeFormat("en-US", { year: "2-digit" }).format(
-          new Date(e.date.start)
-        );
-  const abbrevYear = `${e.abbreviation} '${year}`;
+  const abbrevYear = `${e.abbreviation} '${formatDate(e.date.start, "year2", "en-US")}`;
 
   return (
     <Card className="w-full bg-muted/80 event-card">

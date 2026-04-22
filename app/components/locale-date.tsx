@@ -2,48 +2,21 @@
 
 import { useEffect, useState } from "react";
 import {
-  dateRangeToCompactString,
-  dateRangeToString,
-  dateToCompactString,
-  dateToShortString,
-  dateToString,
+  DateFormatStyle,
+  formatDate,
+  formatDateRange,
   MaybeDate,
 } from "../lib/event";
-
-type SingleStyle = "long" | "short" | "compact";
-type RangeStyle = "long" | "compact";
-
-const singleFormatters: Record<
-  SingleStyle,
-  (date: MaybeDate, locale?: string) => string
-> = {
-  long: dateToString,
-  short: dateToShortString,
-  compact: dateToCompactString,
-};
-
-const rangeFormatters: Record<
-  RangeStyle,
-  (start: MaybeDate, end: MaybeDate, locale?: string) => string
-> = {
-  long: dateRangeToString,
-  compact: dateRangeToCompactString,
-};
 
 export function LocaleDate({
   date,
   style,
 }: {
   date: MaybeDate;
-  style: SingleStyle;
+  style: DateFormatStyle;
 }) {
-  const format = singleFormatters[style];
-  const [text, setText] = useState(() => format(date, "en-US"));
-
-  useEffect(() => {
-    setText(format(date));
-  }, [format, date]);
-
+  const [text, setText] = useState(() => formatDate(date, style, "en-US"));
+  useEffect(() => setText(formatDate(date, style)), [date, style]);
   return <>{text}</>;
 }
 
@@ -54,14 +27,14 @@ export function LocaleDateRange({
 }: {
   start: MaybeDate;
   end: MaybeDate;
-  style: RangeStyle;
+  style: DateFormatStyle;
 }) {
-  const format = rangeFormatters[style];
-  const [text, setText] = useState(() => format(start, end, "en-US"));
-
-  useEffect(() => {
-    setText(format(start, end));
-  }, [format, start, end]);
-
+  const [text, setText] = useState(() =>
+    formatDateRange(start, end, style, "en-US")
+  );
+  useEffect(
+    () => setText(formatDateRange(start, end, style)),
+    [start, end, style]
+  );
   return <>{text}</>;
 }
