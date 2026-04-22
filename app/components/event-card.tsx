@@ -36,7 +36,7 @@ export function EventCard({ e }: { e: ScheduledEvent }) {
           <CardTitle className="flex gap-2 justify-between items-start">
             <div className="flex gap-2 items-start justify-start flex-grow min-w-0">
               <EventTitleTooltip name={e.name}>
-                <h3 className="text-base sm:text-lg md:text-xl truncate event-abbrev">
+                <h3 className="truncate event-abbrev">
                   {e.url ? (
                     <Link href={e.url} target="_blank">
                       {abbrevYear}

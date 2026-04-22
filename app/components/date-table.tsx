@@ -85,7 +85,7 @@ export function DateTable({
   const header = importantDateUrl && (
     <div className="flex gap-2 justify-start items-start">
       <div className="flex flex-row gap-2 items-center justify-start">
-        <h4 className="text-base sm:text-lg md:text-xl">
+        <h4>
           <Link href={importantDateUrl} target="_blank">
             Dates & Deadlines
           </Link>
