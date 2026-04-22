@@ -61,10 +61,8 @@ export function EventCard({ e }: { e: ScheduledEvent }) {
                     />
                   </span>
                 </p>
-                <CardDescription>
-                  <p className="text-muted-foreground leading-none text-right text-xs sm:text-sm">
-                    {e.location}
-                  </p>
+                <CardDescription className="leading-none text-right text-xs sm:text-sm">
+                  {e.location}
                 </CardDescription>
               </div>
               <EventOptionsWrapper e={e} />

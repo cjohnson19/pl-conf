@@ -49,8 +49,10 @@ async function lastUpdatedDate(fileName: string): Promise<string> {
 }
 
 async function fromYamlFile(fileName: string): Promise<ScheduledEvent> {
-  const yaml = await readFile(fileName, "utf8");
-  const lastUpdated = await lastUpdatedDate(fileName);
+  const [yaml, lastUpdated] = await Promise.all([
+    readFile(fileName, "utf8"),
+    lastUpdatedDate(fileName),
+  ]);
   const data = YAML.parse(yaml);
   const parseRes = ScheduledEvent.safeParse({
     ...data,
