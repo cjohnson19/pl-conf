@@ -1,11 +1,4 @@
-import {
-  format,
-  isBefore,
-  isSameMonth,
-  isSameYear,
-  isSameDay,
-  getYear,
-} from "date-fns";
+import { isBefore, getYear } from "date-fns";
 import { z } from "zod";
 import * as ics from "ics";
 
@@ -176,85 +169,82 @@ export function dateNameToReadable(name: DateName): string {
   }
 }
 
-export function dateToString(date: MaybeDate): string {
+type LocaleArg = string | string[] | undefined;
+
+const longDateOptions: Intl.DateTimeFormatOptions = {
+  year: "numeric",
+  month: "long",
+  day: "numeric",
+};
+
+const shortDateOptions: Intl.DateTimeFormatOptions = {
+  year: "numeric",
+  month: "short",
+  day: "numeric",
+};
+
+const compactDateOptions: Intl.DateTimeFormatOptions = {
+  year: "2-digit",
+  month: "2-digit",
+  day: "2-digit",
+};
+
+export function dateToString(date: MaybeDate, locale?: LocaleArg): string {
   if (date === "TBD") {
     return "TBD";
   }
-  return format(date, "PPP");
+  return new Intl.DateTimeFormat(locale, longDateOptions).format(
+    new Date(date)
+  );
+}
+
+export function dateToShortString(date: MaybeDate, locale?: LocaleArg): string {
+  if (date === "TBD") {
+    return "TBD";
+  }
+  return new Intl.DateTimeFormat(locale, shortDateOptions).format(
+    new Date(date)
+  );
 }
 
 export function dateToCompactString(
   date: MaybeDate,
-  locale?: string | string[]
+  locale?: LocaleArg
 ): string {
   if (date === "TBD") {
     return "TBD";
   }
-  return new Intl.DateTimeFormat(locale, {
-    year: "2-digit",
-    month: "2-digit",
-    day: "2-digit",
-  }).format(new Date(date));
+  return new Intl.DateTimeFormat(locale, compactDateOptions).format(
+    new Date(date)
+  );
 }
 
-export function dateRangeToString(start: MaybeDate, end: MaybeDate): string {
-  // Handle TBD cases
-  if (start === "TBD" || end === "TBD") {
-    return "TBD";
-  }
-
-  const startDate = new Date(start);
-  const endDate = new Date(end);
-
-  // Single day event
-  if (isSameDay(startDate, endDate)) {
-    return format(startDate, "MMMM do, yyyy");
-  }
-
-  // Same month and year
-  if (isSameMonth(startDate, endDate) && isSameYear(startDate, endDate)) {
-    return `${format(startDate, "MMMM do")}–${format(endDate, "do, yyyy")}`;
-  }
-
-  // Same year but different months
-  if (isSameYear(startDate, endDate)) {
-    return `${format(startDate, "MMMM do")}–${format(
-      endDate,
-      "MMMM do, yyyy"
-    )}`;
-  }
-
-  // Different years
-  return `${format(startDate, "MMMM do, yyyy")}–${format(
-    endDate,
-    "MMMM do, yyyy"
-  )}`;
-}
-
-export function dateRangeToCompactString(
+export function dateRangeToString(
   start: MaybeDate,
-  end: MaybeDate
+  end: MaybeDate,
+  locale?: LocaleArg
 ): string {
   if (start === "TBD" || end === "TBD") {
     return "TBD";
   }
+  return new Intl.DateTimeFormat(locale, longDateOptions).formatRange(
+    new Date(start),
+    new Date(end)
+  );
+}
 
-  const startDate = new Date(start);
-  const endDate = new Date(end);
-
-  if (isSameDay(startDate, endDate)) {
-    return format(startDate, "M/d/yy");
+export function dateRangeToCompactString(
+  start: MaybeDate,
+  end: MaybeDate,
+  locale?: LocaleArg
+): string {
+  if (start === "TBD" || end === "TBD") {
+    return "TBD";
   }
-
-  if (isSameMonth(startDate, endDate) && isSameYear(startDate, endDate)) {
-    return `${format(startDate, "M/d")}–${format(endDate, "M/d/yy")}`;
-  }
-
-  if (isSameYear(startDate, endDate)) {
-    return `${format(startDate, "M/d")}–${format(endDate, "M/d/yy")}`;
-  }
-
-  return `${format(startDate, "M/d/yy")}–${format(endDate, "M/d/yy")}`;
+  return new Intl.DateTimeFormat(locale, compactDateOptions).formatRange(
+    new Date(start),
+    new Date(end)
+  );
 }
 
 export function toICal(

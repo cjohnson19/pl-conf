@@ -1,10 +1,4 @@
-import {
-  allDeadlines,
-  dateRangeToString,
-  dateRangeToCompactString,
-  ScheduledEvent,
-  eventKey,
-} from "../lib/event";
+import { allDeadlines, ScheduledEvent, eventKey } from "../lib/event";
 import {
   Card,
   CardContent,
@@ -17,17 +11,19 @@ import Link from "next/link";
 import { EventBadges } from "./event-badges";
 import { DateTable } from "./date-table";
 import clsx from "clsx";
-import { format } from "date-fns";
 import { FavoriteButton } from "./favorite-button";
 import { EventTitleTooltip } from "./event-title-tooltip";
 import { EventOptionsWrapper } from "./event-options-wrapper";
+import { LocaleDate, LocaleDateRange } from "./locale-date";
 
 export function EventCard({ e }: { e: ScheduledEvent }) {
-  const abbrevYear = (
-    <>
-      {e.abbreviation} &apos;{format(e.date.start, "yy")}
-    </>
-  );
+  const year =
+    e.date.start === "TBD"
+      ? "TBD"
+      : new Intl.DateTimeFormat("en-US", { year: "2-digit" }).format(
+          new Date(e.date.start)
+        );
+  const abbrevYear = `${e.abbreviation} '${year}`;
 
   return (
     <Card className="w-full bg-muted/80 event-card">
@@ -52,10 +48,18 @@ export function EventCard({ e }: { e: ScheduledEvent }) {
               <div className="flex flex-col gap-1 items-end">
                 <p className="text-muted-foreground leading-none text-right text-xs sm:text-sm">
                   <span className="hidden sm:inline">
-                    {dateRangeToString(e.date.start, e.date.end)}
+                    <LocaleDateRange
+                      start={e.date.start}
+                      end={e.date.end}
+                      style="long"
+                    />
                   </span>
                   <span className="sm:hidden">
-                    {dateRangeToCompactString(e.date.start, e.date.end)}
+                    <LocaleDateRange
+                      start={e.date.start}
+                      end={e.date.end}
+                      style="compact"
+                    />
                   </span>
                 </p>
                 <CardDescription>
@@ -86,7 +90,7 @@ export function EventCard({ e }: { e: ScheduledEvent }) {
       </CardContent>
       <CardFooter className="flex flex-col gap-0 items-end">
         <small className="text-muted-foreground">
-          Updated {format(e.lastUpdated, "PP")}
+          Updated <LocaleDate date={e.lastUpdated} style="short" />
         </small>
       </CardFooter>
     </Card>

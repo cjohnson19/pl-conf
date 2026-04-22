@@ -11,6 +11,7 @@ export {
   type Round,
   dateNameToReadable,
   dateToString,
+  dateToShortString,
   dateToCompactString,
   dateRangeToString,
   dateRangeToCompactString,

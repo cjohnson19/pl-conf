@@ -1,11 +1,10 @@
 import {
   dateNameToReadable,
-  dateToString,
   DateName,
   Round,
   ScheduledEvent,
 } from "../lib/event";
-import { CompactDate } from "./compact-date";
+import { LocaleDate } from "./locale-date";
 import { Table, TableBody, TableCell, TableRow } from "./ui/table";
 import {
   Accordion,
@@ -55,9 +54,11 @@ function DeadlineTable({ round }: { round: Round }) {
             <TableRow key={i}>
               <TableCell>{dateNameToReadable(k as DateName)}</TableCell>
               <TableCell>
-                <span className="hidden sm:inline">{dateToString(v)}</span>
+                <span className="hidden sm:inline">
+                  <LocaleDate date={v} style="long" />
+                </span>
                 <span className="sm:hidden">
-                  <CompactDate date={v} />
+                  <LocaleDate date={v} style="compact" />
                 </span>
               </TableCell>
               <TableCell align="right" className="text-muted-foreground">
