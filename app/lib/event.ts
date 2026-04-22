@@ -4,6 +4,7 @@ export {
   eventKey,
   eventTypes,
   allDeadlines,
+  firstDeadline,
   hasMultipleRounds,
   type MaybeDate,
   type DateName,

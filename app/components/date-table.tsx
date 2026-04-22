@@ -22,26 +22,24 @@ function roundHasDeadlines(r: Round) {
   return Object.keys(r.importantDates).length > 0;
 }
 
-function allRoundsPassed(rounds: Round[]) {
-  return rounds.every((r) =>
-    Object.values(r.importantDates).every((d) => isPast(d))
-  );
-}
-
-function roundFirstDeadline(r: Round): string | undefined {
-  return Object.values(r.importantDates).sort()[0];
+function roundPassed(r: Round) {
+  return Object.values(r.importantDates).every(isPast);
 }
 
 function nextActiveRoundIndex(rounds: Round[]): number | undefined {
-  const candidates = rounds
-    .map((r, i) => ({ r, i, first: roundFirstDeadline(r) }))
-    .filter(
-      ({ r }) =>
-        roundHasDeadlines(r) &&
-        Object.values(r.importantDates).some((d) => isFuture(d))
-    )
-    .sort((a, b) => (a.first ?? "").localeCompare(b.first ?? ""));
-  return candidates[0]?.i;
+  let bestIdx: number | undefined;
+  let bestFirst: string | undefined;
+  rounds.forEach((r, i) => {
+    if (!roundHasDeadlines(r)) return;
+    const dates = Object.values(r.importantDates);
+    if (!dates.some(isFuture)) return;
+    const first = dates.reduce((min, d) => (d < min ? d : min));
+    if (bestFirst === undefined || first < bestFirst) {
+      bestIdx = i;
+      bestFirst = first;
+    }
+  });
+  return bestIdx;
 }
 
 function DeadlineTable({ round }: { round: Round }) {
@@ -90,44 +88,41 @@ export function DateTable({
   if (!hasDeadlines && importantDateUrl === undefined) return null;
 
   const header = importantDateUrl && (
-    <div className="flex gap-2 justify-start items-start">
-      <div className="flex flex-row gap-2 items-center justify-start">
-        <h4>
-          <Link href={importantDateUrl} target="_blank">
-            Dates & Deadlines
-          </Link>
-        </h4>
-        {submissionSchemeUrl && (
-          <Link
-            href={submissionSchemeUrl}
-            target="_blank"
-            aria-label="Submission scheme explainer"
-          >
-            <Info className="h-4 w-4 text-muted-foreground hover:text-foreground" />
-          </Link>
-        )}
-        {notes.length > 0 && <NotesTooltip notes={notes} />}
-      </div>
+    <div className="flex flex-row gap-2 items-center justify-start">
+      <h4>
+        <Link href={importantDateUrl} target="_blank">
+          Dates & Deadlines
+        </Link>
+      </h4>
+      {submissionSchemeUrl && (
+        <Link
+          href={submissionSchemeUrl}
+          target="_blank"
+          aria-label="Submission scheme explainer"
+        >
+          <Info className="h-4 w-4 text-muted-foreground hover:text-foreground" />
+        </Link>
+      )}
+      {notes.length > 0 && <NotesTooltip notes={notes} />}
     </div>
   );
 
   if (isFlatShape) {
     const round = rounds[0];
-    const body =
-      hasDeadlines && round && allRoundsPassed([round]) ? (
-        <small>All deadlines have passed</small>
-      ) : round ? (
-        <DeadlineTable round={round} />
-      ) : null;
     return (
       <>
         {header}
-        {body}
+        {hasDeadlines &&
+          (roundPassed(round) ? (
+            <small>All deadlines have passed</small>
+          ) : (
+            <DeadlineTable round={round} />
+          ))}
       </>
     );
   }
 
-  if (allRoundsPassed(rounds)) {
+  if (rounds.every(roundPassed)) {
     return (
       <>
         {header}
@@ -144,7 +139,7 @@ export function DateTable({
       {header}
       <Accordion type="multiple" defaultValue={defaultValue}>
         {rounds.map((round, i) => {
-          const passed = roundHasDeadlines(round) && allRoundsPassed([round]);
+          const passed = roundHasDeadlines(round) && roundPassed(round);
           return (
             <AccordionItem key={i} value={`round-${i}`}>
               <AccordionTrigger

@@ -76,12 +76,7 @@ export const ScheduledEvent = z
     const r = raw as Record<string, unknown>;
     const hasFlat = "importantDates" in r && r.importantDates !== undefined;
     const hasRounds = "rounds" in r && r.rounds !== undefined;
-    if (hasFlat && hasRounds) {
-      // Let strict() reject — importantDates is not a known key on the
-      // normalized schema, so the error will be "Unrecognized key(s):
-      // 'importantDates'" which is a reasonable signal.
-      return raw;
-    }
+    if (hasFlat && hasRounds) return raw;
     if (hasFlat) {
       const { importantDates, ...rest } = r;
       return { ...rest, rounds: [{ importantDates }] };
@@ -139,17 +134,21 @@ export function eventKey(e: ScheduledEvent): string {
   return `${e.abbreviation}-${getYear(e.date.start)}`;
 }
 
-export function allDeadlines(e: ScheduledEvent): [DateName, MaybeDate][] {
-  return e.rounds.flatMap(
-    (r) => Object.entries(r.importantDates) as [DateName, MaybeDate][]
-  );
+export function allDeadlines(e: ScheduledEvent): MaybeDate[] {
+  return e.rounds.flatMap((r) => Object.values(r.importantDates));
+}
+
+export function firstDeadline(e: ScheduledEvent): MaybeDate | undefined {
+  const dates = allDeadlines(e);
+  return dates.length === 0
+    ? undefined
+    : dates.reduce((min, d) => (d < min ? d : min));
 }
 
 export function hasMultipleRounds(e: ScheduledEvent): boolean {
   return e.rounds.length > 1 || e.rounds.some((r) => r.name !== undefined);
 }
 
-// Utility functions
 export function dateNameToReadable(name: DateName): string {
   switch (name) {
     case "abstract":

@@ -208,7 +208,8 @@ export declare const SubmissionSchema: z.ZodObject<{
 export type ScheduledEvent = z.infer<typeof ScheduledEvent>;
 export type SubmissionSchema = z.infer<typeof SubmissionSchema>;
 export declare function eventKey(e: ScheduledEvent): string;
-export declare function allDeadlines(e: ScheduledEvent): [DateName, MaybeDate][];
+export declare function allDeadlines(e: ScheduledEvent): MaybeDate[];
+export declare function firstDeadline(e: ScheduledEvent): MaybeDate | undefined;
 export declare function hasMultipleRounds(e: ScheduledEvent): boolean;
 export declare function dateNameToReadable(name: DateName): string;
 type LocaleArg = string | string[] | undefined;
