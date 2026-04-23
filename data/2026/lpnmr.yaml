@@ -1,0 +1,15 @@
+name: International Conference on Logic Programming and Non-monotonic Reasoning
+abbreviation: LPNMR
+type: "conference"
+date:
+  start: 2026-09-07
+  end: 2026-09-11
+location: Klagenfurt, Austria
+url: "https://lpnmr2026.aics.aau.at"
+submissionUrl: "https://easychair.org/conferences/?conf=lpnmr2026"
+importantDateUrl: "https://lpnmr2026.aics.aau.at/call/#important_dates"
+importantDates:
+  abstract: 2026-04-30
+  paper: 2026-05-07
+  notification: 2026-06-11
+  camera-ready: 2026-07-02

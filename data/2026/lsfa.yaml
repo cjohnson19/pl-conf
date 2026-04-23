@@ -1,0 +1,16 @@
+name: International Symposium on Logical and Semantic Frameworks with Applications
+abbreviation: LSFA
+type: "symposium"
+date:
+  start: 2026-07-18
+  end: 2026-07-19
+location: Lisbon, Portugal
+url: "https://lsfa-workshop.github.io/2026/"
+submissionUrl: "https://submissions.floc26.org/lsfa/"
+importantDateUrl: "https://lsfa-workshop.github.io/2026/#cfp"
+importantDates:
+  abstract: 2026-04-20
+  paper: 2026-04-28
+  notification: 2026-05-25
+notes:
+  - Affiliated with FLoC 2026 (co-located with FSCD 2026)

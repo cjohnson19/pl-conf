@@ -1,0 +1,14 @@
+name: International Conference on Runtime Verification
+abbreviation: RV
+type: "conference"
+date:
+  start: 2026-10-06
+  end: 2026-10-09
+location: Kingston, Canada
+url: "https://rv2026.smithengineering.queensu.ca/"
+submissionUrl: "https://easychair.org/conferences?conf=rv2026"
+importantDateUrl: "https://rv2026.smithengineering.queensu.ca/cfp/"
+importantDates:
+  paper: 2026-05-31
+  notification: 2026-07-16
+  camera-ready: 2026-07-27

@@ -1,0 +1,16 @@
+name: Computer Science Logic
+abbreviation: CSL
+type: "conference"
+date:
+  start: 2027-01-25
+  end: 2027-01-29
+location: Brighton, United Kingdom
+url: "https://csl2027.github.io/"
+importantDateUrl: "https://csl2027.github.io/#important-dates"
+importantDates:
+  abstract: 2026-07-08
+  paper: 2026-07-15
+  notification: 2026-10-15
+  camera-ready: TBD
+notes:
+  - 35th EACSL Annual Conference

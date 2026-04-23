@@ -1,0 +1,14 @@
+name: International Symposium on Mathematical Foundations of Computer Science
+abbreviation: MFCS
+type: "symposium"
+date:
+  start: 2026-08-24
+  end: 2026-08-28
+location: Paris, France
+url: "https://mfcs2026.irif.fr/"
+submissionUrl: "https://mfcs26.hotcrp.com/"
+importantDateUrl: "https://mfcs2026.irif.fr/#dates"
+importantDates:
+  paper: 2026-04-24
+  notification: 2026-06-19
+  camera-ready: 2026-06-26

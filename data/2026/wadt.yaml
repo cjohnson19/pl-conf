@@ -1,0 +1,23 @@
+name: Workshop on Algebraic Development Techniques
+abbreviation: WADT
+type: "workshop"
+date:
+  start: 2026-06-30
+  end: 2026-06-30
+location: Rennes, France
+url: "https://conf.researchr.org/home/wadt-2026"
+submissionUrl: "https://easychair.org/conferences/?conf=staf2026"
+importantDateUrl: "https://conf.researchr.org/track/wadt-2026/wadt-2026-papers"
+submissionSchemeUrl: "https://conf.researchr.org/track/wadt-2026/wadt-2026-papers#Call-for-Papers"
+rounds:
+  - name: Abstract
+    importantDates:
+      abstract: 2026-04-30
+      notification: 2026-05-07
+  - name: Post-proceedings
+    importantDates:
+      paper: 2026-09-17
+      notification: 2026-10-29
+notes:
+  - Co-located with STAF 2026 at INRIA Center, University of Rennes
+  - Presentations selected from 2-page abstracts; post-proceedings paper round follows the workshop

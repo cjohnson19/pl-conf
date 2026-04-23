@@ -1,0 +1,16 @@
+name: Workshop on Mathematically Structured Functional Programming
+abbreviation: MSFP
+type: "workshop"
+date:
+  start: 2026-07-18
+  end: 2026-07-18
+location: Lisbon, Portugal
+url: "https://msfp-workshop.github.io/msfp2026/"
+submissionUrl: "https://submissions.floc26.org/msfp"
+importantDateUrl: "https://msfp-workshop.github.io/msfp2026/"
+importantDates:
+  paper: 2026-04-29
+  notification: 2026-05-27
+  camera-ready: 2026-06-24
+notes:
+  - Satellite workshop of FSCD 2026 at FLoC 2026

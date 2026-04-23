@@ -1,0 +1,16 @@
+name: International Workshop on Rewriting Techniques for Program Transformations and Evaluation
+abbreviation: WPTE
+type: "workshop"
+date:
+  start: 2026-07-19
+  end: 2026-07-19
+location: Lisbon, Portugal
+url: "https://wpte2026.github.io/"
+submissionUrl: "https://submissions.floc26.org/wpte/"
+importantDateUrl: "https://wpte2026.github.io/"
+importantDates:
+  paper: 2026-04-29
+  notification: 2026-05-25
+  camera-ready: 2026-06-29
+notes:
+  - Affiliated with FLoC 2026 and FSCD 2026
