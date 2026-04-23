@@ -1,0 +1,17 @@
+name: International Workshop on Automated Reasoning in Quantified Non-Classical Logics
+abbreviation: ARQNL
+type: "workshop"
+date:
+  start: 2026-07-24
+  end: 2026-07-24
+location: Lisbon, Portugal
+url: "http://iltp.de/ARQNL-2026/"
+submissionUrl: "https://easychair.org/conferences/?conf=arqnl2026"
+importantDateUrl: "http://iltp.de/ARQNL-2026/cfp.html"
+importantDates:
+  abstract: 2026-04-27
+  paper: 2026-05-04
+  notification: 2026-06-01
+  camera-ready: 2026-06-29
+notes:
+  - Co-located with IJCAR 2026 at FLoC 2026

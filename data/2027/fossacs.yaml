@@ -1,0 +1,17 @@
+name: Foundations of Software Science and Computation Structures
+abbreviation: FoSSaCS
+type: "conference"
+date:
+  start: 2027-04-12
+  end: 2027-04-15
+location: Copenhagen, Denmark
+url: "https://etaps.org/2027"
+submissionUrl: "https://easychair.org/conferences/?conf=fossacs2027"
+importantDateUrl: "https://etaps.org/2027/cfp/"
+importantDates:
+  paper: 2026-10-15
+  rebuttal: 2026-12-07
+  notification: 2026-12-22
+  camera-ready: 2027-01-25
+notes:
+  - Part of ETAPS 2027

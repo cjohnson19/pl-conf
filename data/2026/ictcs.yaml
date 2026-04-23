@@ -1,0 +1,16 @@
+name: Italian Conference on Theoretical Computer Science
+abbreviation: ICTCS
+type: "conference"
+date:
+  start: 2026-09-07
+  end: 2026-09-09
+location: Udine, Italy
+url: "https://ictcs2026.uniud.it/"
+submissionUrl: "https://easychair.org/conferences/?conf=ictcs2026"
+importantDateUrl: "https://ictcs2026.uniud.it/important-dates/"
+importantDates:
+  paper: 2026-06-14
+  notification: 2026-07-21
+  camera-ready: 2026-08-05
+notes:
+  - Conference of the Italian Chapter of EATCS

@@ -1,0 +1,15 @@
+name: Workshop on Sources of Unsoundness in Type Systems and Verification
+abbreviation: UNSOUND
+type: "workshop"
+date:
+  start: 2026-06-30
+  end: 2026-06-30
+location: Brussels, Belgium
+url: "https://2026.ecoop.org/home/unsound-2026"
+submissionUrl: "https://easychair.org/conferences/?conf=unsound2026"
+importantDateUrl: "https://2026.ecoop.org/home/unsound-2026"
+importantDates:
+  paper: 2026-04-14
+  notification: 2026-04-19
+notes:
+  - Co-located with ECOOP 2026

@@ -1,0 +1,17 @@
+name: International Workshop on Satisfiability Checking and Symbolic Computation
+abbreviation: SC-Square
+type: "workshop"
+date:
+  start: 2026-07-13
+  end: 2026-07-13
+location: Oldenburg, Germany
+url: "https://www.sc-square.org/CSA/workshop11.html"
+submissionUrl: "https://hotcrp.software.imdea.org/scsquare/"
+importantDateUrl: "https://www.sc-square.org/CSA/workshop11.html#Dates"
+importantDates:
+  abstract: 2026-04-24
+  paper: 2026-05-01
+  notification: 2026-05-22
+  camera-ready: 2026-06-01
+notes:
+  - Satellite of ISSAC 2026

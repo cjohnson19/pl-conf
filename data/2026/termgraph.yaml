@@ -1,0 +1,17 @@
+name: International Workshop on Computing with Terms and Graphs
+abbreviation: TERMGRAPH
+type: "workshop"
+date:
+  start: 2026-07-19
+  end: 2026-07-19
+location: Lisbon, Portugal
+url: "http://www.termgraph.org.uk/"
+submissionUrl: "https://submissions.floc26.org/termgraph/"
+importantDateUrl: "http://www.termgraph.org.uk/"
+importantDates:
+  paper: 2026-04-27
+  notification: 2026-05-25
+  camera-ready: 2026-06-11
+notes:
+  - Part of FLoC 2026
+  - Post-proceedings in EPTCS; submission mid-October 2026, notification December 2026

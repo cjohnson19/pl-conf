@@ -1,0 +1,24 @@
+name: European Symposium on Programming
+abbreviation: ESOP
+type: "conference"
+date:
+  start: 2027-04-12
+  end: 2027-04-15
+location: Copenhagen, Denmark
+url: "https://etaps.org/2027/esop/"
+submissionUrl: "https://esop27.hotcrp.com/"
+importantDateUrl: "https://etaps.org/2027/cfp/"
+rounds:
+  - name: Round 1
+    importantDates:
+      paper: 2026-05-28
+      rebuttal: 2026-07-20
+      notification: 2026-08-06
+  - name: Round 2
+    importantDates:
+      paper: 2026-10-15
+      rebuttal: 2026-12-07
+      notification: 2026-12-22
+      camera-ready: 2027-01-25
+notes:
+  - Part of ETAPS 2027

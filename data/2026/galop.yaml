@@ -1,0 +1,15 @@
+name: Workshop on Games for Logic and Programming Languages
+abbreviation: GaLoP
+type: "workshop"
+date:
+  start: 2026-07-18
+  end: 2026-07-19
+location: Lisbon, Portugal
+url: "https://galop-2026.lacl.fr"
+submissionUrl: "https://submissions.floc26.org/galop/"
+importantDateUrl: "https://galop-2026.lacl.fr"
+importantDates:
+  paper: 2026-05-06
+  notification: 2026-05-26
+notes:
+  - Co-located with FLoC 2026

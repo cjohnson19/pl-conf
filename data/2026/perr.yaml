@@ -1,0 +1,15 @@
+name: Workshop on Program Equivalence and Relational Reasoning
+abbreviation: PERR
+type: "workshop"
+date:
+  start: 2026-07-24
+  end: 2026-07-24
+location: Lisbon, Portugal
+url: "https://perr-workshop.github.io/2026"
+submissionUrl: "https://submissions.floc26.org/perr"
+importantDateUrl: "https://perr-workshop.github.io/2026/submission"
+importantDates:
+  paper: 2026-04-24
+  notification: 2026-05-28
+notes:
+  - Co-located with CAV 2026 at FLoC 2026
