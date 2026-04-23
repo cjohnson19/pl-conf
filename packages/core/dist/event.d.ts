@@ -232,8 +232,24 @@ declare const dateFormatStyles: {
     readonly year2: {
         readonly year: "2-digit";
     };
+    readonly "long-with-time": {
+        readonly year: "numeric";
+        readonly month: "long";
+        readonly day: "numeric";
+        readonly hour: "numeric";
+        readonly minute: "2-digit";
+        readonly timeZoneName: "short";
+    };
+    readonly "compact-with-time": {
+        readonly year: "2-digit";
+        readonly month: "2-digit";
+        readonly day: "2-digit";
+        readonly hour: "numeric";
+        readonly minute: "2-digit";
+    };
 };
 export type DateFormatStyle = keyof typeof dateFormatStyles;
+export declare function toAoeInstant(date: MaybeDate): Date | null;
 export declare function formatDate(date: MaybeDate, style: DateFormatStyle, locale?: LocaleArg): string;
 export declare function formatDateRange(start: MaybeDate, end: MaybeDate, style: DateFormatStyle, locale?: LocaleArg): string;
 export declare function toICal(e: ScheduledEvent, includeDates?: boolean): string;

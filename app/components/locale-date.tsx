@@ -7,16 +7,35 @@ import {
   formatDateRange,
   MaybeDate,
 } from "../lib/event";
+import { usePreferences } from "./preferences-provider";
+
+const withTimeStyle: Partial<Record<DateFormatStyle, DateFormatStyle>> = {
+  long: "long-with-time",
+  compact: "compact-with-time",
+};
 
 export function LocaleDate({
   date,
   style,
+  aoe,
 }: {
   date: MaybeDate;
   style: DateFormatStyle;
+  aoe?: boolean;
 }) {
-  const [text, setText] = useState(() => formatDate(date, style, "en-US"));
-  useEffect(() => setText(formatDate(date, style)), [date, style]);
+  const { prefs } = usePreferences();
+  const effectiveStyle =
+    aoe && prefs.display.exactDeadlineTime
+      ? (withTimeStyle[style] ?? style)
+      : style;
+
+  const [text, setText] = useState(() =>
+    formatDate(date, effectiveStyle, "en-US")
+  );
+  useEffect(
+    () => setText(formatDate(date, effectiveStyle)),
+    [date, effectiveStyle]
+  );
   return <>{text}</>;
 }
 

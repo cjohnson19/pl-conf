@@ -53,10 +53,10 @@ function DeadlineTable({ round }: { round: Round }) {
               <TableCell>{dateNameToReadable(k as DateName)}</TableCell>
               <TableCell>
                 <span className="hidden sm:inline">
-                  <LocaleDate date={v} style="long" />
+                  <LocaleDate date={v} style="long" aoe />
                 </span>
                 <span className="sm:hidden">
-                  <LocaleDate date={v} style="compact" />
+                  <LocaleDate date={v} style="compact" aoe />
                 </span>
               </TableCell>
               <TableCell align="right" className="text-muted-foreground">

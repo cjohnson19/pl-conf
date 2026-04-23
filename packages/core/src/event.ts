@@ -175,9 +175,35 @@ const dateFormatStyles = {
   short: { year: "numeric", month: "short", day: "numeric" },
   compact: { year: "2-digit", month: "2-digit", day: "2-digit" },
   year2: { year: "2-digit" },
+  "long-with-time": {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+    timeZoneName: "short",
+  },
+  "compact-with-time": {
+    year: "2-digit",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "numeric",
+    minute: "2-digit",
+  },
 } as const satisfies Record<string, Intl.DateTimeFormatOptions>;
 
 export type DateFormatStyle = keyof typeof dateFormatStyles;
+
+const timeBearingStyles = new Set<DateFormatStyle>([
+  "long-with-time",
+  "compact-with-time",
+]);
+
+export function toAoeInstant(date: MaybeDate): Date | null {
+  if (date === "TBD") return null;
+  const iso = date.replaceAll("/", "-");
+  return new Date(`${iso}T23:59:59.999-12:00`);
+}
 
 export function formatDate(
   date: MaybeDate,
@@ -185,8 +211,11 @@ export function formatDate(
   locale?: LocaleArg
 ): string {
   if (date === "TBD") return "TBD";
+  const instant = timeBearingStyles.has(style)
+    ? toAoeInstant(date)!
+    : new Date(date);
   return new Intl.DateTimeFormat(locale, dateFormatStyles[style]).format(
-    new Date(date)
+    instant
   );
 }
 

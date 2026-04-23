@@ -14,6 +14,7 @@ export {
   dateNameToReadable,
   formatDate,
   formatDateRange,
+  toAoeInstant,
   toICal,
   toGoogleCalendarLink,
 } from "@pl-conf/core";

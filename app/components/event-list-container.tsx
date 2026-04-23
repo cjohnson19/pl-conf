@@ -21,6 +21,7 @@ import { OpenSubmissionFilter } from "./open-submission-filter";
 import { sorters } from "@/lib/event-sorter";
 import { SortOptions } from "./sort-options";
 import { PreferencesProvider, usePreferences } from "./preferences-provider";
+import { ExactTimeToggle } from "./exact-time-toggle";
 
 function EventListInner({
   events,
@@ -134,6 +135,10 @@ function EventListInner({
                 filters: { ...prev.filters, openSubmissionFilter: value },
               }))
             }
+          />
+          <ExactTimeToggle
+            value={prefs.display.exactDeadlineTime}
+            setPrefs={setPrefs}
           />
         </div>
       </div>

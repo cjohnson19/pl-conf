@@ -1,13 +1,12 @@
 "use client";
 
-import {
-  endOfDay,
-  formatDuration,
-  Interval,
-  intervalToDuration,
-  isSameDay,
-} from "date-fns";
+import { formatDuration, Interval, intervalToDuration } from "date-fns";
 import React from "react";
+import { toAoeInstant } from "../lib/event";
+
+const HOUR_MS = 1000 * 60 * 60;
+const MINUTE_MS = 1000 * 60;
+const DAY_MS = 24 * HOUR_MS;
 
 export function TimeUntil({
   date,
@@ -17,50 +16,39 @@ export function TimeUntil({
   prefix?: string;
 } & React.ComponentPropsWithoutRef<"p">) {
   const [now, setNow] = React.useState<Date | null>(null);
+  const deadline = React.useMemo(() => toAoeInstant(date), [date]);
 
   React.useEffect(() => {
     setNow(new Date());
+    if (!deadline) return;
+    if (new Date().getTime() > deadline.getTime()) return;
 
-    if (new Date().getTime() > new Date(date).getTime()) {
-      return;
-    }
-    const interval = setInterval(
-      () => {
-        setNow(new Date());
-      },
-      1000 * 60 * 60
-    ); // Update hourly, it's not that important to be precise
+    const withinDay = deadline.getTime() - new Date().getTime() <= DAY_MS;
+    const tick = withinDay ? MINUTE_MS : HOUR_MS;
+    const interval = setInterval(() => setNow(new Date()), tick);
+    return () => clearInterval(interval);
+  }, [deadline]);
 
-    return () => {
-      clearInterval(interval);
-    };
-  }, [date]);
+  if (!now || !deadline) return null;
 
-  if (!now) {
-    return null;
-  }
+  const remaining = deadline.getTime() - now.getTime();
+  if (remaining <= 0) return <>{prefix ? prefix + " " : null}Passed</>;
 
-  const timeUntilDuration: Interval = {
-    start: now,
-    end: endOfDay(date),
-  };
-
-  const isPast = now.getTime() > endOfDay(date).getTime();
-  const duration = intervalToDuration(timeUntilDuration);
-  const sameDay = isSameDay(now, endOfDay(date));
+  const interval: Interval = { start: now, end: deadline };
+  const duration = intervalToDuration(interval);
+  const format =
+    remaining <= DAY_MS
+      ? (["hours", "minutes"] as const)
+      : (["years", "months", "days"] as const);
 
   return (
     <>
       {prefix ? prefix + " " : null}
-      {sameDay
-        ? "Today"
-        : isPast
-          ? "Passed"
-          : formatDuration(duration, {
-              format: ["years", "months", "days"],
-              zero: false,
-              delimiter: ", ",
-            })}
+      {formatDuration(duration, {
+        format: [...format],
+        zero: false,
+        delimiter: ", ",
+      })}
     </>
   );
 }

@@ -12,19 +12,27 @@ export type FilterPreferences = {
   openSubmissionFilter: "All" | "Filter";
 };
 
+export type DisplayPreferences = {
+  exactDeadlineTime: boolean;
+};
+
 export type PreferenceCollection = {
   eventPrefs: { [id: string]: EventPreferences };
   sortBy: EventSorterOptions["key"];
   filters: FilterPreferences;
+  display: DisplayPreferences;
 };
 
-export const defaultPreferences = {
+export const defaultPreferences: PreferenceCollection = {
   eventPrefs: {},
   sortBy: "date",
   filters: {
     selectedYear: "Any",
     selectedCategory: "Any",
-    hiddenItemsFilter: "visible" as const,
-    openSubmissionFilter: "All" as const,
+    hiddenItemsFilter: "visible",
+    openSubmissionFilter: "All",
+  },
+  display: {
+    exactDeadlineTime: false,
   },
 };
