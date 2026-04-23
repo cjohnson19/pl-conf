@@ -58,7 +58,6 @@ const ScheduledEventNormalized = z
       .default({ start: "TBD", end: "TBD" }),
     location: z.string().optional(),
     importantDateUrl: z.string().url().optional(),
-    submissionSchemeUrl: z.string().url().optional(),
     format: z.string().optional(),
     url: z.string().url().optional(),
     submissionUrl: z.string().url().optional(),

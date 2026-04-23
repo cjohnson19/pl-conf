@@ -30,7 +30,6 @@ describe("ScheduledEvent schema", () => {
   it("accepts a rounds-form event with names preserved", () => {
     const parsed = ScheduledEvent.parse({
       ...baseEvent,
-      submissionSchemeUrl: "https://example.com/scheme",
       rounds: [
         {
           name: "Round 1",
@@ -44,7 +43,6 @@ describe("ScheduledEvent schema", () => {
     });
 
     expect(parsed.rounds.map((r) => r.name)).toEqual(["Round 1", "Round 2"]);
-    expect(parsed.submissionSchemeUrl).toBe("https://example.com/scheme");
     expect(parsed.rounds[0].importantDates.paper).toBe("2025/06/03");
   });
 

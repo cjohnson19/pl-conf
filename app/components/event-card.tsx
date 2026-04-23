@@ -81,7 +81,6 @@ export function EventCard({ e }: { e: ScheduledEvent }) {
         <DateTable
           rounds={e.rounds}
           importantDateUrl={e.importantDateUrl}
-          submissionSchemeUrl={e.submissionSchemeUrl}
           notes={e.notes}
         />
       </CardContent>

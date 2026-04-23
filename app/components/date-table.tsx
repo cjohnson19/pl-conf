@@ -15,7 +15,6 @@ import {
 import { TimeUntil } from "./time-until";
 import Link from "next/link";
 import { isFuture, isPast } from "date-fns";
-import { Info } from "lucide-react";
 import { NotesTooltip } from "./notes-tooltip";
 
 function roundHasDeadlines(r: Round) {
@@ -72,12 +71,10 @@ function DeadlineTable({ round }: { round: Round }) {
 export function DateTable({
   rounds,
   importantDateUrl,
-  submissionSchemeUrl,
   notes,
 }: {
   rounds: ScheduledEvent["rounds"];
   importantDateUrl: string | undefined;
-  submissionSchemeUrl: string | undefined;
   notes: string[];
 }) {
   const hasDeadlines = rounds.some(roundHasDeadlines);
@@ -94,15 +91,6 @@ export function DateTable({
           Dates & Deadlines
         </Link>
       </h4>
-      {submissionSchemeUrl && (
-        <Link
-          href={submissionSchemeUrl}
-          target="_blank"
-          aria-label="Submission scheme explainer"
-        >
-          <Info className="h-4 w-4 text-muted-foreground hover:text-foreground" />
-        </Link>
-      )}
       {notes.length > 0 && <NotesTooltip notes={notes} />}
     </div>
   );
