@@ -16,12 +16,10 @@ import {
 } from "../lib/event-filter";
 import { SearchInput } from "./search-input";
 import { DateFilter } from "./date-filter";
-import { HiddenFilter } from "./hidden-filter";
 import { OpenSubmissionFilter } from "./open-submission-filter";
 import { sorters } from "@/lib/event-sorter";
-import { SortOptions } from "./sort-options";
 import { PreferencesProvider, usePreferences } from "./preferences-provider";
-import { ExactTimeToggle } from "./exact-time-toggle";
+import { DisplaySettings } from "./display-settings";
 
 function EventListInner({
   events,
@@ -114,18 +112,6 @@ function EventListInner({
               }))
             }
           />
-          <HiddenFilter
-            setValue={setShowHiddenFilter}
-            value={prefs.filters.hiddenItemsFilter}
-            onValueChange={(value) =>
-              setPrefs((prev) => ({
-                ...prev,
-                filters: { ...prev.filters, hiddenItemsFilter: value },
-              }))
-            }
-            eventPrefs={prefs.eventPrefs}
-          />
-          <SortOptions userPrefs={prefs} setUserPrefs={setPrefs} />
           <OpenSubmissionFilter
             setValue={setOpenSubmissionFilter}
             value={prefs.filters.openSubmissionFilter}
@@ -136,10 +122,7 @@ function EventListInner({
               }))
             }
           />
-          <ExactTimeToggle
-            value={prefs.display.exactDeadlineTime}
-            setPrefs={setPrefs}
-          />
+          <DisplaySettings prefs={prefs} setPrefs={setPrefs} />
         </div>
       </div>
       {!prefsLoaded
