@@ -1,3 +1,5 @@
+"use client";
+
 import Link from "next/link";
 import { Plus } from "lucide-react";
 import { Button } from "./ui/button";
@@ -13,7 +15,7 @@ export function SubmitEventButton() {
     <TooltipProvider>
       <Tooltip delayDuration={100}>
         <TooltipTrigger asChild>
-          <Button variant={"outline"} size={"icon"} asChild>
+          <Button variant="outline" size="icon" asChild>
             <Link href="/submit">
               <Plus />
               <span className="sr-only">Submit Event</span>
