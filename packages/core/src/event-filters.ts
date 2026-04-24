@@ -5,13 +5,8 @@ import {
   isFuture,
   isToday,
 } from "date-fns";
-import {
-  allDeadlines,
-  EventType,
-  firstDeadline,
-  MaybeDate,
-  ScheduledEvent,
-} from "./event.js";
+import { allDeadlines, firstDeadline } from "./event.js";
+import type { EventType, MaybeDate, ScheduledEvent } from "./schemas.js";
 
 export type EventFilter = (event: ScheduledEvent) => boolean;
 

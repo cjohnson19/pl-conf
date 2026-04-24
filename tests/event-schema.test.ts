@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { ScheduledEvent } from "@pl-conf/core";
+import { ScheduledEvent } from "@pl-conf/core/schemas";
 
 const baseEvent = {
   name: "Test Conference",

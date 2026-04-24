@@ -1,6 +1,4 @@
 export {
-  ScheduledEvent,
-  SubmissionSchema,
   eventKey,
   eventTypes,
   allDeadlines,
@@ -11,10 +9,10 @@ export {
   type DateFormatStyle,
   type EventType,
   type Round,
+  type ScheduledEvent,
   dateNameToReadable,
   formatDate,
   formatDateRange,
   toAoeInstant,
-  toICal,
   toGoogleCalendarLink,
 } from "@pl-conf/core";

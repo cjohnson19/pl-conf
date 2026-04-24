@@ -6,7 +6,7 @@ import {
   GetItemCommand,
 } from "@aws-sdk/client-dynamodb";
 import { z } from "zod";
-import { SubmissionSchema } from "@pl-conf/core";
+import { SubmissionSchema } from "@pl-conf/core/schemas";
 import YAML from "yaml";
 import { createHash } from "crypto";
 

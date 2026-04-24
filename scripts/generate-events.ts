@@ -1,4 +1,5 @@
-import { eventKey, ScheduledEvent } from "@pl-conf/core";
+import { eventKey } from "@pl-conf/core";
+import { ScheduledEvent } from "@pl-conf/core/schemas";
 import { format, getYear } from "date-fns";
 import { exec } from "node:child_process";
 import { lstat, mkdir, readdir, readFile, writeFile } from "node:fs/promises";

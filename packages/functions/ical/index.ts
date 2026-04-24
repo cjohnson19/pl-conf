@@ -1,4 +1,4 @@
-import { toICal } from "@pl-conf/core";
+import { toICal } from "@pl-conf/core/ical";
 import { events } from "../../../generated/events";
 
 interface APIGatewayEvent {
