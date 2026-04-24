@@ -2,7 +2,6 @@
 
 import { eventKey, ScheduledEvent } from "../lib/event";
 import { EventCard } from "./event-card";
-import { Skeleton } from "./ui/skeleton";
 import { useEffect, useState } from "react";
 import { CategoryFilter } from "./category-filter";
 import {
@@ -160,13 +159,9 @@ function EventListInner({
         </div>
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 w-full items-start">
-        {!prefsLoaded
-          ? Array.from({ length: 9 }, (_, i) => (
-              <Skeleton key={i} className="h-64 rounded-xl" />
-            ))
-          : displayEvents.map((e: ScheduledEvent) => (
-              <EventCard key={e.abbreviation} e={e} />
-            ))}
+        {displayEvents.map((e: ScheduledEvent) => (
+          <EventCard key={e.abbreviation} e={e} />
+        ))}
       </div>
     </div>
   );
