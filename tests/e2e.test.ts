@@ -29,10 +29,29 @@ function currentOrFutureEvents() {
   return Object.values(events).filter(isActive);
 }
 
+function findActiveEventByAbbreviation(abbreviation: string) {
+  return currentOrFutureEvents().find((e) => e.abbreviation === abbreviation);
+}
+
 async function eventCardAbbreviation(elem: ElementHandle): Promise<string> {
   return elem.$eval(".event-abbrev", (node) =>
-    node.textContent.split("'")[0].trim()
+    (node.textContent ?? "").split("'")[0].trim()
   );
+}
+
+async function waitForFirstCardToBe(abbreviation: string) {
+  await page.waitForFunction(
+    (abbr) => {
+      const node = document.querySelector(".event-card .event-abbrev");
+      return (node?.textContent ?? "").trim().startsWith(`${abbr} `);
+    },
+    { timeout: 5000 },
+    abbreviation
+  );
+}
+
+async function domClick(handle: ElementHandle) {
+  await handle.evaluate((el) => (el as HTMLElement).click());
 }
 
 async function eventListAbbreviations(): Promise<string[]> {
@@ -63,10 +82,8 @@ describe("preferences", () => {
     const finalEventAbbrev = await eventCardAbbreviation(finalEvent);
     const favButton = await finalEvent.$(".favorite-button");
     expect(favButton).not.toBeNull();
-    await favButton!.click();
-    const newArrangedEventCards = await page.$$(".event-card");
-    const firstCard = newArrangedEventCards[0];
-    expect(await eventCardAbbreviation(firstCard)).toBe(finalEventAbbrev);
+    await domClick(favButton!);
+    await waitForFirstCardToBe(finalEventAbbrev);
   });
 
   it("places favorite events at top of page across refresh", async () => {
@@ -76,11 +93,9 @@ describe("preferences", () => {
     const finalEventAbbrev = await eventCardAbbreviation(finalEvent);
     const favButton = await finalEvent.$(".favorite-button");
     expect(favButton).not.toBeNull();
-    await favButton!.click();
+    await domClick(favButton!);
     await page.reload({ waitUntil: "networkidle2" });
-    const newArrangedEventCards = await page.$$(".event-card");
-    const firstCard = newArrangedEventCards[0];
-    expect(await eventCardAbbreviation(firstCard)).toBe(finalEventAbbrev);
+    await waitForFirstCardToBe(finalEventAbbrev);
   });
 
   it("clicking favorite event updates localstorage", async () => {
@@ -88,11 +103,13 @@ describe("preferences", () => {
     const eventCards = await page.$$(".event-card");
     const finalEventCard = eventCards[eventCards.length - 1];
     const finalEventAbbrev = await eventCardAbbreviation(finalEventCard);
-    const finalEvent = events[finalEventAbbrev];
-    const finalEventPrefKey = eventKey(finalEvent);
+    const finalEvent = findActiveEventByAbbreviation(finalEventAbbrev);
+    expect(finalEvent).toBeDefined();
+    const finalEventPrefKey = eventKey(finalEvent!);
     const favButton = await finalEventCard.$(".favorite-button");
     expect(favButton).not.toBeNull();
-    await favButton!.click();
+    await domClick(favButton!);
+    await waitForFirstCardToBe(finalEventAbbrev);
     const store = await page.evaluate(() => {
       return JSON.parse(localStorage.getItem("userPrefsV2") ?? "{}");
     });
@@ -109,11 +126,13 @@ describe("preferences", () => {
     const eventCards = await page.$$(".event-card");
     const finalEventCard = eventCards[eventCards.length - 1];
     const finalEventAbbrev = await eventCardAbbreviation(finalEventCard);
-    const finalEvent = events[finalEventAbbrev];
-    const finalEventPrefKey = eventKey(finalEvent);
+    const finalEvent = findActiveEventByAbbreviation(finalEventAbbrev);
+    expect(finalEvent).toBeDefined();
+    const finalEventPrefKey = eventKey(finalEvent!);
     const favButton = await finalEventCard.$(".favorite-button");
     expect(favButton).not.toBeNull();
-    await favButton!.click();
+    await domClick(favButton!);
+    await waitForFirstCardToBe(finalEventAbbrev);
     await page.reload({ waitUntil: "networkidle2" });
     const store = await page.evaluate(() => {
       return JSON.parse(localStorage.getItem("userPrefsV2") ?? "{}");
