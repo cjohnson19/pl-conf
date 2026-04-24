@@ -26,7 +26,7 @@ export function LocaleDate({
   const { prefs } = usePreferences();
   const effectiveStyle =
     aoe && prefs.display.exactDeadlineTime
-      ? (withTimeStyle[style] ?? style)
+      ? (withTimeStyle[style] ?? "long-with-time")
       : style;
 
   const [text, setText] = useState(() =>
