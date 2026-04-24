@@ -1,0 +1,16 @@
+name: Workshop on Craig Interpolation, Beth Definability, and Second-Order Quantifier Elimination
+abbreviation: CI-BD-SOQE
+type: "workshop"
+date:
+  start: 2026-07-24
+  end: 2026-07-25
+location: Lisbon, Portugal
+url: "http://2026.ci-bd.soqe.org/"
+submissionUrl: "https://submissions.floc26.org/ci-bd-soqe/"
+importantDateUrl: "http://2026.ci-bd.soqe.org/#dates"
+importantDates:
+  paper: 2026-05-04
+  notification: 2026-05-25
+partOf: FLoC
+notes:
+  - "Proceedings published as CEUR Workshop Proceedings"
