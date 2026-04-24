@@ -2,7 +2,9 @@
 
 import { eventKey, ScheduledEvent } from "../lib/event";
 import { EventCard } from "./event-card";
+import { Skeleton } from "./ui/skeleton";
 import { useEffect, useState } from "react";
+import clsx from "clsx";
 import { CategoryFilter } from "./category-filter";
 import {
   applyFilters,
@@ -42,6 +44,7 @@ function EventListInner({
   const [showHiddenFilter, setShowHiddenFilter] = useState<EventFilter>(
     () => () => true
   );
+  const [filtersSynced, setFiltersSynced] = useState(false);
 
   function filterEvents(es: ScheduledEvent[]): ScheduledEvent[] {
     return applyFilters(es, [
@@ -74,6 +77,7 @@ function EventListInner({
     setShowHiddenFilter(() =>
       hiddenFilter(prefs.eventPrefs)(prefs.filters.hiddenItemsFilter)
     );
+    setFiltersSynced(true);
   }, [prefs, prefsLoaded]);
 
   // Use pre-filtered events from server, apply additional client-side filters
@@ -158,10 +162,28 @@ function EventListInner({
           <DisplaySettings prefs={prefs} setPrefs={setPrefs} />
         </div>
       </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 w-full items-start">
-        {displayEvents.map((e: ScheduledEvent) => (
-          <EventCard key={e.abbreviation} e={e} />
-        ))}
+      <div className="relative">
+        <div
+          className={clsx(
+            "grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 w-full items-start",
+            !filtersSynced && "invisible"
+          )}
+          aria-hidden={!filtersSynced}
+        >
+          {displayEvents.map((e: ScheduledEvent) => (
+            <EventCard key={e.abbreviation} e={e} />
+          ))}
+        </div>
+        {!filtersSynced && (
+          <div
+            className="absolute inset-0 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 w-full items-start"
+            aria-label="Loading events"
+          >
+            {Array.from({ length: 9 }, (_, i) => (
+              <Skeleton key={i} className="h-64 rounded-xl" />
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );
