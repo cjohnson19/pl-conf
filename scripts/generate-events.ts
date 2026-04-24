@@ -1,5 +1,5 @@
 import { eventKey, ScheduledEvent } from "@pl-conf/core";
-import { format } from "date-fns";
+import { format, getYear } from "date-fns";
 import { exec } from "node:child_process";
 import { lstat, mkdir, readdir, readFile, writeFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
@@ -117,6 +117,37 @@ function validateCrossReferences(events: Record<string, ScheduledEvent>): void {
   }
 }
 
+function validateNoTransitivePartOf(
+  events: Record<string, ScheduledEvent>
+): void {
+  const all = Object.values(events);
+  const eventYear = (e: ScheduledEvent) => getYear(new Date(e.date.start));
+  const findIn = (abbrev: string, year: number) =>
+    all.find((e) => e.abbreviation === abbrev && eventYear(e) === year);
+
+  const ancestors = (abbrev: string, year: number): string[] => {
+    const parent = findIn(abbrev, year);
+    if (!parent) return [];
+    return parent.partOf.flatMap((p) => [p, ...ancestors(p, year)]);
+  };
+
+  const errors = all.flatMap((e) => {
+    if (e.partOf.length < 2) return [];
+    const year = eventYear(e);
+    return e.partOf.flatMap((direct) => {
+      const via = ancestors(direct, year);
+      return e.partOf
+        .filter((other) => other !== direct && via.includes(other))
+        .map(
+          (other) =>
+            `${e.abbreviation}: partOf "${other}" is transitive through "${direct}" — remove it`
+        );
+    });
+  });
+
+  if (errors.length > 0) throw new Error(errors.join("\n"));
+}
+
 async function main() {
   console.log("Loading events from YAML files...");
   const events = await loadEvents();
@@ -124,6 +155,7 @@ async function main() {
   console.log(`Loaded ${eventCount} events`);
 
   validateCrossReferences(events);
+  validateNoTransitivePartOf(events);
 
   await mkdir(OUTPUT_DIR, { recursive: true });
 
