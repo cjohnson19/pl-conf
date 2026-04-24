@@ -27,8 +27,9 @@ export function FavoriteButton({ prefKey: key }: { prefKey: string }) {
       }}
     >
       <StarIcon
-        stroke="gold"
-        fill="gold"
+        className="text-amber-500 dark:text-amber-400"
+        stroke="currentColor"
+        fill="currentColor"
         fillOpacity={prefs.eventPrefs[key]?.favorite ? 100 : 0}
       />
     </Button>

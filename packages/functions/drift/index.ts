@@ -5,7 +5,7 @@ import {
   S3Client,
 } from "@aws-sdk/client-s3";
 import { SESv2Client, SendEmailCommand } from "@aws-sdk/client-sesv2";
-import { isActive } from "@pl-conf/core";
+import { eventKey, isActive } from "@pl-conf/core";
 import diff from "fast-diff";
 import { events } from "../../../generated/events";
 
@@ -155,14 +155,14 @@ const DRIFT_EMAIL_SENDER =
   process.env.DRIFT_EMAIL_SENDER || "drift-production@pl-conferences.com";
 
 async function getStoredEventInfo(): Promise<Record<string, EventWebInfo>> {
-  const eventAbbrevs = Object.keys(events);
+  const eventKeys = Object.keys(events);
   const importantDatePages: PromiseSettledResult<
     Pick<EventWebInfo, "importantDates">
   >[] = await Promise.allSettled(
-    eventAbbrevs.map(async (abbrev) => {
+    eventKeys.map(async (key) => {
       const getImportantDatesCommand = new GetObjectCommand({
         Bucket: WEBPAGE_BUCKET_NAME,
-        Key: `${abbrev}-dates.html`,
+        Key: `${key}-dates.html`,
       });
       const res = await s3Client.send(getImportantDatesCommand);
       return {
@@ -172,10 +172,10 @@ async function getStoredEventInfo(): Promise<Record<string, EventWebInfo>> {
   );
   const mainPages: PromiseSettledResult<Pick<EventWebInfo, "main">>[] =
     await Promise.allSettled(
-      eventAbbrevs.map(async (abbrev) => {
+      eventKeys.map(async (key) => {
         const getMainCommand = new GetObjectCommand({
           Bucket: WEBPAGE_BUCKET_NAME,
-          Key: `${abbrev}-main.html`,
+          Key: `${key}-main.html`,
         });
         const res = await s3Client.send(getMainCommand);
         return {
@@ -186,7 +186,7 @@ async function getStoredEventInfo(): Promise<Record<string, EventWebInfo>> {
 
   return Object.fromEntries(
     zip(mainPages, importantDatePages).map(([r1, r2], i) => [
-      eventAbbrevs[i],
+      eventKeys[i],
       {
         ...(r1.status === "fulfilled" ? r1.value : {}),
         ...(r2.status === "fulfilled" ? r2.value : {}),
@@ -230,7 +230,7 @@ async function getCurrentEventInfo(): Promise<Record<string, EventWebInfo>> {
 
   return Object.fromEntries(
     zip(mainPages, cachedDatePages).map(([r1, r2], i) => [
-      es[i].abbreviation,
+      eventKey(es[i]),
       {
         ...(r1.status === "fulfilled" ? r1.value : {}),
         ...(r2.status === "fulfilled" ? r2.value : {}),
@@ -243,8 +243,8 @@ async function getCurrentEventInfo(): Promise<Record<string, EventWebInfo>> {
 function toTable(
   drifts: [string, { main: DiffResult; importantDates: DiffResult }][]
 ) {
-  const getUrl = (prop: string, abbrev: string): string => {
-    const event = events[abbrev];
+  const getUrl = (prop: string, key: string): string => {
+    const event = events[key];
     if (!event) return "Url not available";
     return prop in event
       ? // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -338,13 +338,15 @@ function toTable(
       </thead>
       <tbody>
         ${eventsWithChanges
-          .map(([abbrev, drift]) => {
-            const eventName = events[abbrev]?.name || abbrev;
+          .map(([key, drift]) => {
+            const event = events[key];
+            const displayAbbrev = event?.abbreviation || key;
+            const eventName = event?.name || key;
 
             return `
               <tr>
                 <td>
-                  <div class="event-name">${abbrev.toUpperCase()}</div>
+                  <div class="event-name">${displayAbbrev.toUpperCase()}</div>
                   <div style="font-size: 12px; color: #666; margin-top: 2px;">${eventName}</div>
                 </td>
                 <td>
@@ -355,7 +357,7 @@ function toTable(
                       <span>Main Page</span>
                       <a href="${getUrl(
                         "url",
-                        abbrev
+                        key
                       )}" class="view-link" target="_blank">View Page →</a>
                     </div>
                     <div class="change-summary">${formatDiffSummary(
@@ -377,7 +379,7 @@ function toTable(
                       <span>Important Dates</span>
                       <a href="${getUrl(
                         "importantDateUrl",
-                        abbrev
+                        key
                       )}" class="view-link" target="_blank">View Page →</a>
                     </div>
                     <div class="change-summary">${formatDiffSummary(
@@ -432,13 +434,14 @@ function generateSummarySection(
           <strong style="color: #333;">Conferences with changes:</strong>
           <div style="margin-top: 8px;">
             ${eventsWithChanges
-              .map(([abbrev, drift]) => {
+              .map(([key, drift]) => {
                 const changes = [];
                 if (drift.main.hasChanges) changes.push("main page");
                 if (drift.importantDates.hasChanges)
                   changes.push("important dates");
+                const displayAbbrev = events[key]?.abbreviation || key;
                 return `<span style="display: inline-block; background: #e9ecef; padding: 4px 8px; margin: 4px; border-radius: 4px; font-size: 14px;">
-                ${abbrev.toUpperCase()} (${changes.join(", ")})
+                ${displayAbbrev.toUpperCase()} (${changes.join(", ")})
               </span>`;
               })
               .join("")}
@@ -461,10 +464,10 @@ export const handler = async () => {
       main: DiffResult;
       importantDates: DiffResult;
     },
-  ][] = Object.entries(currentEventInfo).map(([abbrev, currentInfo]) => {
-    const storedInfo = storedEventInfo[abbrev];
+  ][] = Object.entries(currentEventInfo).map(([key, currentInfo]) => {
+    const storedInfo = storedEventInfo[key];
     return [
-      abbrev,
+      key,
       {
         main: diffContent(storedInfo.main, currentInfo.main),
         importantDates: diffContent(
@@ -534,26 +537,26 @@ export const handler = async () => {
 
   // Store the current event info for the next run
   const putPromises = Object.entries(currentEventInfo).map(
-    async ([abbrev, info]) => {
+    async ([key, info]) => {
       if (info.main !== undefined) {
         const putMainCommand = new PutObjectCommand({
           Bucket: WEBPAGE_BUCKET_NAME,
-          Key: `${abbrev}-main.html`,
+          Key: `${key}-main.html`,
           Body: info.main,
         });
         await s3Client.send(putMainCommand);
       } else {
-        console.warn("No main page for ", abbrev);
+        console.warn("No main page for ", key);
       }
       if (info.importantDates !== undefined) {
         const putDatesCommand = new PutObjectCommand({
           Bucket: WEBPAGE_BUCKET_NAME,
-          Key: `${abbrev}-dates.html`,
+          Key: `${key}-dates.html`,
           Body: info.importantDates,
         });
         await s3Client.send(putDatesCommand);
       } else {
-        console.warn("No important date url for ", abbrev);
+        console.warn("No important date url for ", key);
       }
     }
   );

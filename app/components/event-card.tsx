@@ -7,75 +7,89 @@ import {
 import {
   Card,
   CardContent,
-  CardDescription,
   CardFooter,
   CardHeader,
   CardTitle,
 } from "./ui/card";
+import { Badge } from "./ui/badge";
 import Link from "next/link";
-import { EventBadges } from "./event-badges";
 import { DateTable } from "./date-table";
 import clsx from "clsx";
 import { FavoriteButton } from "./favorite-button";
 import { EventTitleTooltip } from "./event-title-tooltip";
 import { EventOptionsWrapper } from "./event-options-wrapper";
-import { LocaleDate, LocaleDateRange } from "./locale-date";
+import { LocaleDateRange } from "./locale-date";
+import { LastUpdated } from "./last-updated";
+import { capitalize } from "../lib/utils";
+import { ArrowUpRight } from "lucide-react";
+
+function Dot() {
+  return (
+    <span aria-hidden className="text-muted-foreground/50">
+      ·
+    </span>
+  );
+}
 
 export function EventCard({ e }: { e: ScheduledEvent }) {
   const abbrevYear = `${e.abbreviation} '${formatDate(e.date.start, "year2", "en-US")}`;
+  const hasRelationships = e.partOf.length > 0 || e.colocatedWith.length > 0;
+  const hasDeadlineSection = allDeadlines(e).length > 0 || !!e.importantDateUrl;
 
   return (
-    <Card className="w-full bg-muted/80 event-card">
-      <CardHeader className="p-4 sm:p-6">
-        <div className="flex flex-col justify-between gap-1 w-full">
-          <CardTitle className="flex gap-2 justify-between items-start">
-            <div className="flex gap-2 items-start justify-start flex-grow min-w-0">
-              <EventTitleTooltip name={e.name}>
-                <h3 className="truncate event-abbrev">
-                  {e.url ? (
-                    <Link href={e.url} target="_blank">
-                      {abbrevYear}
-                    </Link>
-                  ) : (
-                    abbrevYear
-                  )}
-                </h3>
-              </EventTitleTooltip>
-              <FavoriteButton prefKey={eventKey(e)} />
-            </div>
-            <div className="flex gap-2 items-center justify-end flex-shrink-0">
-              <div className="flex flex-col gap-1 items-end">
-                <p className="text-muted-foreground leading-none text-right text-xs sm:text-sm">
-                  <span className="hidden sm:inline">
-                    <LocaleDateRange
-                      start={e.date.start}
-                      end={e.date.end}
-                      style="long"
+    <Card className="bg-muted/60 event-card flex flex-col h-full">
+      <CardHeader className="p-4 pb-3 gap-2 space-y-0">
+        <div className="flex items-start justify-between gap-2">
+          <div className="flex items-center gap-2 min-w-0 flex-wrap">
+            <EventTitleTooltip name={e.name}>
+              <CardTitle className="event-abbrev leading-tight">
+                {e.url ? (
+                  <Link
+                    href={e.url}
+                    target="_blank"
+                    className="no-underline hover:underline inline-flex items-center gap-0.5 group"
+                  >
+                    {abbrevYear}
+                    <ArrowUpRight
+                      className="h-4 w-4 text-muted-foreground/70 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:text-foreground"
+                      aria-hidden
                     />
-                  </span>
-                  <span className="sm:hidden">
-                    <LocaleDateRange
-                      start={e.date.start}
-                      end={e.date.end}
-                      style="compact"
-                    />
-                  </span>
-                </p>
-                <CardDescription className="leading-none text-right text-xs sm:text-sm">
-                  {e.location}
-                </CardDescription>
-              </div>
-              <EventOptionsWrapper e={e} />
-            </div>
-          </CardTitle>
-          <div className="flex gap-4 items-center justify-between">
-            <EventBadges tags={[e.type]} />
+                  </Link>
+                ) : (
+                  abbrevYear
+                )}
+              </CardTitle>
+            </EventTitleTooltip>
+            <Badge variant="secondary" className="font-medium">
+              {capitalize(e.type)}
+            </Badge>
+          </div>
+          <div className="flex items-center shrink-0 -mr-2 -mt-1">
+            <FavoriteButton prefKey={eventKey(e)} />
+            <EventOptionsWrapper e={e} />
           </div>
         </div>
+
+        <div className="flex flex-wrap items-center gap-x-1.5 gap-y-1 text-xs sm:text-sm text-muted-foreground">
+          <span>
+            <LocaleDateRange
+              start={e.date.start}
+              end={e.date.end}
+              style="short"
+            />
+          </span>
+          {e.location && (
+            <>
+              <Dot />
+              <span className="truncate">{e.location}</span>
+            </>
+          )}
+        </div>
       </CardHeader>
+
       <CardContent
-        className={clsx("flex flex-col gap-4", {
-          "p-0": allDeadlines(e).length === 0 && !e.importantDateUrl,
+        className={clsx("px-4 pb-3 pt-0 flex flex-col gap-3 flex-1", {
+          hidden: !hasDeadlineSection,
         })}
       >
         <DateTable
@@ -84,9 +98,43 @@ export function EventCard({ e }: { e: ScheduledEvent }) {
           notes={e.notes}
         />
       </CardContent>
-      <CardFooter className="flex flex-col gap-0 items-end">
-        <small className="text-muted-foreground">
-          Updated <LocaleDate date={e.lastUpdated} style="short" />
+
+      <CardFooter className="px-4 py-2 mt-auto flex flex-wrap items-center gap-x-3 gap-y-1">
+        {hasRelationships && (
+          <div className="flex flex-wrap items-center gap-x-1.5 gap-y-1 text-xs text-muted-foreground">
+            {e.partOf.length > 0 && (
+              <>
+                <span>Part of</span>
+                {e.partOf.map((ref) => (
+                  <Badge
+                    key={ref}
+                    variant="outline"
+                    className="font-normal bg-background/60"
+                  >
+                    {ref}
+                  </Badge>
+                ))}
+              </>
+            )}
+            {e.partOf.length > 0 && e.colocatedWith.length > 0 && <Dot />}
+            {e.colocatedWith.length > 0 && (
+              <>
+                <span>Co-located with</span>
+                {e.colocatedWith.map((ref) => (
+                  <Badge
+                    key={ref}
+                    variant="outline"
+                    className="font-normal bg-background/60"
+                  >
+                    {ref}
+                  </Badge>
+                ))}
+              </>
+            )}
+          </div>
+        )}
+        <small className="text-muted-foreground ml-auto text-xs">
+          Updated <LastUpdated date={e.lastUpdated} />
         </small>
       </CardFooter>
     </Card>

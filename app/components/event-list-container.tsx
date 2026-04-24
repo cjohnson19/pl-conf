@@ -20,6 +20,8 @@ import { OpenSubmissionFilter } from "./open-submission-filter";
 import { sorters } from "@/lib/event-sorter";
 import { PreferencesProvider, usePreferences } from "./preferences-provider";
 import { DisplaySettings } from "./display-settings";
+import { Button } from "./ui/button";
+import { X } from "lucide-react";
 
 function EventListInner({
   events,
@@ -86,11 +88,33 @@ function EventListInner({
           : 0;
     });
 
+  const hasActiveFilters =
+    prefs.filters.selectedYear !== "Any" ||
+    prefs.filters.selectedCategory !== "Any" ||
+    prefs.filters.openSubmissionFilter !== "All";
+
+  const clearFilters = () => {
+    setYearFilter(() => () => true);
+    setCategoryFilter(() => () => true);
+    setOpenSubmissionFilter(() => () => true);
+    setPrefs((prev) => ({
+      ...prev,
+      filters: {
+        ...prev.filters,
+        selectedYear: "Any",
+        selectedCategory: "Any",
+        openSubmissionFilter: "All",
+      },
+    }));
+  };
+
   return (
-    <div className="flex flex-col gap-8 px-4 md:px-11 items-center">
-      <div className="flex flex-col gap-2 w-full">
-        <SearchInput value={textFilter} setValue={setTextFilter} />
-        <div className="flex flex-row flex-wrap w-full justify-around gap-2 mb-4 md:items-center">
+    <div className="flex flex-col gap-6">
+      <div className="flex flex-col sm:flex-row sm:items-center gap-2 w-full">
+        <div className="sm:max-w-sm sm:flex-1">
+          <SearchInput value={textFilter} setValue={setTextFilter} />
+        </div>
+        <div className="flex flex-wrap gap-2 sm:ml-auto sm:items-center">
           <DateFilter
             setValue={setYearFilter}
             years={eventYears}
@@ -122,16 +146,28 @@ function EventListInner({
               }))
             }
           />
+          {hasActiveFilters && (
+            <Button
+              variant="ghost"
+              onClick={clearFilters}
+              aria-label="Clear all filters"
+            >
+              <X />
+              <span className="hidden md:inline">Clear</span>
+            </Button>
+          )}
           <DisplaySettings prefs={prefs} setPrefs={setPrefs} />
         </div>
       </div>
-      {!prefsLoaded
-        ? Array.from({ length: 10 }, (_, i) => (
-            <Skeleton key={i} className="h-48 w-full rounded-2xl" />
-          ))
-        : displayEvents.map((e: ScheduledEvent) => (
-            <EventCard key={e.abbreviation} e={e} />
-          ))}
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 w-full items-start">
+        {!prefsLoaded
+          ? Array.from({ length: 9 }, (_, i) => (
+              <Skeleton key={i} className="h-64 rounded-xl" />
+            ))
+          : displayEvents.map((e: ScheduledEvent) => (
+              <EventCard key={e.abbreviation} e={e} />
+            ))}
+      </div>
     </div>
   );
 }

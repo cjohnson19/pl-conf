@@ -1,5 +1,5 @@
 "use client";
-import { EyeIcon, EyeOffIcon, Menu } from "lucide-react";
+import { ExternalLink, EyeIcon, EyeOffIcon, Menu } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -15,6 +15,7 @@ import Link from "next/link";
 export function EventOptions({ e }: { e: ScheduledEvent }) {
   const { prefs, setPrefs } = usePreferences();
   const k = eventKey(e);
+  const hidden = prefs.eventPrefs[k]?.hidden ?? false;
 
   return (
     <DropdownMenu modal={false}>
@@ -27,7 +28,7 @@ export function EventOptions({ e }: { e: ScheduledEvent }) {
           <Menu />
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="start">
+      <DropdownMenuContent align="start" className="min-w-44">
         <DropdownMenuItem
           onClick={() => {
             setPrefs((prev) => ({
@@ -41,17 +42,9 @@ export function EventOptions({ e }: { e: ScheduledEvent }) {
               },
             }));
           }}
-          className="flex justify-between"
         >
-          {(prefs.eventPrefs[k]?.hidden ?? false) ? (
-            <>
-              Unhide <EyeIcon />
-            </>
-          ) : (
-            <>
-              Hide <EyeOffIcon />
-            </>
-          )}
+          {hidden ? <EyeIcon /> : <EyeOffIcon />}
+          {hidden ? "Unhide" : "Hide"}
         </DropdownMenuItem>
         <CalendarEvent e={e} />
         {e.submissionUrl && (
@@ -59,8 +52,9 @@ export function EventOptions({ e }: { e: ScheduledEvent }) {
             <Link
               href={e.submissionUrl}
               target="_blank"
-              className="cursor-pointer"
+              className="cursor-pointer no-underline"
             >
+              <ExternalLink />
               Visit submission page
             </Link>
           </DropdownMenuItem>

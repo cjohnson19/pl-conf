@@ -42,7 +42,9 @@ export default function RootLayout({
           >
             <main className="flex flex-col items-center w-full pb-11">
               <Header />
-              <div className="mt-24 w-full md:w-[768px]">{children}</div>
+              <div className="mt-24 w-full max-w-7xl px-4 md:px-8">
+                {children}
+              </div>
             </main>
           </ThemeProvider>
         </body>

@@ -16,6 +16,7 @@ import { TimeUntil } from "./time-until";
 import Link from "next/link";
 import { isFuture, isPast } from "date-fns";
 import { NotesTooltip } from "./notes-tooltip";
+import { ArrowUpRight } from "lucide-react";
 
 function roundHasDeadlines(r: Round) {
   return Object.keys(r.importantDates).length > 0;
@@ -50,15 +51,18 @@ function DeadlineTable({ round }: { round: Round }) {
           .map(([k, v], i) => (
             <TableRow key={i}>
               <TableCell>{dateNameToReadable(k as DateName)}</TableCell>
-              <TableCell>
-                <span className="hidden sm:inline">
-                  <LocaleDate date={v} style="long" aoe />
-                </span>
-                <span className="sm:hidden">
+              <TableCell className="whitespace-nowrap">
+                <span className="lg:hidden">
                   <LocaleDate date={v} style="compact" aoe />
                 </span>
+                <span className="hidden lg:inline">
+                  <LocaleDate date={v} style="short" aoe />
+                </span>
               </TableCell>
-              <TableCell align="right" className="text-muted-foreground">
+              <TableCell
+                align="right"
+                className="text-muted-foreground whitespace-nowrap"
+              >
                 <TimeUntil date={v} className="text-muted-foreground" />
               </TableCell>
             </TableRow>
@@ -86,9 +90,17 @@ export function DateTable({
 
   const header = importantDateUrl && (
     <div className="flex flex-row gap-2 items-center justify-start">
-      <h4>
-        <Link href={importantDateUrl} target="_blank">
-          Dates & Deadlines
+      <h4 className="text-sm font-semibold">
+        <Link
+          href={importantDateUrl}
+          target="_blank"
+          className="no-underline hover:underline inline-flex items-center gap-0.5 group"
+        >
+          Dates &amp; Deadlines
+          <ArrowUpRight
+            className="h-3.5 w-3.5 text-muted-foreground/70 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:text-foreground"
+            aria-hidden
+          />
         </Link>
       </h4>
       {notes.length > 0 && <NotesTooltip notes={notes} />}

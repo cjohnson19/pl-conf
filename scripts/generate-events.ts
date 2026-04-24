@@ -1,4 +1,4 @@
-import { ScheduledEvent } from "@pl-conf/core";
+import { eventKey, ScheduledEvent } from "@pl-conf/core";
 import { format } from "date-fns";
 import { exec } from "node:child_process";
 import { lstat, mkdir, readdir, readFile, writeFile } from "node:fs/promises";
@@ -97,7 +97,24 @@ async function loadEvents(): Promise<Record<string, ScheduledEvent>> {
       return res;
     })
   );
-  return Object.fromEntries(conferences.flat().map((c) => [c.abbreviation, c]));
+  return Object.fromEntries(conferences.flat().map((c) => [eventKey(c), c]));
+}
+
+function validateCrossReferences(events: Record<string, ScheduledEvent>): void {
+  const known = new Set(Object.values(events).map((e) => e.abbreviation));
+  const errors: string[] = [];
+  Object.values(events).forEach((e) => {
+    [...e.partOf, ...e.colocatedWith].forEach((ref) => {
+      if (!known.has(ref)) {
+        errors.push(
+          `${e.abbreviation}: references unknown abbreviation "${ref}" in partOf/colocatedWith`
+        );
+      }
+    });
+  });
+  if (errors.length > 0) {
+    throw new Error(errors.join("\n"));
+  }
 }
 
 async function main() {
@@ -105,6 +122,8 @@ async function main() {
   const events = await loadEvents();
   const eventCount = Object.keys(events).length;
   console.log(`Loaded ${eventCount} events`);
+
+  validateCrossReferences(events);
 
   await mkdir(OUTPUT_DIR, { recursive: true });
 

@@ -26,8 +26,14 @@ export function CategoryFilter({
   return (
     <DropdownMenu modal={false}>
       <DropdownMenuTrigger asChild>
-        <Button variant={"outline"} aria-label="Filter by event's category">
-          <FilterIcon /> <span className="hidden md:inline">Category</span>
+        <Button
+          variant={value !== "Any" ? "secondary" : "outline"}
+          aria-label="Filter by event's category"
+        >
+          <FilterIcon />
+          <span className="hidden md:inline">
+            Category{value !== "Any" && `: ${capitalize(value)}`}
+          </span>
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent>

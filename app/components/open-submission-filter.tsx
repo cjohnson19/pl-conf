@@ -26,11 +26,13 @@ export function OpenSubmissionFilter({
     <DropdownMenu modal={false}>
       <DropdownMenuTrigger asChild>
         <Button
-          variant={"outline"}
+          variant={value !== "All" ? "secondary" : "outline"}
           aria-label="Change to event's based on their deadlines or actual event's occurrence"
         >
-          <DoorOpen />{" "}
-          <span className="hidden md:inline">Open to submissions</span>
+          <DoorOpen />
+          <span className="hidden md:inline">
+            {value === "Filter" ? "Open only" : "Submissions"}
+          </span>
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent>

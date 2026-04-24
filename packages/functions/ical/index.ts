@@ -35,7 +35,8 @@ export const handler = async (
     };
   }
 
-  const conferenceEvent = events[slug];
+  const conferenceEvent =
+    events[slug] ?? Object.values(events).find((e) => e.abbreviation === slug);
 
   if (!conferenceEvent) {
     return {

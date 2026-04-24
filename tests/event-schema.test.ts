@@ -75,4 +75,24 @@ describe("ScheduledEvent schema", () => {
     });
     expect(res.success).toBe(false);
   });
+
+  it("defaults partOf and colocatedWith to empty arrays", () => {
+    const parsed = ScheduledEvent.parse({
+      ...baseEvent,
+      importantDates: { paper: "2026-05-01" },
+    });
+    expect(parsed.partOf).toEqual([]);
+    expect(parsed.colocatedWith).toEqual([]);
+  });
+
+  it("accepts a single string for partOf and normalizes to array", () => {
+    const parsed = ScheduledEvent.parse({
+      ...baseEvent,
+      importantDates: { paper: "2026-05-01" },
+      partOf: "FLOC",
+      colocatedWith: ["CAV", "FSCD"],
+    });
+    expect(parsed.partOf).toEqual(["FLOC"]);
+    expect(parsed.colocatedWith).toEqual(["CAV", "FSCD"]);
+  });
 });

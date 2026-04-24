@@ -45,6 +45,13 @@ const Round = z
 
 export type Round = z.infer<typeof Round>;
 
+const AbbreviationList = z
+  .preprocess(
+    (v) => (typeof v === "string" ? [v] : v),
+    z.array(z.string().nonempty())
+  )
+  .default([]);
+
 const ScheduledEventNormalized = z
   .object({
     name: z.string().nonempty(),
@@ -65,6 +72,8 @@ const ScheduledEventNormalized = z
     notes: z.string().array().default([]),
     type: EventType,
     tags: z.array(z.string()).default([]),
+    partOf: AbbreviationList,
+    colocatedWith: AbbreviationList,
     lastUpdated: DateSchema,
   })
   .strict();
@@ -123,6 +132,8 @@ export const SubmissionSchema = z
     importantDates: ImportantDates.default({}),
     notes: z.string().array().default([]),
     type: EventType,
+    partOf: AbbreviationList,
+    colocatedWith: AbbreviationList,
   })
   .strict();
 

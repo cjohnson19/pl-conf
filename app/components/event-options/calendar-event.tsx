@@ -1,5 +1,5 @@
 "use client";
-import { ScheduledEvent, toGoogleCalendarLink } from "@/lib/event";
+import { eventKey, ScheduledEvent, toGoogleCalendarLink } from "@/lib/event";
 import {
   DropdownMenuItem,
   DropdownMenuSub,
@@ -9,43 +9,58 @@ import {
   DropdownMenuSeparator,
 } from "../ui/dropdown-menu";
 import Link from "next/link";
+import { CalendarPlus, Calendar, Download } from "lucide-react";
 
 const ICAL_API_URL = process.env.NEXT_PUBLIC_ICAL_API_URL || "";
 
-function getICalUrl(abbreviation: string, includeDates: boolean): string {
+function getICalUrl(slug: string, includeDates: boolean): string {
   if (!ICAL_API_URL) {
     console.warn("NEXT_PUBLIC_ICAL_API_URL is not configured");
     return "#";
   }
-  return `${ICAL_API_URL}/ical/${abbreviation}?dates=${includeDates}`;
+  return `${ICAL_API_URL}/ical/${slug}?dates=${includeDates}`;
 }
 
 export function CalendarEvent({ e }: { e: ScheduledEvent }) {
-  const withDatesUrl = getICalUrl(e.abbreviation, true);
-  const withoutDatesUrl = getICalUrl(e.abbreviation, false);
+  const slug = eventKey(e);
+  const withDatesUrl = getICalUrl(slug, true);
+  const withoutDatesUrl = getICalUrl(slug, false);
 
   return (
     <DropdownMenuSub>
-      <DropdownMenuSubTrigger>Add to calendar</DropdownMenuSubTrigger>
-      <DropdownMenuSubContent>
-        <DropdownMenuLabel>Online calendar</DropdownMenuLabel>
+      <DropdownMenuSubTrigger>
+        <CalendarPlus />
+        Add to calendar
+      </DropdownMenuSubTrigger>
+      <DropdownMenuSubContent className="min-w-48">
+        <DropdownMenuLabel className="text-xs text-muted-foreground font-normal uppercase tracking-wide">
+          Online
+        </DropdownMenuLabel>
         <DropdownMenuItem asChild>
           <Link
             target="_blank"
-            className="cursor-pointer"
+            className="cursor-pointer no-underline"
             href={toGoogleCalendarLink(e)}
             aria-label={`Add ${e.abbreviation} event to Google Calendar`}
           >
+            <Calendar />
             Google Calendar
           </Link>
         </DropdownMenuItem>
         <DropdownMenuSeparator />
-        <DropdownMenuLabel>Download .ics file</DropdownMenuLabel>
+        <DropdownMenuLabel className="text-xs text-muted-foreground font-normal uppercase tracking-wide">
+          Download .ics
+        </DropdownMenuLabel>
         <DropdownMenuItem
           asChild
           aria-label={`Download ${e.abbreviation} event with important dates and deadlines`}
         >
-          <Link href={withDatesUrl} download className="cursor-pointer">
+          <Link
+            href={withDatesUrl}
+            download
+            className="cursor-pointer no-underline"
+          >
+            <Download />
             With deadlines
           </Link>
         </DropdownMenuItem>
@@ -53,7 +68,12 @@ export function CalendarEvent({ e }: { e: ScheduledEvent }) {
           asChild
           aria-label={`Download ${e.abbreviation} event without important dates and deadlines`}
         >
-          <Link href={withoutDatesUrl} download className="cursor-pointer">
+          <Link
+            href={withoutDatesUrl}
+            download
+            className="cursor-pointer no-underline"
+          >
+            <Download />
             Main dates only
           </Link>
         </DropdownMenuItem>

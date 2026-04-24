@@ -28,8 +28,14 @@ export function DateFilter({
   ) : (
     <DropdownMenu modal={false}>
       <DropdownMenuTrigger asChild>
-        <Button variant={"outline"} aria-label="Filter by event's year">
-          <CalendarRangeIcon /> <span className="hidden md:inline">Year</span>
+        <Button
+          variant={value !== "Any" ? "secondary" : "outline"}
+          aria-label="Filter by event's year"
+        >
+          <CalendarRangeIcon />
+          <span className="hidden md:inline">
+            Year{value !== "Any" && `: ${value}`}
+          </span>
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent>
