@@ -5,6 +5,7 @@ date:
   start: 2026-10-06
   end: 2026-10-08
 location: Oakland, California
+partOf: SPLASH
 url: "https://conf.researchr.org/home/splash-issta-2026/sas-2026"
 submissionUrl: "https://sas26.hotcrp.com/"
 importantDateUrl: "https://conf.researchr.org/home/splash-issta-2026/sas-2026#Call-for-Papers"
@@ -13,6 +14,3 @@ importantDates:
   rebuttal: 2026-06-11
   notification: 2026-06-26
   camera-ready: 2026-07-17
-notes:
-  - Co-located with SPLASH/ISSTA 2026
-  - Author response window June 9-11, 2026

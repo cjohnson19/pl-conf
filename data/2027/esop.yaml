@@ -5,6 +5,7 @@ date:
   start: 2027-04-12
   end: 2027-04-15
 location: Copenhagen, Denmark
+partOf: ETAPS
 url: "https://etaps.org/2027/esop/"
 submissionUrl: "https://esop27.hotcrp.com/"
 importantDateUrl: "https://etaps.org/2027/cfp/"
@@ -20,5 +21,3 @@ rounds:
       rebuttal: 2026-12-07
       notification: 2026-12-22
       camera-ready: 2027-01-25
-notes:
-  - Part of ETAPS 2027

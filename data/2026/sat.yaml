@@ -4,6 +4,7 @@ date:
   start: 2026-07-20
   end: 2026-07-23
 location: Lisbon, Portugal
+partOf: FLoC
 url: "https://satisfiability.org/SAT26/"
 submissionUrl: "https://submissions.floc26.org/sat/"
 importantDateUrl: "https://satisfiability.org/SAT26/pages/dates.html"
@@ -11,6 +12,6 @@ type: "conference"
 importantDates:
   abstract: 2026-03-02
   paper: 2026-03-10
-  rebuttal: 2026-04-17
+  rebuttal: 2026-04-18
   notification: 2026-04-30
   camera-ready: 2026-05-14

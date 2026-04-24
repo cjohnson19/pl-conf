@@ -13,5 +13,5 @@ importantDates:
   paper: 2026-05-04
   notification: 2026-06-01
   camera-ready: 2026-06-29
-notes:
-  - Co-located with IJCAR 2026 at FLoC 2026
+partOf: FLoC
+colocatedWith: IJCAR

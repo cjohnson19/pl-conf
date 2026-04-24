@@ -4,13 +4,21 @@ date:
   start: 2026-07-26
   end: 2026-07-29
 location: Lisbon, Portugal
+partOf: FLoC
 url: "https://csf2026.ieee-security.org/"
 submissionUrl: "https://hotcrp.csf2026.ieee-security.org/"
 importantDateUrl: "https://csf2026.ieee-security.org/"
 type: "symposium"
-importantDates:
-  paper: 2026-01-29
-  notification: 2026-04-01
-notes:
-  - CSF uses multiple submission cycles. Dates shown are for the Winter cycle (most
-    relevant for July 2026 conference). See website for Summer and Fall cycle dates.
+rounds:
+  - name: Summer
+    importantDates:
+      paper: 2025-07-24
+      notification: 2025-09-25
+  - name: Fall
+    importantDates:
+      paper: 2025-10-09
+      notification: 2025-12-11
+  - name: Winter
+    importantDates:
+      paper: 2026-01-29
+      notification: 2026-04-01

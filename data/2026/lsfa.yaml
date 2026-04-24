@@ -12,5 +12,5 @@ importantDates:
   abstract: 2026-04-20
   paper: 2026-04-28
   notification: 2026-05-25
-notes:
-  - Affiliated with FLoC 2026 (co-located with FSCD 2026)
+partOf: FLoC
+colocatedWith: FSCD

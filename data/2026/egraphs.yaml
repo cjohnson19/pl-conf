@@ -10,5 +10,6 @@ url: "https://pldi26.sigplan.org/home/egraphs-2026"
 submissionUrl: "https://egraphs2026.hotcrp.com/"
 importantDateUrl: "https://pldi26.sigplan.org/home/egraphs-2026#Call-for-Papers"
 type: "workshop"
+colocatedWith: PLDI
 notes:
-  - "Co-located with PLDI 2026 (June 15-19); specific workshop day not yet announced"
+  - Specific workshop day not yet announced

@@ -12,5 +12,4 @@ importantDates:
   paper: 2026-05-15
   notification: 2026-05-25
   camera-ready: 2026-05-31
-notes:
-  - Affiliated with FLoC 2026
+partOf: FLoC

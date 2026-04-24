@@ -9,7 +9,8 @@ url: "https://perr-workshop.github.io/2026"
 submissionUrl: "https://submissions.floc26.org/perr"
 importantDateUrl: "https://perr-workshop.github.io/2026/submission"
 importantDates:
-  paper: 2026-04-24
+  paper: 2026-05-05
   notification: 2026-05-28
-notes:
-  - Co-located with CAV 2026 at FLoC 2026
+  camera-ready: 2026-06-25
+partOf: FLoC
+colocatedWith: CAV

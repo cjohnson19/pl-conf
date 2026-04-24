@@ -4,6 +4,7 @@ date:
   start: 2026-04-13
   end: 2026-04-16
 location: Turin, Italy
+partOf: ETAPS
 url: "https://etaps.org/2026/conferences/fossacs/"
 submissionUrl: "https://easychair.org/conferences/?conf=fossacs2026"
 importantDates:

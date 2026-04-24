@@ -11,5 +11,4 @@ importantDateUrl: "https://galop-2026.lacl.fr"
 importantDates:
   paper: 2026-05-06
   notification: 2026-05-26
-notes:
-  - Co-located with FLoC 2026
+partOf: FLoC

@@ -11,5 +11,4 @@ importantDateUrl: "https://sonia-marin.github.io/imla26/#dates"
 importantDates:
   abstract: 2026-04-30
   notification: 2026-05-23
-notes:
-  - Co-located with FLoC 2026
+partOf: FLoC

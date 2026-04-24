@@ -11,5 +11,5 @@ importantDateUrl: "https://ces.eecs.umich.edu/force26/cfp/"
 importantDates:
   paper: 2026-04-30
   notification: 2026-05-15
-notes:
-  - Co-located with CAV 2026 at FLoC 2026
+partOf: FLoC
+colocatedWith: CAV

@@ -5,6 +5,7 @@ date:
   start: 2026-10-03
   end: 2026-10-09
 location: Oakland, California
+partOf: SPLASH
 format: PACMPL
 url: "https://2026.splashcon.org/track/oopsla-2026"
 submissionUrl: "https://oopsla26.hotcrp.com/"

@@ -11,5 +11,4 @@ importantDateUrl: "https://2026.ecoop.org/home/unsound-2026"
 importantDates:
   paper: 2026-04-14
   notification: 2026-04-19
-notes:
-  - Co-located with ECOOP 2026
+partOf: ECOOP

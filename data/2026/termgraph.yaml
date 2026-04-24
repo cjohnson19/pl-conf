@@ -12,6 +12,6 @@ importantDates:
   paper: 2026-04-27
   notification: 2026-05-25
   camera-ready: 2026-06-11
+partOf: FLoC
 notes:
-  - Part of FLoC 2026
   - Post-proceedings in EPTCS; submission mid-October 2026, notification December 2026

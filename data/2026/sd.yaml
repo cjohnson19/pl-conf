@@ -4,11 +4,12 @@ date:
   start: 2026-07-24
   end: 2026-07-25
 location: Lisbon, Portugal
+partOf: FLoC
 url: "https://www.lix.polytechnique.fr/~lutz/orgs/SD26.html"
 submissionUrl: "https://submissions.floc26.org/sd/"
 importantDateUrl: "https://www.lix.polytechnique.fr/~lutz/orgs/SD26.html#Important%20Dates"
 type: "workshop"
 importantDates:
-  paper: 2026-04-30
+  paper: 2026-05-01
   notification: 2026-05-23
   camera-ready: TBD

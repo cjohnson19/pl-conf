@@ -5,11 +5,11 @@ date:
   start: 2026-09-23
   end: 2026-09-23
 location: Dresden, Germany
+partOf: INFORMATIK
 url: "https://www.imn.htwk-leipzig.de/WLP2026/"
 submissionUrl: "https://www.conftool.org/informatik2026/"
 importantDateUrl: "https://www.imn.htwk-leipzig.de/WLP2026/#important-dates"
 importantDates:
   paper: 2026-05-05
   notification: 2026-07-06
-notes:
-  - Workshop at INFORMATIK 2026
+  camera-ready: 2026-07-14

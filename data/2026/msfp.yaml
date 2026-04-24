@@ -12,5 +12,4 @@ importantDates:
   paper: 2026-04-29
   notification: 2026-05-27
   camera-ready: 2026-06-24
-notes:
-  - Satellite workshop of FSCD 2026 at FLoC 2026
+partOf: FSCD

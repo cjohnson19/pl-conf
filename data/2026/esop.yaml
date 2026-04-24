@@ -4,6 +4,7 @@ date:
   start: 2026-04-11
   end: 2026-04-16
 location: Turin, Italy
+partOf: ETAPS
 rounds:
   - name: Round 1
     importantDates:

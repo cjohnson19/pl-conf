@@ -2,14 +2,14 @@ name: ACM SIGPLAN Workshop on Numerical and Symbolic Abstract Domains
 abbreviation: NSAD
 type: "workshop"
 date:
-  start: 2026-10-03
-  end: 2026-10-09
+  start: TBD
+  end: TBD
 location: Oakland, California
+partOf: SPLASH
+colocatedWith: SAS
 url: "https://conf.researchr.org/home/splash-issta-2026/nsad-2026"
 submissionUrl: "https://nsad26.hotcrp.com/"
 importantDateUrl: "https://conf.researchr.org/home/splash-issta-2026/nsad-2026"
 importantDates:
   paper: 2026-06-14
   notification: 2026-07-31
-notes:
-  - Co-located with SPLASH/ISSTA and SAS 2026
