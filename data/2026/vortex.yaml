@@ -1,0 +1,16 @@
+name: 9th International Workshop on Verification and Monitoring at Runtime Execution
+abbreviation: VORTEX
+type: "workshop"
+date:
+  start: 2026-06-30
+  end: 2026-06-30
+location: Brussels, Belgium
+url: "https://2026.ecoop.org/home/vortex-2026"
+submissionUrl: "https://easychair.org/conferences/?conf=vortex2026"
+importantDateUrl: "https://2026.ecoop.org/home/vortex-2026"
+importantDates:
+  paper: 2026-04-10
+  notification: 2026-04-15
+  camera-ready: 2026-04-30
+notes:
+  - "Co-located with ECOOP 2026"

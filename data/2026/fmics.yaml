@@ -1,0 +1,17 @@
+name: Formal Methods for Industrial Critical Systems
+abbreviation: FMICS
+type: "conference"
+date:
+  start: 2026-09-02
+  end: 2026-09-04
+location: Liverpool, UK
+url: "https://confest-2026.github.io/fmics/"
+submissionUrl: "https://easychair.org/conferences?conf=fmics2026"
+importantDateUrl: "https://confest-2026.github.io/fmics/#important-dates"
+importantDates:
+  abstract: 2026-04-24
+  paper: 2026-05-01
+  notification: 2026-06-01
+  camera-ready: 2026-06-15
+notes:
+  - "Co-located with CONFEST 2026"

@@ -1,0 +1,15 @@
+name: 3rd Workshop on Syntax and Semantics of Type Theory
+abbreviation: SSTT
+type: "workshop"
+date:
+  start: 2026-06-04
+  end: 2026-06-05
+location: Ljubljana, Slovenia
+url: "https://ul-fmf.github.io/mfps-sstt-2026/sstt/"
+submissionUrl: "https://easychair.org/conferences/?conf=sstt2026"
+importantDateUrl: "https://ul-fmf.github.io/mfps-sstt-2026/sstt/#important-dates"
+importantDates:
+  abstract: 2026-04-02
+  notification: 2026-04-23
+notes:
+  - "Co-located with MFPS 2026"
