@@ -9,8 +9,9 @@ url: "http://www.termgraph.org.uk/"
 submissionUrl: "https://submissions.floc26.org/termgraph/"
 importantDateUrl: "http://www.termgraph.org.uk/2026/#submissionsandpublication"
 importantDates:
-  paper: 2026-04-27
-  notification: 2026-05-25
+  abstract: 2026-05-06
+  paper: 2026-05-11
+  notification: 2026-05-27
   camera-ready: 2026-06-11
 partOf: FLoC
 notes:
