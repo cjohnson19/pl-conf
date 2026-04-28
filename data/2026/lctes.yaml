@@ -6,8 +6,8 @@ date:
   start: 2026-06-15
   end: 2026-06-16
 importantDates:
-  abstract: 2026-03-06
-  paper: 2026-03-13
+  abstract: 2026-03-13
+  paper: 2026-03-20
   notification: 2026-05-01
 url: "https://pldi26.sigplan.org/home/LCTES-2026"
 importantDateUrl: "https://pldi26.sigplan.org/home/LCTES-2026"
