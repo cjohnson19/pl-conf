@@ -13,11 +13,11 @@ rounds:
   - name: Round 1
     importantDates:
       paper: 2026-05-28
-      rebuttal: 2026-07-20
+      rebuttal: 2026-07-22
       notification: 2026-08-06
   - name: Round 2
     importantDates:
       paper: 2026-10-15
-      rebuttal: 2026-12-07
+      rebuttal: 2026-12-09
       notification: 2026-12-22
       camera-ready: 2027-01-25
