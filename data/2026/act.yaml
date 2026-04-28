@@ -1,0 +1,17 @@
+name: International Conference on Applied Category Theory
+abbreviation: ACT
+type: "conference"
+date:
+  start: 2026-07-06
+  end: 2026-07-10
+location: Tallinn, Estonia
+url: "https://actconf2026.github.io/"
+submissionUrl: "https://easychair.org/my/conference?conf=act2026"
+importantDateUrl: "https://actconf2026.github.io/index.html#deadlines-table"
+importantDates:
+  abstract: 2026-03-24
+  paper: 2026-03-30
+  notification: 2026-05-11
+  camera-ready: TBD
+notes:
+  - "Preceded by Adjoint School Research Week, 29 June - 3 July 2026"

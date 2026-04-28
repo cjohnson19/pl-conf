@@ -1,0 +1,14 @@
+name: International Workshop on Logic and Computational Complexity
+abbreviation: LCC
+type: "workshop"
+date:
+  start: 2026-07-18
+  end: 2026-07-19
+location: Lisbon, Portugal
+partOf: FLoC
+url: "https://webusers.imj-prg.fr/~arnaud.durand/LCC/lcc26.html"
+submissionUrl: "https://submissions.floc26.org/lcc/"
+importantDateUrl: "https://webusers.imj-prg.fr/~arnaud.durand/LCC/lcc26.html#important-dates"
+importantDates:
+  paper: 2026-05-10
+  notification: 2026-05-17

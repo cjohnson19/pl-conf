@@ -1,0 +1,16 @@
+name: Formal Methods in Computer-Aided Design
+abbreviation: FMCAD
+type: "conference"
+date:
+  start: 2026-09-14
+  end: 2026-09-18
+location: Graz, Austria
+url: "https://fmcad.org/FMCAD26/"
+submissionUrl: "https://easychair.org/conferences/?conf=fmcad2026"
+importantDateUrl: "https://fmcad.org/FMCAD26/important_dates/"
+importantDates:
+  abstract: 2026-05-04
+  paper: 2026-05-11
+  rebuttal: 2026-06-15
+  notification: 2026-06-28
+  camera-ready: 2026-07-18

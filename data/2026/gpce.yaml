@@ -1,0 +1,16 @@
+name: "International Conference on Generative Programming: Concepts & Experiences"
+abbreviation: GPCE
+type: "conference"
+date:
+  start: 2026-06-29
+  end: 2026-06-29
+location: Brussels, Belgium
+url: "https://2026.ecoop.org/home/gpce-2026"
+submissionUrl: "https://gpce26.hotcrp.com/"
+importantDateUrl: "https://2026.ecoop.org/home/gpce-2026"
+importantDates:
+  paper: 2026-03-12
+  rebuttal: 2026-04-16
+  notification: 2026-04-23
+  camera-ready: 2026-05-14
+colocatedWith: ECOOP

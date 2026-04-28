@@ -1,0 +1,15 @@
+name: ACM SIGPLAN International Workshop on Libraries, Languages, and Compilers for Array Programming
+abbreviation: ARRAY
+type: "workshop"
+date:
+  start: 2026-06-16
+  end: 2026-06-16
+location: Boulder, Colorado, United States
+url: "https://pldi26.sigplan.org/home/ARRAY-2026"
+submissionUrl: "https://array26.hotcrp.com/"
+importantDateUrl: "https://pldi26.sigplan.org/home/ARRAY-2026"
+importantDates:
+  paper: 2026-04-06
+  notification: 2026-04-26
+  camera-ready: 2026-05-03
+colocatedWith: PLDI
