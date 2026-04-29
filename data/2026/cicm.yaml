@@ -1,0 +1,16 @@
+name: 19th Conference on Intelligent Computer Mathematics
+abbreviation: CICM
+type: "conference"
+date:
+  start: 2026-09-21
+  end: 2026-09-25
+location: Ljubljana, Slovenia
+url: "https://www.cicm-conference.org/2026/"
+submissionUrl: "https://easychair.org/conferences/?conf=cicm2026"
+importantDateUrl: "https://cicm-conference.org/2026/cicm.php?event=&menu=cfp"
+importantDates:
+  abstract: 2026-04-08
+  paper: 2026-04-15
+  rebuttal: 2026-05-27
+  notification: 2026-06-10
+  camera-ready: 2026-07-01
