@@ -1,6 +1,7 @@
 import {
   dateNameToReadable,
   DateName,
+  isDeadlinePast,
   Round,
   ScheduledEvent,
 } from "../lib/event";
@@ -14,7 +15,6 @@ import {
 } from "./ui/accordion";
 import { TimeUntil } from "./time-until";
 import Link from "next/link";
-import { isFuture, isPast } from "date-fns";
 import { NotesTooltip } from "./notes-tooltip";
 import { ArrowUpRight } from "lucide-react";
 
@@ -23,7 +23,7 @@ function roundHasDeadlines(r: Round) {
 }
 
 function roundPassed(r: Round) {
-  return Object.values(r.importantDates).every(isPast);
+  return Object.values(r.importantDates).every((d) => isDeadlinePast(d));
 }
 
 function nextActiveRoundIndex(rounds: Round[]): number | undefined {
@@ -32,7 +32,7 @@ function nextActiveRoundIndex(rounds: Round[]): number | undefined {
   rounds.forEach((r, i) => {
     if (!roundHasDeadlines(r)) return;
     const dates = Object.values(r.importantDates);
-    if (!dates.some(isFuture)) return;
+    if (!dates.some((d) => !isDeadlinePast(d))) return;
     const first = dates.reduce((min, d) => (d < min ? d : min));
     if (bestFirst === undefined || first < bestFirst) {
       bestIdx = i;

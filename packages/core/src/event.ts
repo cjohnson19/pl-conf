@@ -87,6 +87,15 @@ export function toAoeInstant(date: MaybeDate): Date | null {
   return new Date(`${iso}T23:59:59.999-12:00`);
 }
 
+export function isDeadlinePast(
+  date: MaybeDate,
+  now: Date = new Date()
+): boolean {
+  const instant = toAoeInstant(date);
+  if (instant === null) return false;
+  return instant.getTime() < now.getTime();
+}
+
 export function formatDate(
   date: MaybeDate,
   style: DateFormatStyle,

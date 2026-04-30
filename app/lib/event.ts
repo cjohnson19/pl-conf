@@ -14,5 +14,6 @@ export {
   formatDate,
   formatDateRange,
   toAoeInstant,
+  isDeadlinePast,
   toGoogleCalendarLink,
 } from "@pl-conf/core";
