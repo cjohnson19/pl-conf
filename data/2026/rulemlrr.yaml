@@ -1,0 +1,16 @@
+name: International Joint Conference on Rules and Reasoning
+abbreviation: RuleML+RR
+type: "conference"
+date:
+  start: 2026-08-24
+  end: 2026-08-26
+location: Vilnius, Lithuania
+url: "https://2026.declarativeai.net/ruleml-rr/main-track"
+submissionUrl: "https://cmt3.research.microsoft.com/DAI2026/"
+importantDateUrl: "https://2026.declarativeai.net/ruleml-rr/main-track"
+importantDates:
+  abstract: 2026-05-08
+  paper: 2026-05-15
+  notification: 2026-06-26
+notes:
+  - 'Springer LNCS proceedings; long papers up to 15 pages + 2 for references, short papers up to 8 pages + 1 for references; submit via Microsoft CMT (track "RuleML+RR Main Track")'

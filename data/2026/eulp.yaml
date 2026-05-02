@@ -1,0 +1,16 @@
+name: Workshop on End-User Logic Programming
+abbreviation: EULP
+type: "workshop"
+date:
+  start: 2026-07-18
+  end: 2026-07-18
+location: Lisbon, Portugal
+url: "https://eulp.gitlab.io/eulp2026/"
+submissionUrl: "https://submissions.floc26.org/eulp/"
+importantDateUrl: "https://eulp.gitlab.io/eulp2026/#call-for-papers"
+importantDates:
+  paper: 2026-05-09
+  notification: 2026-05-21
+partOf: FLoC
+notes:
+  - "Long papers up to 14 pages, short papers up to 8 pages, extended abstracts 2-4 pages of already-published work; CEURART style; CEUR-WS proceedings"
