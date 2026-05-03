@@ -1,0 +1,17 @@
+name: Scheme and Functional Programming Workshop
+abbreviation: Scheme
+type: "workshop"
+date:
+  start: 2026-08-29
+  end: 2026-08-29
+location: Indianapolis, United States
+url: "https://icfp26.sigplan.org/home/scheme-2026"
+submissionUrl: "https://scheme2026.hotcrp.com/"
+importantDateUrl: "https://icfp26.sigplan.org/home/scheme-2026"
+importantDates:
+  paper: 2026-05-22
+  notification: 2026-06-26
+  camera-ready: 2026-07-07
+partOf: ICFP
+notes:
+  - "Lightweight double-blind; ACM acmart sigplan two-column format. Full papers/experience reports 6-12pp, position papers 2-4pp, lightning talks 1pp."
