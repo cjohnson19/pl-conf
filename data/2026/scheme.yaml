@@ -13,5 +13,3 @@ importantDates:
   notification: 2026-06-26
   camera-ready: 2026-07-07
 partOf: ICFP
-notes:
-  - "Lightweight double-blind; ACM acmart sigplan two-column format. Full papers/experience reports 6-12pp, position papers 2-4pp, lightning talks 1pp."
