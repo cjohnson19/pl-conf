@@ -1,0 +1,14 @@
+name: International Conference on Reversible Computation
+type: "conference"
+abbreviation: RC
+date:
+  start: 2026-07-09
+  end: 2026-07-10
+location: Torino, Italy
+url: "https://reversible-computation.github.io/"
+importantDateUrl: "https://reversible-computation.github.io/"
+importantDates:
+  abstract: 2026-02-21
+  paper: 2026-02-28
+  notification: 2026-04-21
+  camera-ready: 2026-05-15
