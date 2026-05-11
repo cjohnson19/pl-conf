@@ -1,5 +1,10 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { hasFutureDeadline, isDeadlinePast, toAoeInstant } from "@pl-conf/core";
+import {
+  hasFutureDeadline,
+  isDeadlinePast,
+  toAoeInstant,
+  toCalendarDate,
+} from "@pl-conf/core";
 import type { ScheduledEvent } from "@pl-conf/core";
 
 describe("toAoeInstant", () => {
@@ -29,6 +34,34 @@ describe("toAoeInstant", () => {
 
   it("returns null for TBD", () => {
     expect(toAoeInstant("TBD")).toBeNull();
+  });
+});
+
+describe("toCalendarDate", () => {
+  it("returns a local-midnight Date whose calendar components match the YAML date", () => {
+    const d = toCalendarDate("2026/05/25");
+    expect(d).not.toBeNull();
+    expect(d!.getFullYear()).toBe(2026);
+    expect(d!.getMonth()).toBe(4);
+    expect(d!.getDate()).toBe(25);
+    expect(d!.getHours()).toBe(0);
+  });
+
+  it("accepts hyphen-separated dates", () => {
+    const d = toCalendarDate("2026-05-25");
+    expect(d!.getDate()).toBe(25);
+    expect(d!.getMonth()).toBe(4);
+  });
+
+  it("does not roll the calendar date forward the way toAoeInstant does", () => {
+    // toAoeInstant("2026/05/25") is 2026-05-25T23:59:59.999-12:00, which in
+    // any timezone east of UTC-12 reads as 2026-05-26 on the local calendar.
+    // toCalendarDate must always read as the 25th regardless of viewer tz.
+    expect(toCalendarDate("2026/05/25")!.getDate()).toBe(25);
+  });
+
+  it("returns null for TBD", () => {
+    expect(toCalendarDate("TBD")).toBeNull();
   });
 });
 

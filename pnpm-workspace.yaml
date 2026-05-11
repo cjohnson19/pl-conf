@@ -2,6 +2,11 @@ packages:
   - packages/*
   - cdk
 
+allowBuilds:
+  esbuild: false
+  puppeteer: false
+  sharp: false
+
 ignoredBuiltDependencies:
   - sharp
 

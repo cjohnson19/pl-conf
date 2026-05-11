@@ -1,4 +1,9 @@
-import { eventKey } from "@pl-conf/core";
+import {
+  eventKey,
+  hasConcreteDates,
+  icalFileName,
+  toICal,
+} from "@pl-conf/core";
 import { ScheduledEvent } from "@pl-conf/core/schemas";
 import { format, getYear } from "date-fns";
 import { exec } from "node:child_process";
@@ -11,6 +16,7 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT_DIR = join(__dirname, "..");
 const DATA_DIR = join(ROOT_DIR, "data");
 const OUTPUT_DIR = join(ROOT_DIR, "generated");
+const ICAL_OUTPUT_DIR = join(ROOT_DIR, "public", "ical");
 
 function duplicates(values: {
   [k: string]: string;
@@ -32,32 +38,43 @@ function duplicates(values: {
     }));
 }
 
-async function lastUpdatedDate(fileName: string): Promise<string> {
+function git(command: string): Promise<string> {
   return new Promise((resolve, reject) => {
-    exec(`git log -1 --pretty="format:%cs" ${fileName}`, (error, stdout) => {
-      if (error) {
-        reject(error);
-      } else {
-        if (stdout === "") {
-          console.warn(`No git history for ${fileName}, using current date`);
-          resolve(format(new Date(), "yyyy-MM-dd"));
-        } else {
-          resolve(stdout);
-        }
-      }
+    exec(command, (error, stdout) => {
+      if (error) reject(error);
+      else resolve(stdout);
     });
   });
 }
 
+async function lastUpdatedDate(fileName: string): Promise<string> {
+  const stdout = await git(`git log -1 --pretty="format:%cs" ${fileName}`);
+  if (stdout === "") {
+    console.warn(`No git history for ${fileName}, using current date`);
+    return format(new Date(), "yyyy-MM-dd");
+  }
+  return stdout;
+}
+
+// RFC 5545 SEQUENCE for the iCal feed: calendar clients use it to detect
+// updates. Derived from the commit count touching the file (zero-indexed).
+async function commitSequence(fileName: string): Promise<number> {
+  const stdout = await git(`git rev-list --count HEAD -- ${fileName}`);
+  const count = Number.parseInt(stdout.trim(), 10);
+  return Number.isFinite(count) && count > 0 ? count - 1 : 0;
+}
+
 async function fromYamlFile(fileName: string): Promise<ScheduledEvent> {
-  const [yaml, lastUpdated] = await Promise.all([
+  const [yaml, lastUpdated, sequence] = await Promise.all([
     readFile(fileName, "utf8"),
     lastUpdatedDate(fileName),
+    commitSequence(fileName),
   ]);
   const data = YAML.parse(yaml);
   const parseRes = ScheduledEvent.safeParse({
     ...data,
     lastUpdated,
+    sequence,
   });
   if (parseRes.success === false) {
     throw new Error(
@@ -169,13 +186,35 @@ export const events: Record<string, ScheduledEvent> = ${JSON.stringify(events, n
 `;
 
   await writeFile(join(OUTPUT_DIR, "events.ts"), tsContent);
-  console.log(`Written ${OUTPUT_DIR}/events.ts`);
+  console.log(`Wrote ${OUTPUT_DIR}/events.ts`);
 
   await writeFile(
     join(OUTPUT_DIR, "events.json"),
     JSON.stringify(events, null, 2)
   );
-  console.log(`Written ${OUTPUT_DIR}/events.json`);
+  console.log(`Wrote ${OUTPUT_DIR}/events.json`);
+
+  await writeIcalFiles(events);
+}
+
+async function writeIcalFiles(events: Record<string, ScheduledEvent>) {
+  await mkdir(ICAL_OUTPUT_DIR, { recursive: true });
+  const written = await Promise.all(
+    Object.values(events).map(async (e) => {
+      if (!hasConcreteDates(e)) return 0;
+      await Promise.all(
+        [false, true].map((withDeadlines) =>
+          writeFile(
+            join(ICAL_OUTPUT_DIR, icalFileName(e, withDeadlines)),
+            toICal(e, withDeadlines)
+          )
+        )
+      );
+      return 2;
+    })
+  );
+  const count = written.reduce<number>((a, b) => a + b, 0);
+  console.log(`Wrote ${count} iCal files to ${ICAL_OUTPUT_DIR}`);
 }
 
 main().catch((err) => {

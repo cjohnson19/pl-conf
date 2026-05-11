@@ -7,6 +7,7 @@ const baseEvent = {
   type: "conference" as const,
   importantDateUrl: "https://example.com/cfp",
   lastUpdated: "2026-01-01",
+  sequence: 0,
 };
 
 describe("ScheduledEvent schema", () => {
@@ -61,6 +62,7 @@ describe("ScheduledEvent schema", () => {
       abbreviation: "EMPTY",
       type: "conference",
       lastUpdated: "2026-01-01",
+      sequence: 0,
     });
     expect(parsed.rounds).toEqual([]);
   });
@@ -71,6 +73,7 @@ describe("ScheduledEvent schema", () => {
       abbreviation: "NOURL",
       type: "conference",
       lastUpdated: "2026-01-01",
+      sequence: 0,
       rounds: [{ importantDates: { paper: "2026-05-01" } }],
     });
     expect(res.success).toBe(false);

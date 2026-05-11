@@ -77,16 +77,10 @@ async function main() {
   console.log("Stack outputs:", outputs);
 
   const submissionApiUrl = outputs.SubmissionApiUrl;
-  const icalApiUrl = outputs.ICalApiUrl;
   const websiteBucketName = outputs.WebsiteBucketName;
   const distributionId = outputs.DistributionId;
 
-  if (
-    !submissionApiUrl ||
-    !icalApiUrl ||
-    !websiteBucketName ||
-    !distributionId
-  ) {
+  if (!submissionApiUrl || !websiteBucketName || !distributionId) {
     console.error("Missing required stack outputs");
     process.exit(1);
   }
@@ -95,7 +89,6 @@ async function main() {
   run("pnpm run build", {
     env: {
       NEXT_PUBLIC_SUBMISSION_API_URL: submissionApiUrl,
-      NEXT_PUBLIC_ICAL_API_URL: icalApiUrl,
     },
   });
 
@@ -104,7 +97,15 @@ async function main() {
     `aws s3 sync out/_next/static/ s3://${websiteBucketName}/_next/static --delete --cache-control "public, max-age=31536000, immutable"`
   );
   run(
-    `aws s3 sync out/ s3://${websiteBucketName}/ --delete --cache-control "public, max-age=0, must-revalidate" --exclude "_next/static/*"`
+    `aws s3 sync out/ s3://${websiteBucketName}/ --delete --cache-control "public, max-age=0, must-revalidate" --exclude "_next/static/*" --exclude "ical/*"`
+  );
+  // .ics files need an explicit text/calendar Content-Type (S3's auto-guess
+  // is inconsistent for this extension) and an hour of CDN caching so
+  // subscribing calendar clients don't hammer CloudFront. --delete prunes
+  // feeds for events that were removed from data/ so subscribers stop
+  // receiving them.
+  run(
+    `aws s3 sync out/ical/ s3://${websiteBucketName}/ical/ --delete --content-type "text/calendar; charset=utf-8" --cache-control "public, max-age=3600, must-revalidate"`
   );
 
   console.log("\nInvalidating CloudFront cache...");

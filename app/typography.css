@@ -1,59 +1,93 @@
-h1 {
-  @apply scroll-m-20 text-xl font-extrabold tracking-tight sm:text-2xl md:text-3xl lg:text-4xl;
+body {
+  font-family: var(--font-ui);
+  font-size: 14px;
+  line-height: 1.5;
 }
 
-h2 {
-  @apply scroll-m-20 border-b pb-2 text-lg font-semibold tracking-tight first:mt-0 sm:text-xl md:text-2xl;
+h1,
+.h1 {
+  font-family: var(--font-ui);
+  font-weight: 500;
+  font-size: clamp(26px, 6.5vw, 50px);
+  line-height: 1.08;
+  letter-spacing: -0.025em;
+  margin: 0;
 }
 
-h3 {
-  @apply scroll-m-20 text-base font-semibold tracking-tight sm:text-lg md:text-xl;
+h2,
+.h2 {
+  font-family: var(--font-ui);
+  font-weight: 500;
+  font-size: 13px;
+  line-height: 1;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-2);
+  margin: 0;
 }
 
-h4 {
-  @apply scroll-m-20 text-sm font-semibold tracking-tight sm:text-base md:text-lg;
+h3,
+.h3 {
+  font-family: var(--font-ui);
+  font-weight: 600;
+  font-size: 22px;
+  line-height: 1;
+  letter-spacing: -0.015em;
+  margin: 0;
 }
 
-h5 {
-  @apply scroll-m-20 text-xs font-semibold tracking-tight sm:text-sm md:text-base;
-}
-
-h6 {
-  @apply scroll-m-20 text-xs font-semibold tracking-tight sm:text-sm;
-}
-
-p {
-  @apply leading-6 text-sm;
-}
-
-blockquote {
-  @apply mt-6 border-l-2 pl-6 italic;
-}
-
-ul {
-  @apply my-6 ml-6 list-disc [&>li]:mt-2;
-}
-
-/*
-tr {
-  @apply m-0 p-0;
-}
-th {
-  @apply border px-4 py-2 text-left font-bold [&[align=center]]:text-center [&[align=right]]:text-right;
-}
-
-td {
-  @apply border px-4 py-2 text-left [&[align=center]]:text-center [&[align=right]]:text-right;
-} */
-
-code {
-  @apply relative rounded bg-muted px-[0.3rem] py-[0.2rem] font-mono text-sm font-semibold;
-}
-
-small {
-  @apply text-xs sm:text-sm font-medium leading-none;
+p,
+.p {
+  font-family: var(--font-ui);
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--ink);
+  margin: 0;
 }
 
 a {
-  @apply text-primary underline underline-offset-2;
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+code,
+kbd,
+.mono {
+  font-family: var(--font-mono);
+  font-feature-settings:
+    "tnum" 1,
+    "ss01" 1;
+}
+
+code {
+  font-size: 0.95em;
+}
+
+.display-numeral {
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: 112px;
+  line-height: 0.9;
+  letter-spacing: -0.04em;
+  color: var(--hot);
+}
+
+.label-cap {
+  font-family: var(--font-mono);
+  font-weight: 500;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+
+.muted {
+  color: var(--ink-2);
+}
+.subtle {
+  color: var(--ink-3);
+}
+.tabular {
+  font-variant-numeric: tabular-nums;
 }

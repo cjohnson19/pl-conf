@@ -38,18 +38,6 @@ async function build() {
   });
   console.log("Built submission lambda");
 
-  await esbuild.build({
-    entryPoints: [join(__dirname, "ical/index.ts")],
-    bundle: true,
-    platform: "node",
-    target: "node22",
-    outfile: join(outdir, "ical/index.js"),
-    format: "cjs",
-    sourcemap: true,
-    external: [],
-  });
-  console.log("Built iCal lambda");
-
   console.log("Lambda build complete!");
 }
 

@@ -16,6 +16,24 @@ export function eventKey(e: ScheduledEvent): string {
   return `${e.abbreviation}-${getYear(e.date.start)}`;
 }
 
+export function hasConcreteDates(e: ScheduledEvent): boolean {
+  return e.date.start !== "TBD" && e.date.end !== "TBD";
+}
+
+export function icalFileName(
+  e: ScheduledEvent,
+  withDeadlines: boolean
+): string {
+  return `${eventKey(e)}${withDeadlines ? ".dates" : ""}.ics`;
+}
+
+export function icalFeedPath(
+  e: ScheduledEvent,
+  withDeadlines: boolean
+): string {
+  return `/ical/${icalFileName(e, withDeadlines)}`;
+}
+
 export function allDeadlines(e: ScheduledEvent): MaybeDate[] {
   return e.rounds.flatMap((r) => Object.values(r.importantDates));
 }
@@ -29,6 +47,24 @@ export function firstDeadline(e: ScheduledEvent): MaybeDate | undefined {
 
 export function hasMultipleRounds(e: ScheduledEvent): boolean {
   return e.rounds.length > 1 || e.rounds.some((r) => r.name !== undefined);
+}
+
+export function isDeadline(name: DateName): boolean {
+  // Some date-name entries describe an event the author receives rather than
+  // a date they must submit by. Those aren't "deadlines" — surface them as
+  // milestones instead of countdowns. Exhaustive switch on purpose so a new
+  // DateName fails to compile until it's classified.
+  switch (name) {
+    case "abstract":
+    case "paper":
+    case "rebuttal":
+    case "revisions":
+    case "camera-ready":
+      return true;
+    case "notification":
+    case "conditional-acceptance":
+      return false;
+  }
 }
 
 export function dateNameToReadable(name: DateName): string {
@@ -87,6 +123,23 @@ export function toAoeInstant(date: MaybeDate): Date | null {
   return new Date(`${iso}T23:59:59.999-12:00`);
 }
 
+export function parseDateParts(date: string): [number, number, number] | null {
+  const [y, m, d] = date.split(/[-/]/).map(Number);
+  if (!y || !m || !d) return null;
+  return [y, m, d];
+}
+
+// Local-tz midnight of the YAML calendar date — for *display*, where "May 25"
+// should read "May 25" regardless of viewer tz. Distinct from toAoeInstant,
+// which is the AOE moment and rolls the calendar day forward east of UTC-12.
+export function toCalendarDate(date: MaybeDate): Date | null {
+  if (date === "TBD") return null;
+  const parts = parseDateParts(date);
+  if (!parts) return null;
+  const [y, m, d] = parts;
+  return new Date(y, m - 1, d);
+}
+
 export function isDeadlinePast(
   date: MaybeDate,
   now: Date = new Date()
@@ -94,6 +147,19 @@ export function isDeadlinePast(
   const instant = toAoeInstant(date);
   if (instant === null) return false;
   return instant.getTime() < now.getTime();
+}
+
+// 14 days
+export const URGENT_WINDOW_MS = 14 * 86_400_000;
+
+export function isDeadlineUrgent(
+  date: MaybeDate,
+  now: Date = new Date()
+): boolean {
+  const instant = toAoeInstant(date);
+  if (instant === null) return false;
+  const ms = instant.getTime() - now.getTime();
+  return ms > 0 && ms <= URGENT_WINDOW_MS;
 }
 
 export function formatDate(
@@ -124,14 +190,16 @@ export function formatDateRange(
 }
 
 export function toGoogleCalendarLink(e: ScheduledEvent): string {
-  function encodeDate(date: Date): string {
-    return date.toISOString().replace(/T.*$/g, "");
-  }
-  if (e.date.start === "TBD" || e.date.end === "TBD") {
+  if (!hasConcreteDates(e)) {
     return "";
   }
-  const start = encodeDate(new Date(e.date.start));
-  const end = encodeDate(new Date(e.date.end));
+  const startParts = parseDateParts(e.date.start);
+  const endParts = parseDateParts(e.date.end);
+  if (!startParts || !endParts) return "";
+  const encode = ([y, m, d]: [number, number, number]) =>
+    `${y}${String(m).padStart(2, "0")}${String(d).padStart(2, "0")}`;
+  const start = encode(startParts);
+  const end = encode(endParts);
   const url = new URL("https://www.google.com/calendar/render");
   url.searchParams.append("action", "TEMPLATE");
   url.searchParams.append("text", e.abbreviation);

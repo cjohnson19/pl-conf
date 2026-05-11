@@ -125,16 +125,6 @@ export class PlConfStack extends cdk.Stack {
       });
     }
 
-    const icalFunction = new lambda.Function(this, "ICalFunction", {
-      runtime: lambda.Runtime.NODEJS_22_X,
-      handler: "index.handler",
-      code: lambda.Code.fromAsset(
-        path.join(__dirname, "../../packages/functions/dist/ical")
-      ),
-      timeout: cdk.Duration.seconds(10),
-      memorySize: 256,
-    });
-
     const submissionApi = new apigateway.HttpApi(this, "SubmissionApi", {
       corsPreflight: {
         allowOrigins: isProduction
@@ -154,28 +144,6 @@ export class PlConfStack extends cdk.Stack {
       integration: new apigatewayIntegrations.HttpLambdaIntegration(
         "SubmissionIntegration",
         submissionFunction
-      ),
-    });
-
-    const icalApi = new apigateway.HttpApi(this, "ICalApi", {
-      corsPreflight: {
-        allowOrigins: isProduction
-          ? ["https://pl-conferences.com", "https://www.pl-conferences.com"]
-          : ["*"],
-        allowMethods: [
-          apigateway.CorsHttpMethod.GET,
-          apigateway.CorsHttpMethod.OPTIONS,
-        ],
-        allowHeaders: ["Content-Type"],
-      },
-    });
-
-    icalApi.addRoutes({
-      path: "/ical/{slug}",
-      methods: [apigateway.HttpMethod.GET],
-      integration: new apigatewayIntegrations.HttpLambdaIntegration(
-        "ICalIntegration",
-        icalFunction
       ),
     });
 
@@ -273,11 +241,6 @@ export class PlConfStack extends cdk.Stack {
     new cdk.CfnOutput(this, "SubmissionApiUrl", {
       value: submissionApi.url!,
       description: "Submission API endpoint",
-    });
-
-    new cdk.CfnOutput(this, "ICalApiUrl", {
-      value: icalApi.url!,
-      description: "iCal API endpoint",
     });
 
     new cdk.CfnOutput(this, "WebpageBucketName", {

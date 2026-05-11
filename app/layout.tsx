@@ -1,9 +1,25 @@
 import type { Metadata } from "next";
-// import { Geist, Geist_Mono } from "next/font/google";
+import { GeistSans } from "geist/font/sans";
+import { Fraunces, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import "./typography.css";
-import { ThemeProvider } from "next-themes";
 import { Header } from "./components/header";
+import { ThemeProvider } from "./components/theme-provider";
+
+const fraunces = Fraunces({
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+  style: ["normal", "italic"],
+  variable: "--font-display",
+  display: "swap",
+});
+
+const jetbrainsMono = JetBrains_Mono({
+  subsets: ["latin"],
+  weight: ["400", "500", "600"],
+  variable: "--font-mono",
+  display: "swap",
+});
 
 export const metadata: Metadata = {
   title: "PL Conferences",
@@ -30,25 +46,18 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <>
-      <html lang="en" suppressHydrationWarning>
-        <head />
-        <body>
-          <ThemeProvider
-            attribute="class"
-            defaultTheme="system"
-            enableSystem
-            disableTransitionOnChange
-          >
-            <main className="flex flex-col items-center w-full pb-11">
-              <Header />
-              <div className="mt-24 w-full max-w-7xl px-4 md:px-8">
-                {children}
-              </div>
-            </main>
-          </ThemeProvider>
-        </body>
-      </html>
-    </>
+    <html
+      lang="en"
+      className={`${GeistSans.variable} ${fraunces.variable} ${jetbrainsMono.variable}`}
+      suppressHydrationWarning
+    >
+      <head />
+      <body>
+        <ThemeProvider>
+          <Header />
+          <main>{children}</main>
+        </ThemeProvider>
+      </body>
+    </html>
   );
 }
