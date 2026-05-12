@@ -262,9 +262,29 @@ export function EventRow({
             </span>
           )}
         </div>
-        <div className="overflow-hidden text-ellipsis whitespace-nowrap text-[13px] text-ink-2">
-          {e.name}
-        </div>
+        {e.url ? (
+          <a
+            href={e.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label={`Open ${e.abbreviation} website`}
+            className="group/url flex min-w-0 items-baseline gap-1.5 text-[13px] text-ink-2 no-underline"
+          >
+            <span className="min-w-0 truncate underline decoration-rule decoration-1 underline-offset-[3px] transition-[text-decoration-color] duration-200 ease-out group-hover/url:decoration-ink">
+              {e.name}
+            </span>
+            <ArrowUpRight
+              size={11}
+              strokeWidth={1.75}
+              className="shrink-0 self-center text-ink-3 transition-all duration-200 ease-out group-hover/url:translate-x-0.5 group-hover/url:-translate-y-0.5 group-hover/url:text-ink"
+              aria-hidden
+            />
+          </a>
+        ) : (
+          <div className="overflow-hidden text-ellipsis whitespace-nowrap text-[13px] text-ink-2">
+            {e.name}
+          </div>
+        )}
         <div className="flex flex-wrap items-center gap-x-3 gap-y-1 whitespace-nowrap font-mono text-[11px] uppercase tracking-[0.04em] text-ink-3">
           <span
             className={clsx(
@@ -402,20 +422,6 @@ export function EventRow({
         <div className="contents max-[760px]:hidden">
           <FavoriteButton prefKey={eventKey(e)} />
           <CalendarMenu event={e} />
-          {e.url && (
-            <a
-              href={e.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              aria-label="Open event website"
-              className={clsx(
-                "grid h-8 w-8 shrink-0 place-items-center rounded-pill border border-rule bg-transparent text-ink-2 transition-colors",
-                "hover:border-ink hover:bg-ink hover:text-paper"
-              )}
-            >
-              <ArrowUpRight size={12} strokeWidth={1.75} />
-            </a>
-          )}
         </div>
         <div className="hidden max-[760px]:contents">
           <RowActionSheet event={e} prefKey={eventKey(e)} />

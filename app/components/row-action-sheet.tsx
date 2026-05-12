@@ -3,7 +3,6 @@
 import { useState } from "react";
 import * as Dialog from "@radix-ui/react-dialog";
 import {
-  ArrowUpRight,
   Calendar,
   Check,
   Copy,
@@ -110,27 +109,6 @@ export function RowActionSheet({
               {watching ? "Stop watching" : "Watch this event"}
             </span>
           </button>
-
-          {event.url && (
-            <Dialog.Close asChild>
-              <a
-                href={event.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex w-full items-center gap-3 rounded-md px-3 py-3 text-left text-[14px] no-underline hover:bg-paper-2"
-              >
-                <span
-                  className="grid h-9 w-9 place-items-center rounded-sm text-ink-3"
-                  style={{ background: "var(--paper-2)" }}
-                >
-                  <ArrowUpRight size={18} strokeWidth={1.75} />
-                </span>
-                <span className="flex-1 font-medium text-ink">
-                  Open website
-                </span>
-              </a>
-            </Dialog.Close>
-          )}
 
           <div className="my-1 h-px bg-rule" />
 
