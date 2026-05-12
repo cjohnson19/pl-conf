@@ -9,6 +9,7 @@ import {
   toICal,
   type ScheduledEvent,
 } from "./event";
+import { usePreferences } from "@/components/preferences-provider";
 
 export type SubscribeUrls = {
   httpsUrl: string;
@@ -31,8 +32,14 @@ export type CalendarExport = {
 };
 
 export function useCalendarExport(event: ScheduledEvent): CalendarExport {
+  const { prefs, setPrefs } = usePreferences();
+  const includeDeadlines = prefs.display.includeCalendarDeadlines;
+  const setIncludeDeadlines = (v: boolean) =>
+    setPrefs((prev) => ({
+      ...prev,
+      display: { ...prev.display, includeCalendarDeadlines: v },
+    }));
   const [hasOpened, setHasOpened] = useState(false);
-  const [includeDeadlines, setIncludeDeadlines] = useState(false);
   const [copied, setCopied] = useState(false);
   const datesTBD = !hasConcreteDates(event);
 

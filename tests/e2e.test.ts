@@ -383,10 +383,11 @@ describe.concurrent("calendar menu", () => {
         return res.text();
       }, selector);
 
-    const eventsOnly = await fetchIcs(icsLinkSelector);
-    expect(eventsOnly).toBeTruthy();
-    const eventsOnlyCount = (eventsOnly!.match(/BEGIN:VEVENT/g) ?? []).length;
-    expect(eventsOnlyCount).toBe(1);
+    const withDeadlines = await fetchIcs(icsLinkSelector);
+    expect(withDeadlines).toBeTruthy();
+    const withDeadlinesCount = (withDeadlines!.match(/BEGIN:VEVENT/g) ?? [])
+      .length;
+    expect(withDeadlinesCount).toBeGreaterThan(1);
 
     const firstHref = await page.$eval(
       icsLinkSelector,
@@ -406,11 +407,124 @@ describe.concurrent("calendar menu", () => {
       firstHref
     );
 
-    const withDeadlines = await fetchIcs(icsLinkSelector);
-    expect(withDeadlines).toBeTruthy();
-    const withDeadlinesCount = (withDeadlines!.match(/BEGIN:VEVENT/g) ?? [])
-      .length;
-    expect(withDeadlinesCount).toBeGreaterThan(eventsOnlyCount);
+    const eventsOnly = await fetchIcs(icsLinkSelector);
+    expect(eventsOnly).toBeTruthy();
+    const eventsOnlyCount = (eventsOnly!.match(/BEGIN:VEVENT/g) ?? []).length;
+    expect(eventsOnlyCount).toBe(1);
+    expect(eventsOnlyCount).toBeLessThan(withDeadlinesCount);
+  });
+
+  test("'Include submission deadlines' persists to localStorage and is restored across reloads", async ({
+    page,
+    goToAllEvents,
+  }) => {
+    await goToAllEvents();
+    const mockb = findFixture("MOCKB");
+    const key = eventKey(mockb);
+
+    const triggerSelector = `[data-event-key="${key}"] button[aria-label^="Add MOCKB to calendar"]`;
+    const checkboxSelector = 'input[type="checkbox"]';
+
+    await page.waitForSelector(triggerSelector, { timeout: 5000 });
+    await page.click(triggerSelector);
+    await page.waitForSelector(checkboxSelector, { timeout: 5000 });
+
+    const initialChecked = await page.$eval(
+      checkboxSelector,
+      (el) => (el as HTMLInputElement).checked
+    );
+    expect(initialChecked).toBe(true);
+
+    await page.click(checkboxSelector);
+    await page.waitForFunction(
+      () => {
+        const stored = JSON.parse(localStorage.getItem("userPrefsV2") ?? "{}");
+        return stored?.display?.includeCalendarDeadlines === false;
+      },
+      { timeout: 5000 }
+    );
+
+    await page.reload({ waitUntil: "networkidle2" });
+    await goToAllEvents();
+    await page.waitForSelector(triggerSelector, { timeout: 5000 });
+    await page.click(triggerSelector);
+    await page.waitForSelector(checkboxSelector, { timeout: 5000 });
+
+    const restoredChecked = await page.$eval(
+      checkboxSelector,
+      (el) => (el as HTMLInputElement).checked
+    );
+    expect(restoredChecked).toBe(false);
+  });
+
+  test("toggle state is shared between the calendar menu and the mobile action sheet", async ({
+    page,
+    goToAllEvents,
+  }) => {
+    await goToAllEvents();
+    const mockb = findFixture("MOCKB");
+    const key = eventKey(mockb);
+
+    const calendarTrigger = `[data-event-key="${key}"] button[aria-label^="Add MOCKB to calendar"]`;
+    const checkboxSelector = 'input[type="checkbox"]';
+
+    await page.waitForSelector(calendarTrigger, { timeout: 5000 });
+    await page.click(calendarTrigger);
+    await page.waitForSelector(checkboxSelector, { timeout: 5000 });
+    await page.click(checkboxSelector);
+    await page.waitForFunction(
+      () => {
+        const stored = JSON.parse(localStorage.getItem("userPrefsV2") ?? "{}");
+        return stored?.display?.includeCalendarDeadlines === false;
+      },
+      { timeout: 5000 }
+    );
+
+    await page.keyboard.press("Escape");
+    await page.waitForFunction(
+      (sel) => !document.querySelector(sel),
+      { timeout: 5000 },
+      checkboxSelector
+    );
+
+    await page.setViewport({ width: 375, height: 800 });
+    const sheetTrigger = `[data-event-key="${key}"] button[aria-label^="Actions for MOCKB"]`;
+    await page.waitForSelector(sheetTrigger, { timeout: 5000 });
+    await page.click(sheetTrigger);
+    await page.waitForSelector(checkboxSelector, { timeout: 5000 });
+
+    const sheetChecked = await page.$eval(
+      checkboxSelector,
+      (el) => (el as HTMLInputElement).checked
+    );
+    expect(sheetChecked).toBe(false);
+
+    await page.click(checkboxSelector);
+    await page.waitForFunction(
+      () => {
+        const stored = JSON.parse(localStorage.getItem("userPrefsV2") ?? "{}");
+        return stored?.display?.includeCalendarDeadlines === true;
+      },
+      { timeout: 5000 }
+    );
+
+    await page.keyboard.press("Escape");
+    await page.waitForFunction(
+      (sel) => !document.querySelector(sel),
+      { timeout: 5000 },
+      checkboxSelector
+    );
+
+    await page.setViewport({ width: 1280, height: 800 });
+    await page.waitForSelector(calendarTrigger, { timeout: 5000 });
+    await page.click(calendarTrigger);
+    await page.waitForSelector(checkboxSelector, { timeout: 5000 });
+
+    const menuChecked = await page.$eval(
+      checkboxSelector,
+      (el) => (el as HTMLInputElement).checked
+    );
+    expect(menuChecked).toBe(true);
   });
 });
 

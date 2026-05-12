@@ -14,6 +14,7 @@ export type FilterPreferences = {
 
 export type DisplayPreferences = {
   exactDeadlineTime: boolean;
+  includeCalendarDeadlines: boolean;
 };
 
 export type PreferenceCollection = {
@@ -34,5 +35,6 @@ export const defaultPreferences: PreferenceCollection = {
   },
   display: {
     exactDeadlineTime: false,
+    includeCalendarDeadlines: true,
   },
 };
