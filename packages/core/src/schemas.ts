@@ -70,6 +70,7 @@ const ScheduledEventNormalized = z
     partOf: AbbreviationList,
     colocatedWith: AbbreviationList,
     lastUpdated: DateSchema,
+    sequence: z.number().int().nonnegative(),
   })
   .strict();
 

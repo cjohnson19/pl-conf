@@ -1,0 +1,17 @@
+name: International Conference on Concurrency Theory
+abbreviation: CONCUR
+type: "conference"
+date:
+  start: 2026-09-01
+  end: 2026-09-04
+location: Liverpool, UK
+url: "https://confest-2026.github.io/concur"
+submissionUrl: "https://easychair.org/conferences?conf=concur2026"
+importantDateUrl: "https://confest-2026.github.io/concur#important-dates"
+importantDates:
+  abstract: 2026-04-20
+  paper: 2026-04-27
+  rebuttal: 2026-06-03
+  notification: 2026-06-15
+  camera-ready: 2026-06-29
+colocatedWith: FMICS

@@ -2,8 +2,8 @@ name: ACM SIGPLAN Workshop on Numerical and Symbolic Abstract Domains
 abbreviation: NSAD
 type: "workshop"
 date:
-  start: TBD
-  end: TBD
+  start: 2026-10-03
+  end: 2026-10-09
 location: Oakland, California
 partOf: SPLASH
 colocatedWith: SAS

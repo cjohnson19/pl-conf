@@ -10,6 +10,8 @@ url: "https://www.imn.htwk-leipzig.de/WLP2026/"
 submissionUrl: "https://www.conftool.org/informatik2026/"
 importantDateUrl: "https://www.imn.htwk-leipzig.de/WLP2026/#important-dates"
 importantDates:
-  paper: 2026-05-05
+  paper: 2026-05-21
   notification: 2026-07-06
   camera-ready: 2026-07-14
+notes:
+  - 'Notification and camera ready dates reflect an earlier version of the website. Current listed deadlines are "July 26"'

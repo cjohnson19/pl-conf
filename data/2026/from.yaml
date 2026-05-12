@@ -1,0 +1,14 @@
+name: Tenth Working Formal Methods Symposium
+abbreviation: FROM
+type: symposium
+date:
+  start: 2026-09-15
+  end: 2026-09-17
+location: Timisoara, Romania
+url: "https://from2026.uvt.ro"
+submissionUrl: "https://easychair.org/my/conference?conf=synasc2026"
+importantDateUrl: "http://from2026.uvt.ro/dates/"
+importantDates:
+  paper: 2026-06-07
+  notification: 2026-07-05
+  revisions: 2026-08-23

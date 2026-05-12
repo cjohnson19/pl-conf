@@ -1,0 +1,18 @@
+name: International Conferences on Quantitative Evaluation of Systems and Formal Modeling and Analysis of Timed Systems
+abbreviation: QEST+FORMATS
+type: "conference"
+date:
+  start: 2026-09-02
+  end: 2026-09-04
+location: Liverpool, UK
+url: "https://www.qest-formats.org/"
+submissionUrl: "https://easychair.org/conferences?conf=qestformats2026"
+importantDateUrl: "https://www.qest-formats.org/"
+importantDates:
+  abstract: 2026-04-13
+  paper: 2026-04-20
+  notification: 2026-06-03
+  camera-ready: 2026-06-24
+colocatedWith:
+  - CONCUR
+  - FMICS

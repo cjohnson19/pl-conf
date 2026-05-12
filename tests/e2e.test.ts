@@ -1,6 +1,6 @@
 import { events } from "@generated";
-import { eventKey, isActive } from "@pl-conf/core";
-import puppeteer, { ElementHandle, type Browser, type Page } from "puppeteer";
+import { eventKey, isActive, type ScheduledEvent } from "@pl-conf/core";
+import puppeteer, { type Browser, type Page } from "puppeteer";
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
 
 const URL = process.env.E2E_BASE_URL ?? "http://localhost:3000";
@@ -16,132 +16,192 @@ beforeAll(async () => {
 
 beforeEach(async () => {
   await page.goto(URL, { waitUntil: "networkidle2" });
-  await page.evaluate(() => {
-    localStorage.clear();
-  });
+  await page.evaluate(() => localStorage.clear());
+  await page.reload({ waitUntil: "networkidle2" });
 });
 
 afterAll(async () => {
   await browser.close();
 });
 
-function currentOrFutureEvents() {
-  return Object.values(events).filter(isActive);
-}
+const activeEvents = (): ScheduledEvent[] =>
+  Object.values(events).filter(isActive);
 
-function findActiveEventByAbbreviation(abbreviation: string) {
-  return currentOrFutureEvents().find((e) => e.abbreviation === abbreviation);
-}
-
-async function eventCardAbbreviation(elem: ElementHandle): Promise<string> {
-  return elem.$eval(".event-abbrev", (node) =>
-    (node.textContent ?? "").split("'")[0].trim()
+const renderedKeys = (): Promise<string[]> =>
+  page.$$eval("[data-event-key]", (nodes) =>
+    nodes.map((n) => n.getAttribute("data-event-key") ?? "")
   );
-}
 
-async function waitForFirstCardToBe(abbreviation: string) {
+const watchButton = (key: string) =>
+  page.$(`[data-event-key="${key}"] button[aria-label^="Watch "]`);
+
+const stopWatchingButton = (key: string) =>
+  page.$(`[data-event-key="${key}"] button[aria-label^="Stop watching "]`);
+
+const clickViewTab = async (
+  label: "Watching" | "All events" | "Submissions open"
+) => {
+  await page.evaluate((l) => {
+    const btn = Array.from(document.querySelectorAll("button")).find((b) =>
+      b.textContent?.trim().startsWith(l)
+    );
+    (btn as HTMLButtonElement | undefined)?.click();
+  }, label);
+};
+
+const clickCategoryChip = async (label: string) => {
+  await page.evaluate((l) => {
+    const btn = Array.from(document.querySelectorAll("button")).find((b) =>
+      b.textContent?.trim().startsWith(l)
+    );
+    (btn as HTMLButtonElement | undefined)?.click();
+  }, label);
+};
+
+const goToAllEvents = async () => {
+  await clickViewTab("All events");
   await page.waitForFunction(
-    (abbr) => {
-      const node = document.querySelector(".event-card .event-abbrev");
-      return (node?.textContent ?? "").trim().startsWith(`${abbr} `);
-    },
-    { timeout: 5000 },
-    abbreviation
+    () => document.querySelectorAll("[data-event-key]").length > 0,
+    { timeout: 5000 }
   );
-}
+};
 
-async function domClick(handle: ElementHandle) {
-  await handle.evaluate((el) => (el as HTMLElement).click());
-}
+describe("event list", () => {
+  it("defaults to the Watching view, which is empty without prefs", async () => {
+    const keys = await renderedKeys();
+    expect(keys.length).toBe(0);
+  });
 
-async function eventListAbbreviations(): Promise<string[]> {
-  return await Promise.all(
-    (await page.$$(".event-card")).map(async (card) =>
-      eventCardAbbreviation(card)
-    )
-  );
-}
-
-describe("preferences", () => {
-  it("loads all events initially", async () => {
-    await page.goto(URL, { waitUntil: "networkidle2" });
-    const shownEvents = await eventListAbbreviations();
-    const currentEvents = currentOrFutureEvents().map((e) => e.abbreviation);
-    expect(
-      shownEvents.every(
-        (elem) => currentEvents.includes(elem),
-        "Not every event is shown by default"
-      )
+  it("switching to All events shows every active event", async () => {
+    await clickViewTab("All events");
+    await page.waitForFunction(
+      () => document.querySelectorAll("[data-event-key]").length > 0,
+      { timeout: 5000 }
     );
+    const keys = await renderedKeys();
+    const expected = activeEvents().map(eventKey);
+    expect(keys.length).toBe(expected.length);
+    keys.forEach((k) => expect(expected).toContain(k));
+  });
+});
+
+describe("watching", () => {
+  it("clicking the watch button toggles aria-pressed and persists to localStorage", async () => {
+    await goToAllEvents();
+    const sample = activeEvents()[0];
+    expect(sample).toBeDefined();
+    const key = eventKey(sample);
+
+    const watch = await watchButton(key);
+    expect(watch).not.toBeNull();
+    await watch!.evaluate((b) => (b as HTMLButtonElement).click());
+
+    await page.waitForSelector(
+      `[data-event-key="${key}"] button[aria-pressed="true"]`,
+      { timeout: 5000 }
+    );
+
+    const store = await page.evaluate(() =>
+      JSON.parse(localStorage.getItem("userPrefsV2") ?? "{}")
+    );
+    expect(store?.eventPrefs?.[key]?.favorite).toBe(true);
   });
 
-  it("places favorite events at top of page", async () => {
-    await page.goto(URL, { waitUntil: "networkidle2" });
-    const eventCards = await page.$$(".event-card");
-    const finalEvent = eventCards[eventCards.length - 1];
-    const finalEventAbbrev = await eventCardAbbreviation(finalEvent);
-    const favButton = await finalEvent.$(".favorite-button");
-    expect(favButton).not.toBeNull();
-    await domClick(favButton!);
-    await waitForFirstCardToBe(finalEventAbbrev);
-  });
+  it("watched events appear in the Watching view across refresh", async () => {
+    await goToAllEvents();
+    const sample = activeEvents()[0];
+    const key = eventKey(sample);
 
-  it("places favorite events at top of page across refresh", async () => {
-    await page.goto(URL, { waitUntil: "networkidle2" });
-    const eventCards = await page.$$(".event-card");
-    const finalEvent = eventCards[eventCards.length - 1];
-    const finalEventAbbrev = await eventCardAbbreviation(finalEvent);
-    const favButton = await finalEvent.$(".favorite-button");
-    expect(favButton).not.toBeNull();
-    await domClick(favButton!);
+    const watch = await watchButton(key);
+    await watch!.evaluate((b) => (b as HTMLButtonElement).click());
+    await page.waitForSelector(
+      `[data-event-key="${key}"] button[aria-pressed="true"]`,
+      { timeout: 5000 }
+    );
+
     await page.reload({ waitUntil: "networkidle2" });
-    await waitForFirstCardToBe(finalEventAbbrev);
+    // Watching is the default view, so the watched event should be present.
+    await page.waitForSelector(`[data-event-key="${key}"]`, { timeout: 5000 });
+    const keys = await renderedKeys();
+    expect(keys).toContain(key);
   });
 
-  it("clicking favorite event updates localstorage", async () => {
-    await page.goto(URL, { waitUntil: "networkidle2" });
-    const eventCards = await page.$$(".event-card");
-    const finalEventCard = eventCards[eventCards.length - 1];
-    const finalEventAbbrev = await eventCardAbbreviation(finalEventCard);
-    const finalEvent = findActiveEventByAbbreviation(finalEventAbbrev);
-    expect(finalEvent).toBeDefined();
-    const finalEventPrefKey = eventKey(finalEvent!);
-    const favButton = await finalEventCard.$(".favorite-button");
-    expect(favButton).not.toBeNull();
-    await domClick(favButton!);
-    await waitForFirstCardToBe(finalEventAbbrev);
-    const store = await page.evaluate(() => {
-      return JSON.parse(localStorage.getItem("userPrefsV2") ?? "{}");
-    });
-    expect(store!).to.haveOwnProperty("eventPrefs");
-    expect(store!["eventPrefs"]).to.haveOwnProperty(finalEventPrefKey);
-    expect(store!["eventPrefs"][finalEventPrefKey]).to.haveOwnProperty(
-      "favorite"
-    );
-    expect(store!["eventPrefs"][finalEventPrefKey]["favorite"]).toBeTruthy();
-  });
+  it("unwatching removes the event from the Watching view", async () => {
+    await goToAllEvents();
+    const sample = activeEvents()[0];
+    const key = eventKey(sample);
 
-  it("localstorage updates persist across refresh", async () => {
-    await page.goto(URL, { waitUntil: "networkidle2" });
-    const eventCards = await page.$$(".event-card");
-    const finalEventCard = eventCards[eventCards.length - 1];
-    const finalEventAbbrev = await eventCardAbbreviation(finalEventCard);
-    const finalEvent = findActiveEventByAbbreviation(finalEventAbbrev);
-    expect(finalEvent).toBeDefined();
-    const finalEventPrefKey = eventKey(finalEvent!);
-    const favButton = await finalEventCard.$(".favorite-button");
-    expect(favButton).not.toBeNull();
-    await domClick(favButton!);
-    await waitForFirstCardToBe(finalEventAbbrev);
-    await page.reload({ waitUntil: "networkidle2" });
-    const store = await page.evaluate(() => {
-      return JSON.parse(localStorage.getItem("userPrefsV2") ?? "{}");
-    });
-    expect(store!).to.haveOwnProperty("eventPrefs");
-    expect(store!["eventPrefs"]).to.haveOwnProperty(finalEventPrefKey);
-    expect(store!["eventPrefs"][finalEventPrefKey]).to.haveOwnProperty(
-      "favorite"
+    const watch = await watchButton(key);
+    await watch!.evaluate((b) => (b as HTMLButtonElement).click());
+    await page.waitForSelector(
+      `[data-event-key="${key}"] button[aria-pressed="true"]`,
+      { timeout: 5000 }
     );
-    expect(store!["eventPrefs"][finalEventPrefKey]["favorite"]).toBeTruthy();
+
+    await clickViewTab("Watching");
+    await page.waitForSelector(`[data-event-key="${key}"]`, { timeout: 5000 });
+
+    const unwatch = await stopWatchingButton(key);
+    expect(unwatch).not.toBeNull();
+    await unwatch!.evaluate((b) => (b as HTMLButtonElement).click());
+
+    await page.waitForFunction(
+      (k) => !document.querySelector(`[data-event-key="${k}"]`),
+      { timeout: 5000 },
+      key
+    );
+    const keys = await renderedKeys();
+    expect(keys).not.toContain(key);
+  });
+});
+
+describe("search", () => {
+  it("typing into the search pill filters the list", async () => {
+    await goToAllEvents();
+    const sample = activeEvents()[0];
+    const term = sample.abbreviation;
+
+    const input = await page.$('input[placeholder="Search events…"]');
+    expect(input).not.toBeNull();
+    await input!.click({ clickCount: 3 });
+    await input!.type(term);
+
+    await page.waitForFunction(
+      (k) => !!document.querySelector(`[data-event-key="${k}"]`),
+      { timeout: 5000 },
+      eventKey(sample)
+    );
+
+    const keys = await renderedKeys();
+    expect(keys).toContain(eventKey(sample));
+    expect(keys.length).toBeLessThan(activeEvents().length);
+  });
+});
+
+describe("category chips", () => {
+  it("selecting Workshops only shows workshop-type events", async () => {
+    await clickViewTab("All events");
+    await page.evaluate(() => {
+      const btn = Array.from(document.querySelectorAll("button")).find((b) =>
+        b.textContent?.trim().startsWith("Workshops")
+      );
+      (btn as HTMLButtonElement | undefined)?.click();
+    });
+
+    const expectedKeys = new Set(
+      activeEvents()
+        .filter((e) => e.type === "workshop")
+        .map(eventKey)
+    );
+
+    await page.waitForFunction(
+      (n) => document.querySelectorAll("[data-event-key]").length === n,
+      { timeout: 5000 },
+      expectedKeys.size
+    );
+
+    const keys = await renderedKeys();
+    expect(keys.length).toBe(expectedKeys.size);
+    keys.forEach((k) => expect(expectedKeys.has(k)).toBe(true));
   });
 });

@@ -1,0 +1,14 @@
+name: Mathematical Foundations of Programming Semantics
+abbreviation: MFPS
+type: "conference"
+date:
+  start: 2026-06-01
+  end: 2026-06-03
+location: Ljubljana, Slovenia
+url: "https://ul-fmf.github.io/mfps-sstt-2026/"
+submissionUrl: "https://easychair.org/conferences/?conf=mfps2026"
+importantDateUrl: "https://ul-fmf.github.io/mfps-sstt-2026/#important-dates"
+importantDates:
+  paper: 2026-03-12
+  notification: 2026-04-23
+colocatedWith: SSTT

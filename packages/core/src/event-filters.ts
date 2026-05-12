@@ -2,10 +2,8 @@ import {
   isAfter as dateIsAfter,
   isBefore as dateIsBefore,
   getYear,
-  isFuture,
-  isToday,
 } from "date-fns";
-import { allDeadlines, firstDeadline } from "./event.js";
+import { allDeadlines, firstDeadline, isDeadlinePast } from "./event.js";
 import type { EventType, MaybeDate, ScheduledEvent } from "./schemas.js";
 
 export type EventFilter = (event: ScheduledEvent) => boolean;
@@ -32,12 +30,12 @@ export const hasYear: (year: number) => EventFilter = (year) => (e) =>
   hasDate(e.date.start) && getYear(e.date.start) === year;
 
 export const hasFutureDeadline: EventFilter = (e) =>
-  allDeadlines(e).some(isFuture);
+  allDeadlines(e).some((d) => !isDeadlinePast(d));
 
 export const hasOpenSubmission: EventFilter = (e) => {
   const first = firstDeadline(e);
   if (first === undefined) return false;
-  return isFuture(first) || isToday(first);
+  return !isDeadlinePast(first);
 };
 
 export const startsBetween: (range: {

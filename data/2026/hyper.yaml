@@ -1,0 +1,14 @@
+name: "5th Workshop on Hyperproperties: Advances in Theory and Applications"
+abbreviation: HYPER
+type: "workshop"
+date:
+  start: 2026-07-24
+  end: 2026-07-24
+location: Lisbon, Portugal
+partOf: FLoC
+url: "https://hyperworkshop26.cispa.io/"
+submissionUrl: "https://submissions.floc26.org/hyper/"
+importantDateUrl: "https://hyperworkshop26.cispa.io/#call"
+importantDates:
+  paper: 2026-05-08
+  notification: 2026-05-14

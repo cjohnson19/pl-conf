@@ -9,7 +9,7 @@ url: "https://ces.eecs.umich.edu/force26/"
 submissionUrl: "https://submissions.floc26.org/force/"
 importantDateUrl: "https://ces.eecs.umich.edu/force26/cfp/"
 importantDates:
-  paper: 2026-04-30
+  paper: 2026-05-11
   notification: 2026-05-15
 partOf: FLoC
 colocatedWith: CAV

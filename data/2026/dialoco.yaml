@@ -1,0 +1,15 @@
+name: Workshop on Diagrams in Logic and Computation
+abbreviation: DIALOCO
+type: workshop
+date:
+  start: 2026-07-19
+  end: 2026-07-19
+location: Lisbon, Portugal
+url: "https://dialoco.github.io/dialoco26/"
+submissionUrl: "https://submissions.floc26.org/dialoco"
+importantDateUrl: "https://dialoco.github.io/dialoco26/#dates"
+importantDates:
+  paper: 2026-05-13
+  notification: 2026-05-20
+partOf: FLoC
+colocatedWith: LICS

@@ -1,0 +1,12 @@
+name: Workshop on Logic in Quantum Computer Science
+type: "workshop"
+abbreviation: LIQCS
+date:
+  start: 2026-06-17
+  end: 2026-06-19
+location: Paris, France
+url: "https://liqcs2026.github.io/"
+importantDateUrl: "https://liqcs2026.github.io/cfp.html"
+importantDates:
+  paper: 2026-03-20
+  notification: 2026-04-20

@@ -2,81 +2,102 @@ import Link from "next/link";
 
 export default async function About() {
   return (
-    <div className="px-11">
-      <p>
-        I wanted to find a site which aggregated conferences and workshops in
-        PL, but didn&apos;t find one that seemed maintained enough for my
-        liking. I figured I would throw together a quick site to do this, and
-        here we are. There is still more to be done, which I&apos;ll get to
-        soon.
+    <article className="mx-auto max-w-[640px] px-5 pb-24 pt-14 md:px-8">
+      <p className="label-cap mb-3">About</p>
+      <p className="mb-10 font-display text-[32px] font-normal leading-[1.2] tracking-[-0.01em] text-ink">
+        A small, open-source aggregator for programming-language conferences.
       </p>
 
-      <p className="mt-4">
-        This site stores none of your information and collects no analytics.
-        Information about your favorite and hidden events are stored locally in
-        your browser.
-      </p>
+      <div className="space-y-5 text-[15px] leading-[1.7] text-ink-2">
+        <p>
+          I wanted a site that aggregated conferences and workshops in PL but
+          couldn&apos;t find one that seemed maintained enough for my liking. So
+          I threw this together. There&apos;s still more to do, which I&apos;ll
+          get to soon.
+        </p>
+        <p>
+          This site stores none of your information and collects no analytics.
+          Your watched and hidden events are kept locally in your browser.
+        </p>
+        <p>
+          The source lives on{" "}
+          <Link
+            href="https://github.com/cjohnson19/pl-conf"
+            className="text-ink underline underline-offset-[3px]"
+          >
+            GitHub
+          </Link>
+          . PRs against the <code className="font-mono text-ink">data</code>{" "}
+          folder are welcome — so are issues for features or corrections.
+        </p>
+        <p>
+          For anything else, you can find my contact info at{" "}
+          <Link
+            href="https://chasej.dev"
+            className="text-ink underline underline-offset-[3px]"
+          >
+            chasej.dev
+          </Link>
+          .
+        </p>
+      </div>
 
-      <p className="mt-4">
-        The site is open source and can be found on{" "}
-        <Link
-          href="https://github.com/cjohnson19/pl-conf"
-          className="underline underline-offset-3"
-        >
-          GitHub
-        </Link>
-        . Feel free to make a PR with any changes to the events in the{" "}
-        <code>data</code> folder. I welcome any feature requests and would be
-        grateful if you made an issue on the GitHub page.
-      </p>
+      <hr className="my-14 border-rule" />
 
-      <p className="mt-4">
-        If you have any suggestions or feedback, feel free to reach out to me.
-        You can find my contact information on my personal site,{" "}
-        <Link
-          href="https://chasej.dev"
-          className="underline underline-offset-3"
-        >
-          chasej.dev
-        </Link>
-        .
-      </p>
+      <section>
+        <p className="label-cap mb-3">FAQ</p>
+        <h2 className="mb-8 font-display text-[28px] font-normal leading-[1.15] tracking-[-0.01em] text-ink normal-case">
+          Questions
+        </h2>
 
-      <h2 className="mt-8">FAQ</h2>
+        <dl className="space-y-7">
+          <FaqItem
+            q={
+              <>
+                Can we add <em className="not-italic font-medium">X</em> event?
+              </>
+            }
+          >
+            Yes. Open an issue on GitHub and I&apos;ll add it when I get the
+            chance — or open a PR adding it to the data.
+          </FaqItem>
 
-      <h4 className="mt-4">
-        Can we add <i>X</i> event?
-      </h4>
+          <FaqItem q="Why should I use this site?">
+            If you already keep up with mailing lists and event websites, there
+            isn&apos;t much reason to. Stick with what works for you.
+          </FaqItem>
 
-      <p className="mt-2">
-        Yes! Contact me or create an issue on GitHub and I&apos;ll add it as
-        soon as I get the chance. To make it as quick as possible create a pull
-        request with the event.
-      </p>
+          <FaqItem q="How do I know this information is accurate?">
+            You should <b className="font-medium text-ink">always</b> check the
+            linked website to confirm dates. That said, every day a{" "}
+            <Link
+              href="https://github.com/cjohnson19/pl-conf/tree/main/packages/functions/drift/index.ts"
+              className="text-ink underline underline-offset-[3px]"
+            >
+              small job
+            </Link>{" "}
+            checks each conference site for changes, so drift usually gets
+            caught within a day.
+          </FaqItem>
+        </dl>
+      </section>
+    </article>
+  );
+}
 
-      <h4 className="mt-4">Why should I use this site?</h4>
-
-      <p className="mt-2">
-        If you keep track of mailing lists / event websites, there really is
-        little to no reason to use this website. Stick with your normal workflow
-        if it works for you!
-      </p>
-
-      <h4 className="mt-4">How do I know this information is accurate?</h4>
-
-      <p className="mt-2">
-        You should <b>always</b> check the linked website to confirm the dates
-        listed here. However, every day{" "}
-        <a href="https://github.com/cjohnson19/pl-conf/tree/main/packages/functions/drift/index.ts">
-          we check the websites
-        </a>{" "}
-        to see if any of their content has changed. If something changes, I
-        should know about it within a day and be able to update the site.
-      </p>
-
-      <h4 className="mt-4">Are these questions really frequently asked?</h4>
-
-      <p className="mt-2">No, but I like to pretend they would be!</p>
+function FaqItem({
+  q,
+  children,
+}: {
+  q: React.ReactNode;
+  children: React.ReactNode;
+}) {
+  return (
+    <div>
+      <dt className="mb-1.5 text-[15px] font-semibold tracking-[-0.005em] text-ink">
+        {q}
+      </dt>
+      <dd className="text-[14px] leading-[1.65] text-ink-2">{children}</dd>
     </div>
   );
 }

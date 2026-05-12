@@ -1,6 +1,7 @@
 export {
   eventKey,
   eventTypes,
+  hasConcreteDates,
   allDeadlines,
   firstDeadline,
   hasMultipleRounds,
@@ -11,8 +12,15 @@ export {
   type Round,
   type ScheduledEvent,
   dateNameToReadable,
+  isDeadline,
   formatDate,
   formatDateRange,
   toAoeInstant,
+  toCalendarDate,
+  isDeadlinePast,
+  isDeadlineUrgent,
   toGoogleCalendarLink,
+  toICal,
+  icalFileName,
+  icalFeedPath,
 } from "@pl-conf/core";

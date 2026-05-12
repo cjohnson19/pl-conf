@@ -2,87 +2,118 @@
 @tailwind components;
 @tailwind utilities;
 
-body {
-  font-family: Arial, Helvetica, sans-serif;
-}
-
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 0 0% 3.9%;
-    --card: 0 0% 100%;
-    --card-foreground: 0 0% 3.9%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 3.9%;
-    --primary: 0 0% 9%;
-    --primary-foreground: 0 0% 98%;
-    --secondary: 0 0% 96.1%;
-    --secondary-foreground: 0 0% 9%;
-    --muted: 0 0% 96.1%;
-    --muted-foreground: 0 0% 30%;
-    --accent: 0 0% 96.1%;
-    --accent-foreground: 0 0% 9%;
+    /* Fonts — vars set by next/font + geist; alias to design-system names */
+    --font-ui:
+      var(--font-geist-sans), -apple-system, BlinkMacSystemFont, "SF Pro Text",
+      sans-serif;
+
+    /* Paper + ink palette */
+    --paper: #f4f1ea;
+    --paper-2: #eae5da;
+    --card: #fbfaf6;
+    --ink: #14130f;
+    --ink-2: #54514a;
+    --ink-3: #8e8a7e;
+    --rule: #d9d3c5;
+    --rule-strong: #b3ac9b;
+
+    /* Accents (used sparingly) */
+    --accent: #2238e4;
+    --hot: #f9564f;
+    --past: #b3ac9b;
+
+    /* Radii */
+    --r-xs: 2px;
+    --r-sm: 4px;
+    --r-md: 6px;
+    --r-lg: 8px;
+    --r-pill: 9999px;
+    --radius: 0.5rem;
+
+    /* Shadow */
+    --shadow-sm: 0 1px 2px rgba(20, 19, 15, 0.04);
+    --shadow-md: 0 4px 16px rgba(20, 19, 15, 0.06);
+    --shadow-pop: 0 8px 32px rgba(20, 19, 15, 0.1);
+
+    /* shadcn aliases — kept so untouched primitives in /about and /submit still resolve */
+    --background: 44 33% 94%;
+    --foreground: 45 9% 7%;
+    --card-foreground: 45 9% 7%;
+    --popover: 48 35% 97%;
+    --popover-foreground: 45 9% 7%;
+    --primary: 45 9% 7%;
+    --primary-foreground: 44 33% 94%;
+    --secondary: 40 25% 88%;
+    --secondary-foreground: 45 9% 7%;
+    --muted: 40 25% 88%;
+    --muted-foreground: 42 7% 31%;
+    --accent-foreground: 0 0% 100%;
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 98%;
-    --border: 0 0% 89.8%;
-    --input: 0 0% 89.8%;
-    --ring: 0 0% 3.9%;
-    --chart-1: 12 76% 61%;
-    --chart-2: 173 58% 39%;
-    --chart-3: 197 37% 24%;
-    --chart-4: 43 74% 66%;
-    --chart-5: 27 87% 67%;
-    --radius: 0.5rem;
-    --sidebar-background: 0 0% 98%;
-    --sidebar-foreground: 240 5.3% 26.1%;
-    --sidebar-primary: 240 5.9% 10%;
-    --sidebar-primary-foreground: 0 0% 98%;
-    --sidebar-accent: 240 4.8% 95.9%;
-    --sidebar-accent-foreground: 240 5.9% 10%;
-    --sidebar-border: 220 13% 91%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --border: 40 30% 81%;
+    --input: 40 30% 81%;
+    --ring: 45 9% 7%;
   }
+
   .dark {
-    --background: 0 0% 3.9%;
-    --foreground: 0 0% 98%;
-    --card: 0 0% 3.9%;
-    --card-foreground: 0 0% 98%;
-    --popover: 0 0% 3.9%;
-    --popover-foreground: 0 0% 98%;
-    --primary: 0 0% 98%;
-    --primary-foreground: 0 0% 9%;
-    --secondary: 0 0% 14.9%;
-    --secondary-foreground: 0 0% 98%;
-    --muted: 0 0% 14.9%;
-    --muted-foreground: 0 0% 63.9%;
-    --accent: 0 0% 14.9%;
-    --accent-foreground: 0 0% 98%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 0 0% 14.9%;
-    --input: 0 0% 14.9%;
-    --ring: 0 0% 83.1%;
-    --chart-1: 220 70% 50%;
-    --chart-2: 160 60% 45%;
-    --chart-3: 30 80% 55%;
-    --chart-4: 280 65% 60%;
-    --chart-5: 340 75% 55%;
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --paper: #14120d;
+    --paper-2: #25221b;
+    --card: #1c1914;
+    --ink: #f4f1ea;
+    --ink-2: #b8b1a0;
+    --ink-3: #7a7464;
+    --rule: #2e2a22;
+
+    --accent: #7f8cff;
+    --hot: #ff7f66;
+    --past: #4a463b;
+
+    --shadow-sm: 0 0 0 transparent;
+    --shadow-md: 0 0 0 transparent;
+    --shadow-pop: 0 0 0 transparent;
+  }
+
+  @keyframes pulse {
+    0% {
+      box-shadow: 0 0 0 0 color-mix(in srgb, currentColor 60%, transparent);
+    }
+    100% {
+      box-shadow: 0 0 0 10px color-mix(in srgb, currentColor 0%, transparent);
+    }
   }
 }
 
 @layer base {
   * {
-    @apply border-border;
+    border-color: var(--rule);
   }
   body {
-    @apply bg-background text-foreground;
+    background: var(--paper);
+    color: var(--ink);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+}
+
+@layer components {
+  .pill {
+    font:
+      500 11px var(--font-mono),
+      ui-monospace,
+      monospace;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    border: 1px solid var(--rule);
+    padding: 2px 8px;
+    border-radius: 2px;
+    display: inline-block;
+  }
+  .pill.passed {
+    opacity: 0.6;
+    text-decoration: line-through;
+    text-decoration-color: var(--rule);
   }
 }

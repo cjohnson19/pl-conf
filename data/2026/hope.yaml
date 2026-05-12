@@ -1,0 +1,16 @@
+name: Workshop on Higher-Order Programming with Effects
+abbreviation: HOPE
+type: "workshop"
+date:
+  start: 2026-08-24
+  end: 2026-08-24
+location: Indianapolis, United States
+partOf: ICFP
+url: "https://icfp26.sigplan.org/home/hope-2026"
+submissionUrl: "https://hope26.hotcrp.com/"
+importantDateUrl: "https://icfp26.sigplan.org/home/hope-2026#Call-for-Talk-Proposals"
+importantDates:
+  paper: 2026-05-29
+  notification: 2026-06-26
+notes:
+  - "Talk proposals up to 2 pages excluding references; no published proceedings"

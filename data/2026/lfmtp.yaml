@@ -1,0 +1,17 @@
+name: "International Workshop on Logical Frameworks and Meta-Languages: Theory and Practice"
+abbreviation: LFMTP
+type: "workshop"
+date:
+  start: 2026-07-24
+  end: 2026-07-24
+location: Lisbon, Portugal
+url: "https://lfmtp.github.io/lfmtp-page/workshops/2026/"
+submissionUrl: "https://submissions.floc26.org/lfmtp/"
+importantDateUrl: "https://lfmtp.github.io/lfmtp-page/workshops/2026/"
+importantDates:
+  abstract: 2026-04-21
+  paper: 2026-05-01
+  notification: 2026-05-28
+  camera-ready: 2026-06-10
+partOf: FLoC
+colocatedWith: FSCD

@@ -1,0 +1,17 @@
+name: International Conference on Fundamentals of Software Engineering
+abbreviation: FSEN
+type: "conference"
+date:
+  start: 2027-05-24
+  end: 2027-05-25
+location: Enschede, Netherlands
+url: "https://conf.researchr.org/home/fsen-2027"
+submissionUrl: "https://www.easychair.org/conferences/?conf=fsen2027"
+importantDateUrl: "https://conf.researchr.org/track/fsen-2027/fsen-2027-papers"
+importantDates:
+  abstract: 2026-10-19
+  paper: 2026-10-28
+  notification: 2026-12-18
+  camera-ready: 2027-02-22
+notes:
+  - "Single-blind reviewing; Springer LNCS proceedings; full papers up to 16 pages excluding references, short papers up to 6 pages, posters up to 4 pages"
