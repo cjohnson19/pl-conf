@@ -241,18 +241,26 @@ function DeadlineGroupHeader({
   date,
   count,
   now,
+  isFirst,
 }: {
   date: string | null;
   count: number;
   now: Date;
+  isFirst: boolean;
 }) {
+  const borderClasses = clsx("border-b border-rule", !isFirst && "border-t");
   if (date === null) {
     return (
       <div
         className="sticky top-0 z-10 -mx-5 md:-mx-8"
         style={{ background: "var(--paper)" }}
       >
-        <div className="flex items-end justify-between gap-4 border-b border-rule px-5 pb-3 pt-4 md:px-8">
+        <div
+          className={clsx(
+            "flex items-end justify-between gap-4 px-5 pb-3 pt-4 md:px-8",
+            borderClasses
+          )}
+        >
           <h2 className="font-ui text-[18px] font-semibold leading-none tracking-[-0.02em] text-ink-2 sm:text-[22px]">
             No upcoming deadlines
           </h2>
@@ -274,7 +282,12 @@ function DeadlineGroupHeader({
       className="sticky top-0 z-10 -mx-5 md:-mx-8"
       style={{ background: "var(--paper)" }}
     >
-      <div className="flex items-end justify-between gap-4 border-b border-rule px-5 pb-3 pt-4 md:px-8">
+      <div
+        className={clsx(
+          "flex items-end justify-between gap-4 px-5 pb-3 pt-4 md:px-8",
+          borderClasses
+        )}
+      >
         <h2 className="flex items-end gap-3 font-ui">
           <span
             className={clsx(
@@ -1032,12 +1045,13 @@ function EventListInner({ events }: { events: ScheduledEvent[] }) {
                 <EventCard key={eventKey(e)} event={e} now={now} />
               ))
             ) : (
-              groups.map((g) => (
+              groups.map((g, gi) => (
                 <section key={g.key} className="relative">
                   <DeadlineGroupHeader
                     date={g.date}
                     count={g.events.length}
                     now={now}
+                    isFirst={gi === 0}
                   />
                   {g.events.map((e, i) => (
                     <div

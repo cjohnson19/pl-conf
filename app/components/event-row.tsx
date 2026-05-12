@@ -207,8 +207,7 @@ function EventRowImpl({
         "group grid items-center rounded-xs border-t border-rule",
         hideDate ? "event-row-grid--no-date" : "event-row-grid",
         "py-[22px] px-4 -mx-4 transition-colors",
-        "hover:bg-[color-mix(in_srgb,var(--card)_70%,transparent)]",
-        "last:border-b last:border-rule"
+        "hover:bg-[color-mix(in_srgb,var(--card)_70%,transparent)]"
       )}
     >
       {!hideDate && (
