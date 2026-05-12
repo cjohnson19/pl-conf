@@ -129,6 +129,29 @@
     }
   }
 
+  .event-row-grid--no-date {
+    grid-template-columns: 1fr 44px;
+    gap: 0.625rem;
+  }
+  @container row (min-width: 420px) {
+    .event-row-grid--no-date {
+      grid-template-columns: 1fr 44px;
+      gap: 0.75rem;
+    }
+  }
+  @container row (min-width: 760px) {
+    .event-row-grid--no-date {
+      grid-template-columns: minmax(0, 1.4fr) minmax(0, 1.5fr) 104px;
+      gap: 1.25rem;
+    }
+  }
+  @container row (min-width: 1080px) {
+    .event-row-grid--no-date {
+      grid-template-columns: minmax(0, 1.6fr) minmax(0, 2fr) 104px;
+      gap: 1.75rem;
+    }
+  }
+
   .pill {
     font:
       500 11px var(--font-mono),

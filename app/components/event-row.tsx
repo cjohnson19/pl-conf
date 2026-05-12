@@ -129,7 +129,12 @@ function roundShortDate(date: MaybeDate): string {
 
 type ChipKind = "past" | "next" | "default";
 
-type RailRow = { name: DateName; date: MaybeDate; kind: ChipKind };
+type RailRow = {
+  name: DateName;
+  date: MaybeDate;
+  kind: ChipKind;
+  urgent?: boolean;
+};
 
 function buildRoundRows(
   round: Round,
@@ -150,7 +155,12 @@ function buildRoundRows(
     if (isDeadlinePast(date, now))
       return { name, date, kind: "past" as ChipKind };
     if (activeNext && name === activeNext)
-      return { name, date, kind: "next" as ChipKind };
+      return {
+        name,
+        date,
+        kind: "next" as ChipKind,
+        urgent: isDeadlineUrgent(date, now),
+      };
     return { name, date, kind: "default" as ChipKind };
   });
 }
@@ -158,9 +168,11 @@ function buildRoundRows(
 export function EventRow({
   event: e,
   now,
+  hideDate = false,
 }: {
   event: ScheduledEvent;
   now: Date;
+  hideDate?: boolean;
 }) {
   const lead = useMemo(() => findLead(e, now), [e, now]);
 
@@ -192,34 +204,37 @@ export function EventRow({
       data-event-key={eventKey(e)}
       data-event-abbrev={e.abbreviation}
       className={clsx(
-        "event-row-grid group grid items-center rounded-xs border-t border-rule",
+        "group grid items-center rounded-xs border-t border-rule",
+        hideDate ? "event-row-grid--no-date" : "event-row-grid",
         "py-[22px] px-4 -mx-4 transition-colors",
         "hover:bg-[color-mix(in_srgb,var(--card)_70%,transparent)]",
         "last:border-b last:border-rule"
       )}
     >
-      <div
-        className={clsx(
-          "flex flex-col items-start gap-1.5 self-start @[760px]/row:self-auto",
-          passed && "opacity-55"
-        )}
-      >
+      {!hideDate && (
         <div
           className={clsx(
-            "font-ui font-semibold leading-none tracking-[-0.025em] tabular-nums",
-            "text-[22px] @[420px]/row:text-[24px] @[760px]/row:text-[32px]",
-            urgent ? "text-hot" : "text-ink"
+            "flex flex-col items-start gap-1.5 self-start @[760px]/row:self-auto",
+            passed && "opacity-55"
           )}
         >
-          {dayNum(anchorDate)}
+          <div
+            className={clsx(
+              "font-ui font-semibold leading-none tracking-[-0.025em] tabular-nums",
+              "text-[22px] @[420px]/row:text-[24px] @[760px]/row:text-[32px]",
+              urgent ? "text-hot" : "text-ink"
+            )}
+          >
+            {dayNum(anchorDate)}
+          </div>
+          <div className="font-mono text-[11px] font-medium uppercase leading-none tracking-[0.08em] text-ink-2">
+            {monthShort(anchorDate)}
+          </div>
+          <div className="font-mono text-[10px] font-medium leading-none tracking-[0.06em] text-ink-3">
+            {yearNum(anchorDate)}
+          </div>
         </div>
-        <div className="font-mono text-[11px] font-medium uppercase leading-none tracking-[0.08em] text-ink-2">
-          {monthShort(anchorDate)}
-        </div>
-        <div className="font-mono text-[10px] font-medium leading-none tracking-[0.06em] text-ink-3">
-          {yearNum(anchorDate)}
-        </div>
-      </div>
+      )}
 
       <div className="flex min-w-0 flex-col gap-1.5">
         <div className="inline-flex items-baseline gap-2 font-ui text-[22px] font-bold leading-none tracking-[-0.015em]">
@@ -340,6 +355,7 @@ export function EventRow({
               now={now}
               urgent={urgent}
               showMultiRound={showMultiRound}
+              compact={hideDate}
             />
           ))}
         <div className="block pt-1 @[760px]/row:hidden">
@@ -365,6 +381,7 @@ export function EventRow({
             now={now}
             urgent={urgent}
             showMultiRound={showMultiRound}
+            compact={hideDate}
           />
         ) : (
           <div className="font-mono text-[11px] uppercase tracking-[0.04em] text-ink-3">
@@ -592,7 +609,9 @@ function CardDeadlineRow({ row: r, now }: { row: RailRow; now: Date }) {
           past
             ? "text-ink-3 line-through decoration-ink-3 decoration-[1.5px]"
             : next
-              ? "text-hot"
+              ? r.urgent
+                ? "text-hot"
+                : "text-[color:var(--accent)]"
               : "text-ink-3"
         )}
       >
@@ -642,6 +661,7 @@ function LeadLine({
   now,
   urgent,
   showMultiRound,
+  compact = false,
 }: {
   size: "mobile" | "desktop";
   event: ScheduledEvent;
@@ -649,6 +669,7 @@ function LeadLine({
   now: Date;
   urgent: boolean;
   showMultiRound: boolean;
+  compact?: boolean;
 }) {
   const leadKindLabel = showMultiRound
     ? `R${lead.roundIdx + 1} ${dateNameShort(lead.name).toLowerCase()}`
@@ -656,15 +677,17 @@ function LeadLine({
   const isMobile = size === "mobile";
   const inner = (
     <>
-      <span
-        className={clsx(
-          "font-ui font-semibold leading-none tracking-[-0.01em] tabular-nums",
-          isMobile ? "text-[13px]" : "text-[15px]",
-          urgent ? "text-hot" : "text-[color:var(--accent)]"
-        )}
-      >
-        {shortCountdown(lead.date, now)}
-      </span>
+      {!compact && (
+        <span
+          className={clsx(
+            "font-ui font-semibold leading-none tracking-[-0.01em] tabular-nums",
+            isMobile ? "text-[13px]" : "text-[15px]",
+            urgent ? "text-hot" : "text-[color:var(--accent)]"
+          )}
+        >
+          {shortCountdown(lead.date, now)}
+        </span>
+      )}
       <span
         className={clsx(
           isMobile
@@ -677,15 +700,20 @@ function LeadLine({
         )}
       >
         <b className="font-medium text-ink">{leadKindLabel}</b>
-        {isDeadline(lead.name) ? " deadline" : ""}{" "}
-        <span
-          className={clsx(
-            "font-mono tracking-[0.04em] text-ink-3",
-            isMobile ? "text-[10px]" : "text-[11px]"
-          )}
-        >
-          {roundShortDate(lead.date)} 23:59 AoE
-        </span>
+        {isDeadline(lead.name) ? " deadline" : ""}
+        {!compact && (
+          <>
+            {" "}
+            <span
+              className={clsx(
+                "font-mono tracking-[0.04em] text-ink-3",
+                isMobile ? "text-[10px]" : "text-[11px]"
+              )}
+            >
+              {roundShortDate(lead.date)} 23:59 AoE
+            </span>
+          </>
+        )}
       </span>
       {e.importantDateUrl &&
         (isMobile ? (
@@ -810,7 +838,8 @@ function DateRow({ row: r }: { row: RailRow }) {
           "font-mono text-[11px]",
           r.kind === "past" &&
             "text-ink-2 line-through decoration-ink-2 decoration-[1.5px]",
-          r.kind === "next" && "text-hot",
+          r.kind === "next" &&
+            (r.urgent ? "text-hot" : "text-[color:var(--accent)]"),
           r.kind === "default" && "text-ink-3"
         )}
       >
@@ -878,17 +907,20 @@ function RoundColumn({
   rows: RailRow[];
   active: boolean;
 }) {
+  const urgent = active && rows.some((r) => r.kind === "next" && r.urgent);
+  const accentClass = urgent ? "text-hot" : "text-[color:var(--accent)]";
+  const borderClass = urgent ? "border-hot" : "border-[color:var(--accent)]";
   return (
     <div
       className={clsx(
         "flex flex-col gap-1 border-l-2 pl-2.5",
-        active ? "border-hot" : "border-rule"
+        active ? borderClass : "border-rule"
       )}
     >
       <div
         className={clsx(
           "flex items-baseline gap-2 font-mono text-[10px] font-medium uppercase tracking-[0.08em]",
-          active ? "text-hot" : "text-ink-3"
+          active ? accentClass : "text-ink-3"
         )}
       >
         Round {idx + 1}

@@ -210,6 +210,110 @@ const monDayYearFmt = new Intl.DateTimeFormat(undefined, {
   year: "numeric",
 });
 
+const weekdayLongFmt = new Intl.DateTimeFormat(undefined, { weekday: "long" });
+const monthLongFmt = new Intl.DateTimeFormat(undefined, { month: "long" });
+
+type Group = {
+  key: string;
+  date: string | null;
+  events: ScheduledEvent[];
+};
+
+function buildGroups(events: ScheduledEvent[], now: Date): Group[] {
+  return events.reduce<Group[]>((acc, event) => {
+    const leadDate = findNextDeadline(event, now)?.date ?? null;
+    const last = acc[acc.length - 1];
+    if (last && last.date === leadDate) {
+      last.events.push(event);
+      return acc;
+    }
+    acc.push({
+      key: `${leadDate ?? "none"}:${acc.length}`,
+      date: leadDate,
+      events: [event],
+    });
+    return acc;
+  }, []);
+}
+
+function DeadlineGroupHeader({
+  date,
+  count,
+  now,
+}: {
+  date: string | null;
+  count: number;
+  now: Date;
+}) {
+  if (date === null) {
+    return (
+      <div
+        className="sticky top-0 z-10 -mx-5 md:-mx-8"
+        style={{ background: "var(--paper)" }}
+      >
+        <div className="flex items-end justify-between gap-4 border-b border-rule px-5 pb-3 pt-4 md:px-8">
+          <h2 className="font-ui text-[18px] font-semibold leading-none tracking-[-0.02em] text-ink-2 sm:text-[22px]">
+            No upcoming deadlines
+          </h2>
+          <div className="font-mono text-[11px] uppercase tracking-[0.04em] text-ink-3">
+            <b className="font-medium text-ink-2">{count}</b> event
+            {count === 1 ? "" : "s"}
+          </div>
+        </div>
+      </div>
+    );
+  }
+  const cal = toCalendarDate(date);
+  if (!cal) return null;
+  const urgent = isDeadlineUrgent(date, now);
+  const instant = toAoeInstant(date);
+  const past = instant ? instant.getTime() < now.getTime() : false;
+  return (
+    <div
+      className="sticky top-0 z-10 -mx-5 md:-mx-8"
+      style={{ background: "var(--paper)" }}
+    >
+      <div className="flex items-end justify-between gap-4 border-b border-rule px-5 pb-3 pt-4 md:px-8">
+        <h2 className="flex items-end gap-3 font-ui">
+          <span
+            className={clsx(
+              "font-semibold leading-[0.8] tracking-[-0.025em] tabular-nums",
+              "text-[30px] sm:text-[36px]",
+              urgent ? "text-hot" : "text-[color:var(--accent)]"
+            )}
+          >
+            {cal.getDate()}
+          </span>
+          <span className="flex flex-col gap-1 leading-none">
+            <span className="font-mono text-[12px] font-medium uppercase tracking-[0.08em] text-ink sm:text-[13px]">
+              {monthLongFmt.format(cal)} {cal.getFullYear()}
+            </span>
+            <span className="font-mono text-[10px] uppercase tracking-[0.06em] text-ink-3 sm:text-[11px]">
+              {weekdayLongFmt.format(cal)}
+            </span>
+          </span>
+        </h2>
+        <div className="flex flex-col items-end gap-1 font-mono text-[11px] uppercase tracking-[0.04em] text-ink-3">
+          {!past && (
+            <span
+              className={clsx(
+                "font-medium",
+                urgent ? "text-hot" : "text-[color:var(--accent)]"
+              )}
+            >
+              {humanCountdown(date, now)}
+            </span>
+          )}
+          <span>
+            <b className="font-medium text-ink-2">{count}</b> deadline
+            {count === 1 ? "" : "s"}
+          </span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function Hero({
   events,
   starredKeys,
@@ -833,6 +937,10 @@ function EventListInner({ events }: { events: ScheduledEvent[] }) {
     () => displayEvents.filter((e) => isDueThisWeek(e, now)).length,
     [displayEvents, now]
   );
+  const groups = useMemo(
+    () => buildGroups(displayEvents, now),
+    [displayEvents, now]
+  );
   const totalActive = activeEvents.length;
   const starredCount = starredKeys.size;
   const hasOthers = view === "starred" && totalActive > starredCount;
@@ -896,21 +1004,41 @@ function EventListInner({ events }: { events: ScheduledEvent[] }) {
       <div
         className={clsx(
           "px-5 md:px-8",
-          layout === "grid"
-            ? "mt-4 grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3"
-            : "[&>*:first-child>*]:border-t-0"
+          layout === "grid" &&
+            "mt-4 grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3"
         )}
       >
         {prefsLoaded ? (
           displayEvents.length > 0 ? (
-            displayEvents.map((e) =>
-              layout === "grid" ? (
+            layout === "grid" ? (
+              displayEvents.map((e) => (
                 <EventCard key={eventKey(e)} event={e} now={now} />
-              ) : (
-                <div key={eventKey(e)} className="@container/row">
-                  <EventRow event={e} now={now} />
-                </div>
-              )
+              ))
+            ) : (
+              groups.map((g) => (
+                <section key={g.key} className="relative">
+                  <DeadlineGroupHeader
+                    date={g.date}
+                    count={g.events.length}
+                    now={now}
+                  />
+                  {g.events.map((e, i) => (
+                    <div
+                      key={eventKey(e)}
+                      className={clsx(
+                        "@container/row",
+                        i === 0 && "[&>*]:border-t-0"
+                      )}
+                    >
+                      <EventRow
+                        event={e}
+                        now={now}
+                        hideDate={g.date !== null}
+                      />
+                    </div>
+                  ))}
+                </section>
+              ))
             )
           ) : view === "starred" ? null : (
             <div className="py-8 text-[13px] text-ink-3">

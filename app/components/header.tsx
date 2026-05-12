@@ -6,10 +6,9 @@ import { SubmitEventPopover } from "./submit-event-popover";
 export function Header() {
   return (
     <header
-      className="sticky top-0 z-10 grid items-center gap-6 border-b border-rule px-5 py-3.5 backdrop-blur-md md:px-8"
+      className="grid items-center gap-6 border-b border-rule px-5 py-3.5 md:px-8"
       style={{
         gridTemplateColumns: "auto 1fr auto",
-        background: "color-mix(in srgb, var(--paper) 88%, transparent)",
       }}
     >
       <Link
