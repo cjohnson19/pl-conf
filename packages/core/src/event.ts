@@ -117,10 +117,16 @@ const timeBearingStyles = new Set<DateFormatStyle>([
   "compact-with-time",
 ]);
 
+const aoeInstantCache = new Map<string, Date>();
+
 export function toAoeInstant(date: MaybeDate): Date | null {
   if (date === "TBD") return null;
+  const cached = aoeInstantCache.get(date);
+  if (cached !== undefined) return cached;
   const iso = date.replaceAll("/", "-");
-  return new Date(`${iso}T23:59:59.999-12:00`);
+  const result = new Date(`${iso}T23:59:59.999-12:00`);
+  aoeInstantCache.set(date, result);
+  return result;
 }
 
 export function parseDateParts(date: string): [number, number, number] | null {
@@ -129,15 +135,21 @@ export function parseDateParts(date: string): [number, number, number] | null {
   return [y, m, d];
 }
 
+const calendarDateCache = new Map<string, Date>();
+
 // Local-tz midnight of the YAML calendar date — for *display*, where "May 25"
 // should read "May 25" regardless of viewer tz. Distinct from toAoeInstant,
 // which is the AOE moment and rolls the calendar day forward east of UTC-12.
 export function toCalendarDate(date: MaybeDate): Date | null {
   if (date === "TBD") return null;
+  const cached = calendarDateCache.get(date);
+  if (cached !== undefined) return cached;
   const parts = parseDateParts(date);
   if (!parts) return null;
   const [y, m, d] = parts;
-  return new Date(y, m - 1, d);
+  const result = new Date(y, m - 1, d);
+  calendarDateCache.set(date, result);
+  return result;
 }
 
 export function isDeadlinePast(

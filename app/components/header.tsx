@@ -1,7 +1,7 @@
 import Link from "next/link";
-import { Github } from "lucide-react";
 import { ThemeToggle } from "./theme-toggle";
 import { SubmitEventPopover } from "./submit-event-popover";
+import { SettingsPopover } from "./settings-popover";
 
 export function Header() {
   return (
@@ -32,15 +32,8 @@ export function Header() {
         >
           About
         </Link>
-        <a
-          href="https://github.com/cjohnson19/pl-conf"
-          target="_blank"
-          aria-label="Source on GitHub"
-          className="grid h-11 w-11 place-items-center rounded-pill border border-rule text-ink transition-colors hover:bg-paper-2 sm:h-[34px] sm:w-[34px]"
-        >
-          <Github size={15} strokeWidth={1.75} />
-        </a>
         <ThemeToggle />
+        <SettingsPopover />
         <span
           className="mx-1 hidden h-[18px] w-px bg-rule sm:inline-block"
           aria-hidden

@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { memo, useMemo } from "react";
 import clsx from "clsx";
 import { ArrowUpRight } from "lucide-react";
 import {
@@ -165,7 +165,7 @@ function buildRoundRows(
   });
 }
 
-export function EventRow({
+function EventRowImpl({
   event: e,
   now,
   hideDate = false,
@@ -412,7 +412,7 @@ export function EventRow({
   );
 }
 
-export function EventCard({
+function EventCardImpl({
   event: e,
   now,
 }: {
@@ -937,3 +937,6 @@ function RoundColumn({
     </div>
   );
 }
+
+export const EventRow = memo(EventRowImpl);
+export const EventCard = memo(EventCardImpl);

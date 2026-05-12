@@ -4,6 +4,7 @@ import "./globals.css";
 import "./typography.css";
 import { Header } from "./components/header";
 import { ThemeProvider } from "./components/theme-provider";
+import { PreferencesProvider } from "./components/preferences-provider";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -60,8 +61,10 @@ export default function RootLayout({
       <head />
       <body>
         <ThemeProvider>
-          <Header />
-          <main>{children}</main>
+          <PreferencesProvider>
+            <Header />
+            <main>{children}</main>
+          </PreferencesProvider>
         </ThemeProvider>
       </body>
     </html>

@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  useDeferredValue,
   useEffect,
   useMemo,
   useRef,
@@ -12,6 +13,7 @@ import clsx from "clsx";
 import {
   Calendar,
   Command,
+  Github,
   LayoutGrid,
   MoreHorizontal,
   Rows3,
@@ -39,10 +41,9 @@ import { humanCountdown } from "../lib/countdown";
 import {
   applyFilters,
   isActive,
-  matchesText,
   openToNewSubmissions,
 } from "../lib/event-filter";
-import { PreferencesProvider, usePreferences } from "./preferences-provider";
+import { usePreferences } from "./preferences-provider";
 import { EventCard, EventRow } from "./event-row";
 import { Skeleton } from "./ui/skeleton";
 import { LastUpdated } from "./last-updated";
@@ -837,6 +838,7 @@ function EventListInner({ events }: { events: ScheduledEvent[] }) {
   const setLayout = (next: "list" | "grid") =>
     setPrefs((p) => ({ ...p, display: { ...p.display, layout: next } }));
   const [search, setSearch] = useState("");
+  const deferredSearch = useDeferredValue(search);
   const [category, setCategory] = useState<Category>("all");
   const [view, setView, viewLoaded] = useSessionState<View>(
     SESSION_VIEW_KEY,
@@ -896,14 +898,29 @@ function EventListInner({ events }: { events: ScheduledEvent[] }) {
     };
   }, [activeEvents]);
 
-  const baseFiltered = useMemo(
-    () =>
-      applyFilters(activeEvents, [
-        (e) => (category === "all" ? true : e.type === category),
-        search ? matchesText(search) : () => true,
-      ]),
-    [activeEvents, category, search]
-  );
+  const searchHaystacks = useMemo(() => {
+    const m = new WeakMap<ScheduledEvent, string>();
+    events.forEach((e) => {
+      const parts = [e.name, e.abbreviation];
+      if (e.location) parts.push(e.location);
+      if (e.format) parts.push(e.format);
+      parts.push(...e.tags);
+      m.set(e, parts.join("\n").toLowerCase());
+    });
+    return m;
+  }, [events]);
+
+  const baseFiltered = useMemo(() => {
+    const needle = deferredSearch.trim().toLowerCase();
+    const matchesSearch: (e: ScheduledEvent) => boolean =
+      needle === ""
+        ? () => true
+        : (e) => (searchHaystacks.get(e) ?? "").includes(needle);
+    return applyFilters(activeEvents, [
+      (e) => (category === "all" ? true : e.type === category),
+      matchesSearch,
+    ]);
+  }, [activeEvents, category, deferredSearch, searchHaystacks]);
 
   const viewCounts = useMemo<Record<View, number>>(
     () => ({
@@ -1084,7 +1101,16 @@ function EventListInner({ events }: { events: ScheduledEvent[] }) {
           </div>
         )}
 
-      <footer className="mt-14 flex items-center justify-end gap-6 border-t border-rule px-5 py-6 text-[12px] text-ink-3 md:px-8">
+      <footer className="mt-14 flex items-center justify-between gap-4 border-t border-rule px-5 py-6 text-[12px] text-ink-3 md:px-8">
+        <a
+          href="https://github.com/cjohnson19/pl-conf"
+          target="_blank"
+          aria-label="Source on GitHub"
+          className="inline-flex items-center gap-1.5 text-ink-3 no-underline transition-colors hover:text-ink"
+        >
+          <Github size={13} strokeWidth={1.75} />
+          <span>Source</span>
+        </a>
         <span>
           {totalActive} events tracked
           {lastUpdatedDate && (
@@ -1100,9 +1126,5 @@ function EventListInner({ events }: { events: ScheduledEvent[] }) {
 }
 
 export function EventListContainer({ events }: { events: ScheduledEvent[] }) {
-  return (
-    <PreferencesProvider>
-      <EventListInner events={events} />
-    </PreferencesProvider>
-  );
+  return <EventListInner events={events} />;
 }
