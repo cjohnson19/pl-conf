@@ -17,7 +17,7 @@ export default async function About() {
         </p>
         <p>
           This site stores none of your information and collects no analytics.
-          Your watched and hidden events are kept locally in your browser.
+          Your starred and hidden events are kept locally in your browser.
         </p>
         <p>
           The source lives on{" "}

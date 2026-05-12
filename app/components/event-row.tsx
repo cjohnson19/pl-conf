@@ -95,7 +95,7 @@ function dateNameShort(n: DateName): string {
     case "rebuttal":
       return "Rebuttal";
     case "conditional-acceptance":
-      return "Conditional";
+      return "Conditional Acceptance";
     case "camera-ready":
       return "Camera-ready";
     case "revisions":
@@ -119,28 +119,6 @@ function yearNum(date: MaybeDate): string {
   if (date === "TBD") return "";
   const cal = toCalendarDate(date);
   return cal ? cal.getFullYear().toString() : "";
-}
-
-function typeColor(t: ScheduledEvent["type"]): string {
-  switch (t) {
-    case "conference":
-      return "text-[color:var(--accent)]";
-    case "workshop":
-      return "text-hot";
-    case "symposium":
-      return "text-ink-2";
-  }
-}
-
-function typeLabel(t: ScheduledEvent["type"]): string {
-  switch (t) {
-    case "conference":
-      return "Conference";
-    case "workshop":
-      return "Workshop";
-    case "symposium":
-      return "Symposium";
-  }
 }
 
 function roundShortDate(date: MaybeDate): string {
@@ -214,26 +192,22 @@ export function EventRow({
       data-event-key={eventKey(e)}
       data-event-abbrev={e.abbreviation}
       className={clsx(
-        "group grid items-center rounded-xs border-t border-rule",
-        "[grid-template-columns:100px_minmax(0,1.6fr)_minmax(0,2fr)_104px]",
-        "max-[1080px]:[grid-template-columns:80px_minmax(0,1.4fr)_minmax(0,1.5fr)_104px] max-[1080px]:gap-5",
-        "max-[760px]:[grid-template-columns:56px_1fr_44px] max-[760px]:gap-3",
-        "max-[420px]:[grid-template-columns:48px_1fr_44px] max-[420px]:gap-2.5",
-        "gap-7 py-[22px] px-4 -mx-4 transition-colors",
+        "event-row-grid group grid items-center rounded-xs border-t border-rule",
+        "py-[22px] px-4 -mx-4 transition-colors",
         "hover:bg-[color-mix(in_srgb,var(--card)_70%,transparent)]",
         "last:border-b last:border-rule"
       )}
     >
       <div
         className={clsx(
-          "flex flex-col items-start gap-1.5 max-[760px]:self-start",
+          "flex flex-col items-start gap-1.5 self-start @[760px]/row:self-auto",
           passed && "opacity-55"
         )}
       >
         <div
           className={clsx(
             "font-ui font-semibold leading-none tracking-[-0.025em] tabular-nums",
-            "text-[32px] max-[760px]:text-[24px] max-[420px]:text-[22px]",
+            "text-[22px] @[420px]/row:text-[24px] @[760px]/row:text-[32px]",
             urgent ? "text-hot" : "text-ink"
           )}
         >
@@ -268,7 +242,7 @@ export function EventRow({
             target="_blank"
             rel="noopener noreferrer"
             aria-label={`Open ${e.abbreviation} website`}
-            className="group/url flex min-w-0 items-baseline gap-1.5 text-[13px] text-ink-2 no-underline"
+            className="group/url flex w-fit min-w-0 max-w-full items-baseline gap-1.5 text-[13px] text-ink-2 no-underline"
           >
             <span className="min-w-0 truncate underline decoration-rule decoration-1 underline-offset-[3px] transition-[text-decoration-color] duration-200 ease-out group-hover/url:decoration-ink">
               {e.name}
@@ -286,15 +260,6 @@ export function EventRow({
           </div>
         )}
         <div className="flex flex-wrap items-center gap-x-3 gap-y-1 whitespace-nowrap font-mono text-[11px] uppercase tracking-[0.04em] text-ink-3">
-          <span
-            className={clsx(
-              "rounded-xs border px-1.5 py-0.5",
-              typeColor(e.type)
-            )}
-            style={{ borderColor: "currentColor" }}
-          >
-            {typeLabel(e.type)}
-          </span>
           {(() => {
             const items: { node: React.ReactNode; wideOnly: boolean }[] = [];
             if (e.location)
@@ -378,7 +343,7 @@ export function EventRow({
               showMultiRound={showMultiRound}
             />
           ))}
-        <div className="hidden pt-1 max-[760px]:block">
+        <div className="block pt-1 @[760px]/row:hidden">
           <RoundRail
             event={e}
             now={now}
@@ -390,7 +355,7 @@ export function EventRow({
         </div>
       </div>
 
-      <div className="flex min-w-0 flex-col gap-1 text-[13px] max-[760px]:hidden">
+      <div className="hidden min-w-0 flex-col gap-1 text-[13px] @[760px]/row:flex">
         {passed && lead ? (
           <StatusLine size="desktop" status={eventStatusMessage(e, now)} />
         ) : lead ? (
@@ -418,16 +383,225 @@ export function EventRow({
         />
       </div>
 
-      <div className="flex items-center justify-end gap-1 max-[760px]:self-start">
-        <div className="contents max-[760px]:hidden">
+      <div className="flex items-center justify-end gap-1 self-start @[760px]/row:self-auto">
+        <div className="hidden @[760px]/row:contents">
           <FavoriteButton prefKey={eventKey(e)} />
           <CalendarMenu event={e} />
         </div>
-        <div className="hidden max-[760px]:contents">
+        <div className="contents @[760px]/row:hidden">
           <RowActionSheet event={e} prefKey={eventKey(e)} />
         </div>
       </div>
     </div>
+  );
+}
+
+export function EventCard({
+  event: e,
+  now,
+}: {
+  event: ScheduledEvent;
+  now: Date;
+}) {
+  const lead = useMemo(() => findLead(e, now), [e, now]);
+  const year2 = formatDate(e.date.start, "year2", "en-US");
+  const startStr =
+    e.date.start !== "TBD" && e.date.end !== "TBD"
+      ? formatDateRange(e.date.start, e.date.end, "short")
+      : null;
+
+  const deadlineRounds = e.rounds.filter(
+    (r) => Object.keys(r.importantDates).length > 0
+  );
+  const hasRelationships = e.partOf.length > 0 || e.colocatedWith.length > 0;
+  const titleInner = (
+    <span className="font-ui text-[19px] font-bold leading-tight tracking-[-0.015em]">
+      {e.abbreviation} &rsquo;{year2}
+    </span>
+  );
+
+  return (
+    <div
+      className="flex h-full flex-col gap-2 border border-rule p-4"
+      style={{ background: "var(--card)" }}
+    >
+      <div className="flex items-center justify-between gap-2">
+        <div className="flex min-w-0 items-center gap-2">
+          {e.url ? (
+            <a
+              href={e.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label={`Open ${e.abbreviation} website`}
+              className="group/title inline-flex min-w-0 items-center gap-0.5 no-underline"
+            >
+              {titleInner}
+              <ArrowUpRight
+                size={14}
+                strokeWidth={1.75}
+                className="shrink-0 text-ink-3 transition-all duration-200 ease-out group-hover/title:-translate-y-0.5 group-hover/title:translate-x-0.5 group-hover/title:text-ink"
+                aria-hidden
+              />
+            </a>
+          ) : (
+            titleInner
+          )}
+        </div>
+        <div className="-my-2 -mr-1 flex shrink-0 items-center gap-0.5 [&_button]:h-8 [&_button]:w-8">
+          <FavoriteButton prefKey={eventKey(e)} />
+          <CalendarMenu event={e} />
+        </div>
+      </div>
+
+      <div className="line-clamp-2 text-[13px] leading-[1.4] text-ink-2">
+        {e.name}
+      </div>
+
+      <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1 text-[12px] text-ink-3">
+        {startStr && <span>{startStr}</span>}
+        {startStr && e.location && (
+          <span aria-hidden className="text-ink-3/60">
+            ·
+          </span>
+        )}
+        {e.location && (
+          <span className="min-w-0 truncate text-ink-2">{e.location}</span>
+        )}
+      </div>
+
+      {(deadlineRounds.length > 0 || e.importantDateUrl) && (
+        <div className="mt-1 flex flex-col gap-2">
+          {e.importantDateUrl && (
+            <a
+              href={e.importantDateUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="View important dates"
+              className="group/dates inline-flex items-center gap-1 self-start text-[12px] font-medium text-ink no-underline"
+            >
+              <span className="underline decoration-rule decoration-1 underline-offset-[3px] transition-[text-decoration-color] duration-200 ease-out group-hover/dates:decoration-ink">
+                Dates &amp; Deadlines
+              </span>
+              <ArrowUpRight
+                size={12}
+                strokeWidth={1.75}
+                className="text-ink-3 transition-all duration-200 ease-out group-hover/dates:-translate-y-0.5 group-hover/dates:translate-x-0.5 group-hover/dates:text-ink"
+                aria-hidden
+              />
+            </a>
+          )}
+          {deadlineRounds.map((r, idx) => (
+            <CardDeadlineTable
+              key={idx}
+              round={r}
+              roundIndex={idx}
+              showRoundLabel={deadlineRounds.length > 1}
+              activeName={lead?.roundIdx === idx ? lead?.name : undefined}
+              now={now}
+            />
+          ))}
+        </div>
+      )}
+
+      {hasRelationships && (
+        <div className="mt-auto flex flex-wrap items-center gap-x-2 gap-y-1 border-t border-rule pt-3 text-[11px] text-ink-3">
+          {e.partOf.length > 0 && (
+            <span>
+              Part of{" "}
+              <b className="font-medium text-ink-2">{e.partOf.join(", ")}</b>
+            </span>
+          )}
+          {e.partOf.length > 0 && e.colocatedWith.length > 0 && (
+            <span aria-hidden className="text-ink-3/60">
+              ·
+            </span>
+          )}
+          {e.colocatedWith.length > 0 && (
+            <span>
+              Co-located with{" "}
+              <b className="font-medium text-ink-2">
+                {e.colocatedWith.join(", ")}
+              </b>
+            </span>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function CardDeadlineTable({
+  round,
+  roundIndex,
+  showRoundLabel,
+  activeName,
+  now,
+}: {
+  round: Round;
+  roundIndex: number;
+  showRoundLabel: boolean;
+  activeName: DateName | undefined;
+  now: Date;
+}) {
+  const rows = buildRoundRows(round, now, activeName);
+  if (rows.length === 0) return null;
+  return (
+    <div className="flex flex-col gap-1">
+      {showRoundLabel && (
+        <div className="text-[10px] font-medium tracking-[0.06em] text-ink-3">
+          {round.name ?? `Round ${roundIndex + 1}`}
+        </div>
+      )}
+      <table className="w-full border-collapse text-[12px]">
+        <tbody>
+          {rows.map((r) => (
+            <CardDeadlineRow key={r.name} row={r} now={now} />
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+function CardDeadlineRow({ row: r, now }: { row: RailRow; now: Date }) {
+  const past = r.kind === "past";
+  const next = r.kind === "next";
+  return (
+    <tr className={clsx(past && "text-ink-2")}>
+      <td
+        className={clsx(
+          "py-1 pr-2 align-baseline",
+          past && "line-through decoration-ink-2 decoration-[1.5px]",
+          next && "font-medium text-ink"
+        )}
+      >
+        {dateNameShort(r.name)}
+      </td>
+      <td
+        className={clsx(
+          "py-1 pr-2 align-baseline whitespace-nowrap font-mono",
+          past
+            ? "text-ink-2 line-through decoration-ink-2 decoration-[1.5px]"
+            : next
+              ? "text-ink"
+              : "text-ink-3"
+        )}
+      >
+        {r.date === "TBD" ? "TBD" : roundShortDate(r.date)}
+      </td>
+      <td
+        className={clsx(
+          "py-1 text-right align-baseline whitespace-nowrap font-mono text-[11px]",
+          past
+            ? "text-ink-3 line-through decoration-ink-3 decoration-[1.5px]"
+            : next
+              ? "text-hot"
+              : "text-ink-3"
+        )}
+      >
+        {r.date === "TBD" ? "" : shortCountdown(r.date, now)}
+      </td>
+    </tr>
   );
 }
 
@@ -443,7 +617,7 @@ function StatusLine({
       className={clsx(
         "items-baseline",
         size === "mobile"
-          ? "hidden gap-2 text-[12px] max-[760px]:flex"
+          ? "flex gap-2 text-[12px] @[760px]/row:hidden"
           : "flex gap-2.5"
       )}
     >
@@ -536,8 +710,9 @@ function LeadLine({
   );
 
   const mobileWrapper =
-    "hidden items-baseline gap-2 text-[12px] max-[760px]:flex max-[760px]:py-2 max-[760px]:-my-2";
-  const desktopWrapper = "flex items-baseline gap-2.5 font-medium text-ink";
+    "flex w-fit max-w-full items-baseline gap-2 py-2 -my-2 text-[12px] @[760px]/row:hidden";
+  const desktopWrapper =
+    "flex w-fit max-w-full items-baseline gap-2.5 font-medium text-ink";
 
   if (e.importantDateUrl) {
     return (
@@ -589,7 +764,7 @@ function RoundRail({
     <SingleRoundRail
       event={e}
       now={now}
-      excludeName={passed ? undefined : lead?.name}
+      activeNext={passed ? undefined : lead?.name}
     />
   );
 }
@@ -597,34 +772,54 @@ function RoundRail({
 function SingleRoundRail({
   event: e,
   now,
-  excludeName,
+  activeNext,
 }: {
   event: ScheduledEvent;
   now: Date;
-  excludeName?: DateName;
+  activeNext?: DateName;
 }) {
   const round = e.rounds[0];
   if (!round) return null;
-  const entries = (
-    Object.entries(round.importantDates) as Array<[DateName, MaybeDate]>
-  )
-    .filter(([n]) => n !== excludeName)
-    .filter(([, d]) => d !== undefined);
-  if (entries.length === 0) return null;
+  const rows = buildRoundRows(round, now, activeNext);
+  if (rows.length === 0) return null;
   return (
-    <div className="mt-1 flex flex-wrap gap-1.5">
-      {entries.map(([name, date]) => {
-        const past =
-          date !== "TBD" && date !== undefined
-            ? isDeadlinePast(date, now)
-            : false;
-        return (
-          <span key={name} className={clsx("pill", past && "passed")}>
-            {dateNameShort(name)} ·{" "}
-            {date === "TBD" ? "TBD" : roundShortDate(date)}
-          </span>
-        );
-      })}
+    <div className="mt-2 flex max-w-xs flex-col gap-1 border-l-2 border-rule pl-2.5">
+      {rows.map((r) => (
+        <DateRow key={r.name} row={r} />
+      ))}
+    </div>
+  );
+}
+
+function DateRow({ row: r }: { row: RailRow }) {
+  return (
+    <div
+      className={clsx(
+        "grid grid-cols-[1fr_auto] gap-2 text-[12px]",
+        r.kind === "past" && "text-ink-2",
+        r.kind === "next" && "font-medium text-ink",
+        r.kind === "default" && "text-ink-2"
+      )}
+    >
+      <span
+        className={clsx(
+          r.kind === "past" &&
+            "line-through decoration-ink-2 decoration-[1.5px]"
+        )}
+      >
+        {dateNameShort(r.name)}
+      </span>
+      <span
+        className={clsx(
+          "font-mono text-[11px]",
+          r.kind === "past" &&
+            "text-ink-2 line-through decoration-ink-2 decoration-[1.5px]",
+          r.kind === "next" && "text-hot",
+          r.kind === "default" && "text-ink-3"
+        )}
+      >
+        {r.date === "TBD" ? "TBD" : roundShortDate(r.date)}
+      </span>
     </div>
   );
 }
@@ -709,32 +904,7 @@ function RoundColumn({
         </span>
       </div>
       {rows.map((r) => (
-        <div
-          key={r.name}
-          className={clsx(
-            "grid grid-cols-[1fr_auto] gap-2 text-[12px]",
-            r.kind === "past" && "text-ink-3",
-            r.kind === "next" && "font-medium text-ink",
-            r.kind === "default" && "text-ink-2"
-          )}
-        >
-          <span
-            className={clsx(
-              r.kind === "past" && "line-through decoration-rule decoration-1"
-            )}
-          >
-            {dateNameShort(r.name)}
-          </span>
-          <span
-            className={clsx(
-              "font-mono text-[11px]",
-              r.kind === "next" ? "text-hot" : "text-ink-3",
-              r.kind === "past" && "line-through decoration-rule decoration-1"
-            )}
-          >
-            {r.date === "TBD" ? "TBD" : roundShortDate(r.date)}
-          </span>
-        </div>
+        <DateRow key={r.name} row={r} />
       ))}
     </div>
   );

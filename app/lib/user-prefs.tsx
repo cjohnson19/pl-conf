@@ -15,6 +15,10 @@ export type FilterPreferences = {
 export type DisplayPreferences = {
   exactDeadlineTime: boolean;
   includeCalendarDeadlines: boolean;
+  introHeroDismissed: boolean;
+  deadlineHeroDismissed: boolean;
+  permanentlyHiddenEventHeroes: string[];
+  layout: "list" | "grid";
 };
 
 export type PreferenceCollection = {
@@ -36,5 +40,9 @@ export const defaultPreferences: PreferenceCollection = {
   display: {
     exactDeadlineTime: false,
     includeCalendarDeadlines: true,
+    introHeroDismissed: false,
+    deadlineHeroDismissed: false,
+    permanentlyHiddenEventHeroes: [],
+    layout: "list",
   },
 };

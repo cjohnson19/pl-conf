@@ -4,15 +4,17 @@
 
 @layer base {
   :root {
-    /* Fonts — vars set by next/font + geist; alias to design-system names */
+    /* Fonts — vars set by next/font; alias to design-system names */
     --font-ui:
-      var(--font-geist-sans), -apple-system, BlinkMacSystemFont, "SF Pro Text",
+      var(--font-inter), -apple-system, BlinkMacSystemFont, "SF Pro Text",
       sans-serif;
+    --font-display: var(--font-ui);
+    --font-mono: var(--font-ui);
 
     /* Paper + ink palette */
-    --paper: #f4f1ea;
+    --paper: #fffdf7;
     --paper-2: #eae5da;
-    --card: #fbfaf6;
+    --card: #faf9f6;
     --ink: #14130f;
     --ink-2: #54514a;
     --ink-3: #8e8a7e;
@@ -97,14 +99,42 @@
   }
 }
 
+@layer utilities {
+  .uppercase {
+    text-transform: none;
+  }
+}
+
 @layer components {
+  .event-row-grid {
+    grid-template-columns: 48px 1fr 44px;
+    gap: 0.625rem;
+  }
+  @container row (min-width: 420px) {
+    .event-row-grid {
+      grid-template-columns: 56px 1fr 44px;
+      gap: 0.75rem;
+    }
+  }
+  @container row (min-width: 760px) {
+    .event-row-grid {
+      grid-template-columns: 80px minmax(0, 1.4fr) minmax(0, 1.5fr) 104px;
+      gap: 1.25rem;
+    }
+  }
+  @container row (min-width: 1080px) {
+    .event-row-grid {
+      grid-template-columns: 100px minmax(0, 1.6fr) minmax(0, 2fr) 104px;
+      gap: 1.75rem;
+    }
+  }
+
   .pill {
     font:
       500 11px var(--font-mono),
       ui-monospace,
       monospace;
     letter-spacing: 0.04em;
-    text-transform: uppercase;
     color: var(--ink-3);
     border: 1px solid var(--rule);
     padding: 2px 8px;

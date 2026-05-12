@@ -1,5 +1,16 @@
 import type { Config } from "tailwindcss";
+import plugin from "tailwindcss/plugin";
 import tailwindcssAnimate from "tailwindcss-animate";
+import containerQueries from "@tailwindcss/container-queries";
+
+const maxContainerQueries = plugin(({ matchVariant }) => {
+  matchVariant(
+    "@max",
+    (value, { modifier }) =>
+      `@container ${modifier ?? ""} (max-width: ${value})`,
+    { values: {} }
+  );
+});
 
 export default {
   content: [
@@ -100,5 +111,5 @@ export default {
       },
     },
   },
-  plugins: [tailwindcssAnimate],
+  plugins: [tailwindcssAnimate, containerQueries, maxContainerQueries],
 } satisfies Config;

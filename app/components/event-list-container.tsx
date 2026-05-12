@@ -9,7 +9,22 @@ import {
   type SetStateAction,
 } from "react";
 import clsx from "clsx";
-import { Calendar, Command, Search } from "lucide-react";
+import {
+  Calendar,
+  Command,
+  LayoutGrid,
+  MoreHorizontal,
+  Rows3,
+  Search,
+  Star,
+  X,
+} from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "./ui/dropdown-menu";
 import {
   type DateName,
   type MaybeDate,
@@ -28,14 +43,14 @@ import {
   openToNewSubmissions,
 } from "../lib/event-filter";
 import { PreferencesProvider, usePreferences } from "./preferences-provider";
-import { EventRow } from "./event-row";
+import { EventCard, EventRow } from "./event-row";
 import { Skeleton } from "./ui/skeleton";
 import { LastUpdated } from "./last-updated";
 
 const hasOpenSubmission = openToNewSubmissions(true);
 
 type Category = "all" | "conference" | "workshop" | "symposium" | "school";
-type View = "watching" | "all" | "submissions";
+type View = "starred" | "all" | "submissions";
 
 const CATEGORY_CHIPS: { key: Category; label: string }[] = [
   { key: "all", label: "All" },
@@ -134,6 +149,60 @@ function findNextStart(
   return { date: e.date.start, time };
 }
 
+const MS_PER_DAY = 24 * 60 * 60 * 1000;
+const HERO_CUTOFF_DAYS = 14;
+const SESSION_DISMISSED_KEY = "dismissedHeroKeys";
+const SESSION_VIEW_KEY = "view";
+
+function useSessionState<T extends string>(
+  key: string,
+  initial: T
+): [T, Dispatch<SetStateAction<T>>, boolean] {
+  const [value, setValue] = useState<T>(initial);
+  const [loaded, setLoaded] = useState(false);
+  useEffect(() => {
+    try {
+      const stored = window.sessionStorage.getItem(key);
+      if (stored !== null) setValue(stored as T);
+    } catch {}
+    setLoaded(true);
+  }, [key]);
+  const set: Dispatch<SetStateAction<T>> = (v) => {
+    setValue((prev) => {
+      const next = typeof v === "function" ? (v as (p: T) => T)(prev) : v;
+      try {
+        window.sessionStorage.setItem(key, next);
+      } catch {}
+      return next;
+    });
+  };
+  return [value, set, loaded];
+}
+
+function useSessionDismissedHeroes() {
+  const [keys, setKeys] = useState<Set<string>>(new Set());
+  useEffect(() => {
+    try {
+      const stored = window.sessionStorage.getItem(SESSION_DISMISSED_KEY);
+      if (stored) setKeys(new Set(JSON.parse(stored)));
+    } catch {}
+  }, []);
+  const dismiss = (key: string) => {
+    setKeys((prev) => {
+      const next = new Set(prev);
+      next.add(key);
+      try {
+        window.sessionStorage.setItem(
+          SESSION_DISMISSED_KEY,
+          JSON.stringify([...next])
+        );
+      } catch {}
+      return next;
+    });
+  };
+  return { keys, dismiss };
+}
+
 const monDayYearFmt = new Intl.DateTimeFormat(undefined, {
   weekday: "short",
   month: "short",
@@ -143,43 +212,84 @@ const monDayYearFmt = new Intl.DateTimeFormat(undefined, {
 
 function Hero({
   events,
-  watchingKeys,
+  starredKeys,
   now,
   totalActive,
 }: {
   events: ScheduledEvent[];
-  watchingKeys: Set<string>;
+  starredKeys: Set<string>;
   now: Date;
   totalActive: number;
 }) {
+  const { prefs, setPrefs, prefsLoaded } = usePreferences();
+  const { keys: sessionDismissed, dismiss: dismissThisSession } =
+    useSessionDismissedHeroes();
+  const hideEventForever = (key: string) =>
+    setPrefs((p) => ({
+      ...p,
+      display: {
+        ...p.display,
+        permanentlyHiddenEventHeroes: Array.from(
+          new Set([...(p.display.permanentlyHiddenEventHeroes ?? []), key])
+        ),
+      },
+    }));
+  const dismissAllAlerts = () =>
+    setPrefs((p) => ({
+      ...p,
+      display: { ...p.display, deadlineHeroDismissed: true },
+    }));
+  const alertMenuItems = (event: ScheduledEvent, evKey: string) => [
+    {
+      label: `Hide alerts for ${event.abbreviation}`,
+      description: "Always hide this event's deadline cards.",
+      onSelect: () => hideEventForever(evKey),
+    },
+    {
+      label: "Stop showing deadline alerts",
+      description: "Permanently hides this card for every event.",
+      onSelect: dismissAllAlerts,
+    },
+  ];
   const { upcomingDeadlines, upcomingStarts } = useMemo(() => {
-    const watched = events.filter((e) => watchingKeys.has(eventKey(e)));
+    const horizon = now.getTime() + HERO_CUTOFF_DAYS * MS_PER_DAY;
+    const starred = events.filter((e) => starredKeys.has(eventKey(e)));
     return {
-      upcomingDeadlines: watched.flatMap((event) => {
+      upcomingDeadlines: starred.flatMap((event) => {
         const lead = findNextDeadline(event, now);
-        return lead
+        return lead && lead.time <= horizon
           ? [{ event, date: lead.date, name: lead.name, time: lead.time }]
           : [];
       }),
-      upcomingStarts: watched.flatMap((event) => {
+      upcomingStarts: starred.flatMap((event) => {
         const start = findNextStart(event, now);
-        return start ? [{ event, date: start.date, time: start.time }] : [];
+        return start && start.time <= horizon
+          ? [{ event, date: start.date, time: start.time }]
+          : [];
       }),
     };
-  }, [events, watchingKeys, now]);
+  }, [events, starredKeys, now]);
 
-  if (watchingKeys.size === 0) {
+  if (starredKeys.size === 0) {
     return <IntroHero totalActive={totalActive} />;
   }
 
+  if (!prefsLoaded || prefs.display.deadlineHeroDismissed) return null;
+
   if (upcomingDeadlines.length > 0) {
     const pick = upcomingDeadlines.reduce((a, b) => (a.time <= b.time ? a : b));
+    const evKey = eventKey(pick.event);
+    const pickKey = `deadline:${evKey}:${pick.name}:${pick.date}`;
+    if (sessionDismissed.has(pickKey)) return null;
+    if (prefs.display.permanentlyHiddenEventHeroes?.includes(evKey))
+      return null;
     const deadline = isDeadline(pick.name);
     const urgent = isDeadlineUrgent(pick.date, now);
     return (
       <HeroShell
-        accent={urgent ? "hot" : "accent"}
         label={deadline ? "Your next deadline" : "Coming up"}
+        onDismissOnce={() => dismissThisSession(pickKey)}
+        menuItems={alertMenuItems(pick.event, evKey)}
         headline={
           <>
             <span className="font-semibold">
@@ -206,11 +316,16 @@ function Hero({
 
   if (upcomingStarts.length === 0) return null;
   const pick = upcomingStarts.reduce((a, b) => (a.time <= b.time ? a : b));
+  const evKey = eventKey(pick.event);
+  const pickKey = `start:${evKey}:${pick.date}`;
+  if (sessionDismissed.has(pickKey)) return null;
+  if (prefs.display.permanentlyHiddenEventHeroes?.includes(evKey)) return null;
   const startCal = toCalendarDate(pick.date);
   return (
     <HeroShell
-      accent="accent"
       label="Up next"
+      onDismissOnce={() => dismissThisSession(pickKey)}
+      menuItems={alertMenuItems(pick.event, evKey)}
       headline={
         <>
           <span className="font-semibold">{pick.event.abbreviation}</span>{" "}
@@ -239,12 +354,28 @@ function Hero({
 }
 
 function IntroHero({ totalActive }: { totalActive: number }) {
+  const { prefs, setPrefs, prefsLoaded } = usePreferences();
+  if (!prefsLoaded || prefs.display.introHeroDismissed) return null;
+  const dismiss = () =>
+    setPrefs((p) => ({
+      ...p,
+      display: { ...p.display, introHeroDismissed: true },
+    }));
   return (
     <section
-      className="mx-5 mt-8 border border-rule p-5 sm:p-7 md:mx-8"
+      className="relative mx-5 mt-8 border border-rule p-5 sm:p-7 md:mx-8"
       style={{ background: "var(--card)" }}
     >
-      <p className="font-display text-[15px] italic leading-[1.45] text-ink-2 sm:text-[16px]">
+      <button
+        type="button"
+        onClick={dismiss}
+        aria-label="Hide introduction"
+        title="Hide"
+        className="absolute right-3 top-3 grid h-8 w-8 place-items-center rounded-full text-ink-3 transition-colors hover:bg-paper-2 hover:text-ink"
+      >
+        <X size={16} strokeWidth={1.75} />
+      </button>
+      <p className="pr-10 font-display text-[15px] leading-[1.45] text-ink-2 sm:text-[16px]">
         A small index of{" "}
         <span className="not-italic font-medium text-ink">{totalActive}</span>{" "}
         programming-language conferences, workshops, and symposia.
@@ -252,23 +383,9 @@ function IntroHero({ totalActive }: { totalActive: number }) {
 
       <div className="mt-5 space-y-4 border-t border-rule pt-5 sm:space-y-5 sm:pt-6">
         <IntroStep
-          icon={
-            <svg
-              viewBox="0 0 24 24"
-              width={22}
-              height={22}
-              fill="none"
-              stroke="currentColor"
-              strokeWidth={1.75}
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z" />
-              <circle cx={12} cy={12} r={3} fill="currentColor" stroke="none" />
-            </svg>
-          }
-          title="Watch events to keep an eye on their deadlines."
-          sub="Tap the eye on any row to follow it — your list stays in this browser."
+          icon={<Star size={20} strokeWidth={1.75} fill="currentColor" />}
+          title="Star events to keep track of their deadlines."
+          sub="Tap the star on any row to follow it — your list stays in this browser."
         />
         <IntroStep
           icon={<Calendar size={20} strokeWidth={1.75} />}
@@ -312,36 +429,78 @@ function IntroStep({
 }
 
 function HeroShell({
-  accent,
   label,
   headline,
   footer,
   footerTitle,
+  onDismissOnce,
+  menuItems,
 }: {
-  accent: "hot" | "accent";
   label: string;
   headline: React.ReactNode;
   footer?: string;
   footerTitle?: string;
+  onDismissOnce?: () => void;
+  menuItems?: {
+    label: string;
+    description?: string;
+    onSelect: () => void;
+  }[];
 }) {
   return (
     <section
-      className="mx-5 mt-8 border border-rule p-5 sm:p-7 md:mx-8"
+      className="relative mx-5 mt-8 border border-rule p-5 sm:p-7 md:mx-8"
       style={{ background: "var(--card)" }}
     >
-      <p className="label-cap mb-3.5 flex items-center gap-2">
-        <span
-          aria-hidden
-          className={clsx(
-            "inline-block h-[7px] w-[7px] rounded-full animate-pulse",
-            accent === "hot"
-              ? "bg-hot text-hot"
-              : "bg-[color:var(--accent)] text-[color:var(--accent)]"
+      {(onDismissOnce || (menuItems && menuItems.length > 0)) && (
+        <div className="absolute right-3 top-3 flex items-center gap-0.5">
+          {menuItems && menuItems.length > 0 && (
+            <DropdownMenu>
+              <DropdownMenuTrigger
+                aria-label="Alert options"
+                title="More options"
+                className="grid h-8 w-8 place-items-center rounded-full text-ink-3 transition-colors hover:bg-paper-2 hover:text-ink data-[state=open]:bg-paper-2 data-[state=open]:text-ink"
+              >
+                <MoreHorizontal size={16} strokeWidth={1.75} />
+              </DropdownMenuTrigger>
+              <DropdownMenuContent
+                align="end"
+                sideOffset={4}
+                className="max-w-[280px] border-rule text-ink shadow-pop"
+                style={{ background: "var(--card)" }}
+              >
+                {menuItems.map((item, i) => (
+                  <DropdownMenuItem
+                    key={i}
+                    onSelect={item.onSelect}
+                    className="flex cursor-pointer flex-col items-start gap-0.5 rounded-sm text-[13px] text-ink focus:bg-paper-2 focus:text-ink"
+                  >
+                    <span className="font-medium text-ink">{item.label}</span>
+                    {item.description && (
+                      <span className="text-[11px] text-ink-3">
+                        {item.description}
+                      </span>
+                    )}
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
           )}
-        />
-        {label}
-      </p>
-      <h1>{headline}</h1>
+          {onDismissOnce && (
+            <button
+              type="button"
+              onClick={onDismissOnce}
+              aria-label="Dismiss this alert"
+              title="Hide for this session (returns next time you visit)"
+              className="grid h-8 w-8 place-items-center rounded-full text-ink-3 transition-colors hover:bg-paper-2 hover:text-ink"
+            >
+              <X size={16} strokeWidth={1.75} />
+            </button>
+          )}
+        </div>
+      )}
+      <p className="label-cap mb-3.5 flex items-center gap-2">{label}</p>
+      <h1 className="pr-20">{headline}</h1>
       {footer && (
         <div
           className="mt-4 font-mono text-[11px] uppercase tracking-[0.04em] text-ink-3"
@@ -461,21 +620,15 @@ function ViewTabs({
     icon?: React.ReactNode;
   }[] = [
     {
-      key: "watching",
-      label: "Watching",
+      key: "starred",
+      label: "Starred",
       icon: (
-        <svg
-          width={15}
-          height={15}
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
+        <Star
+          size={15}
           strokeWidth={1.75}
+          fill="currentColor"
           style={{ color: "var(--accent)" }}
-        >
-          <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z" />
-          <circle cx={12} cy={12} r={3} fill="currentColor" stroke="none" />
-        </svg>
+        />
       ),
     },
     { key: "all", label: "All events", shortLabel: "All" },
@@ -518,17 +671,73 @@ function ViewTabs({
         })}
       </div>
       {trailing && (
-        <div className="hidden items-center gap-4 pb-2 lg:flex">{trailing}</div>
+        <div className="flex shrink-0 items-center gap-4 pb-2">{trailing}</div>
       )}
     </div>
   );
 }
 
+function LayoutToggle({
+  layout,
+  setLayout,
+}: {
+  layout: "list" | "grid";
+  setLayout: (next: "list" | "grid") => void;
+}) {
+  const options: {
+    key: "list" | "grid";
+    icon: React.ReactNode;
+    label: string;
+  }[] = [
+    {
+      key: "list",
+      icon: <Rows3 size={14} strokeWidth={1.75} />,
+      label: "List view",
+    },
+    {
+      key: "grid",
+      icon: <LayoutGrid size={14} strokeWidth={1.75} />,
+      label: "Grid view",
+    },
+  ];
+  return (
+    <div className="inline-flex items-center rounded-pill border border-rule p-0.5">
+      {options.map((o) => {
+        const on = o.key === layout;
+        return (
+          <button
+            key={o.key}
+            type="button"
+            onClick={() => setLayout(o.key)}
+            aria-label={o.label}
+            aria-pressed={on}
+            title={o.label}
+            className={clsx(
+              "grid h-7 w-8 place-items-center rounded-pill transition-colors",
+              on
+                ? "bg-ink text-paper"
+                : "bg-transparent text-ink-3 hover:text-ink"
+            )}
+          >
+            {o.icon}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
 function EventListInner({ events }: { events: ScheduledEvent[] }) {
-  const { prefs, prefsLoaded } = usePreferences();
+  const { prefs, setPrefs, prefsLoaded } = usePreferences();
+  const layout = prefs.display.layout ?? "list";
+  const setLayout = (next: "list" | "grid") =>
+    setPrefs((p) => ({ ...p, display: { ...p.display, layout: next } }));
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState<Category>("all");
-  const [view, setView] = useState<View>("watching");
+  const [view, setView, viewLoaded] = useSessionState<View>(
+    SESSION_VIEW_KEY,
+    "starred"
+  );
   const [now, setNow] = useState(() => new Date());
   useEffect(() => {
     const msToNextMinute = 60_000 - (Date.now() % 60_000);
@@ -543,7 +752,7 @@ function EventListInner({ events }: { events: ScheduledEvent[] }) {
     };
   }, []);
 
-  const watchingKeys = useMemo(
+  const starredKeys = useMemo(
     () =>
       new Set(
         Object.entries(prefs.eventPrefs)
@@ -583,28 +792,30 @@ function EventListInner({ events }: { events: ScheduledEvent[] }) {
     };
   }, [activeEvents]);
 
-  const viewCounts = useMemo<Record<View, number>>(() => {
-    const filtered = applyFilters(activeEvents, [
-      (e) => (category === "all" ? true : e.type === category),
-      search ? matchesText(search) : () => true,
-    ]);
-    return {
-      watching: filtered.filter((e) => watchingKeys.has(eventKey(e))).length,
-      all: filtered.length,
-      submissions: filtered.filter(hasOpenSubmission).length,
-    };
-  }, [activeEvents, category, search, watchingKeys]);
+  const baseFiltered = useMemo(
+    () =>
+      applyFilters(activeEvents, [
+        (e) => (category === "all" ? true : e.type === category),
+        search ? matchesText(search) : () => true,
+      ]),
+    [activeEvents, category, search]
+  );
+
+  const viewCounts = useMemo<Record<View, number>>(
+    () => ({
+      starred: baseFiltered.filter((e) => starredKeys.has(eventKey(e))).length,
+      all: baseFiltered.length,
+      submissions: baseFiltered.filter(hasOpenSubmission).length,
+    }),
+    [baseFiltered, starredKeys]
+  );
 
   const displayEvents = useMemo(() => {
-    const filtered = applyFilters(activeEvents, [
-      (e) => (category === "all" ? true : e.type === category),
-      search ? matchesText(search) : () => true,
-      (e) => {
-        if (view === "watching") return watchingKeys.has(eventKey(e));
-        if (view === "submissions") return hasOpenSubmission(e);
-        return true;
-      },
-    ]);
+    const filtered = baseFiltered.filter((e) => {
+      if (view === "starred") return starredKeys.has(eventKey(e));
+      if (view === "submissions") return hasOpenSubmission(e);
+      return true;
+    });
     const decorated = filtered.map((e) => ({
       e,
       time: findNextDeadline(e, now)?.time,
@@ -616,22 +827,25 @@ function EventListInner({ events }: { events: ScheduledEvent[] }) {
       return a.e.abbreviation.localeCompare(b.e.abbreviation);
     });
     return decorated.map((d) => d.e);
-  }, [activeEvents, category, search, view, watchingKeys, now]);
+  }, [baseFiltered, view, starredKeys, now]);
 
   const dueThisWeek = useMemo(
     () => displayEvents.filter((e) => isDueThisWeek(e, now)).length,
     [displayEvents, now]
   );
   const totalActive = activeEvents.length;
-  const watchingCount = watchingKeys.size;
-  const hasOthers = view === "watching" && totalActive > watchingCount;
+  const starredCount = starredKeys.size;
+  const hasOthers = view === "starred" && totalActive > starredCount;
 
   const didInitView = useRef(false);
   useEffect(() => {
-    if (!prefsLoaded || didInitView.current) return;
+    if (!prefsLoaded || !viewLoaded || didInitView.current) return;
     didInitView.current = true;
-    if (watchingCount === 0) setView("all");
-  }, [prefsLoaded, watchingCount]);
+    const hasStored =
+      typeof window !== "undefined" &&
+      window.sessionStorage.getItem(SESSION_VIEW_KEY) !== null;
+    if (!hasStored && starredCount === 0) setView("all");
+  }, [prefsLoaded, viewLoaded, starredCount]);
 
   const lastUpdatedDate = useMemo(() => {
     const dates = events
@@ -646,7 +860,7 @@ function EventListInner({ events }: { events: ScheduledEvent[] }) {
       {prefsLoaded && (
         <Hero
           events={visibleEvents}
-          watchingKeys={watchingKeys}
+          starredKeys={starredKeys}
           now={now}
           totalActive={totalActive}
         />
@@ -668,21 +882,37 @@ function EventListInner({ events }: { events: ScheduledEvent[] }) {
         counts={viewCounts}
         onSelect={setView}
         trailing={
-          <span className="text-[13px] text-ink-3">
-            sorted by next deadline ·{" "}
-            <b className="font-medium text-ink-2">{dueThisWeek}</b> deadline
-            {dueThisWeek === 1 ? "" : "s"} this week
-          </span>
+          <>
+            <span className="hidden text-[13px] text-ink-3 lg:inline">
+              sorted by next deadline ·{" "}
+              <b className="font-medium text-ink-2">{dueThisWeek}</b> deadline
+              {dueThisWeek === 1 ? "" : "s"} this week
+            </span>
+            <LayoutToggle layout={layout} setLayout={setLayout} />
+          </>
         }
       />
 
-      <div className="px-5 md:px-8 [&>*:first-child]:border-t-0">
+      <div
+        className={clsx(
+          "px-5 md:px-8",
+          layout === "grid"
+            ? "mt-4 grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3"
+            : "[&>*:first-child>*]:border-t-0"
+        )}
+      >
         {prefsLoaded ? (
           displayEvents.length > 0 ? (
-            displayEvents.map((e) => (
-              <EventRow key={eventKey(e)} event={e} now={now} />
-            ))
-          ) : view === "watching" ? null : (
+            displayEvents.map((e) =>
+              layout === "grid" ? (
+                <EventCard key={eventKey(e)} event={e} now={now} />
+              ) : (
+                <div key={eventKey(e)} className="@container/row">
+                  <EventRow event={e} now={now} />
+                </div>
+              )
+            )
+          ) : view === "starred" ? null : (
             <div className="py-8 text-[13px] text-ink-3">
               No events match these filters.
             </div>
@@ -696,17 +926,17 @@ function EventListInner({ events }: { events: ScheduledEvent[] }) {
         )}
       </div>
 
-      {view === "watching" &&
+      {view === "starred" &&
         prefsLoaded &&
-        (watchingCount === 0 || hasOthers) && (
+        (starredCount === 0 || hasOthers) && (
           <div className="mx-5 mt-8 flex flex-col items-start gap-4 border border-dashed border-rule p-5 sm:p-7 md:mx-8 min-[480px]:flex-row min-[480px]:items-center min-[480px]:justify-between min-[480px]:gap-6">
             <div className="text-[13px] text-ink-2">
-              {watchingCount === 0 ? (
+              {starredCount === 0 ? (
                 <>
-                  Nothing watched yet —{" "}
+                  Nothing starred yet —{" "}
                   <b className="font-semibold text-ink">{totalActive} events</b>{" "}
                   tracked across conferences, workshops, and symposia. Tap the
-                  eye icon on any row to follow it.
+                  star icon on any row to follow it.
                 </>
               ) : (
                 <>

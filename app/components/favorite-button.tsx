@@ -1,6 +1,7 @@
 "use client";
 
 import clsx from "clsx";
+import { Star } from "lucide-react";
 import { useFavorite } from "../lib/use-favorite";
 
 export function FavoriteButton({ prefKey }: { prefKey: string }) {
@@ -9,9 +10,9 @@ export function FavoriteButton({ prefKey }: { prefKey: string }) {
   return (
     <button
       type="button"
-      aria-label={on ? `Stop watching ${prefKey}` : `Watch ${prefKey}`}
+      aria-label={on ? `Unstar ${prefKey}` : `Star ${prefKey}`}
       aria-pressed={on}
-      title={on ? "Watching" : "Watch"}
+      title={on ? "Starred" : "Star"}
       onClick={(e) => {
         e.stopPropagation();
         toggle();
@@ -23,23 +24,7 @@ export function FavoriteButton({ prefKey }: { prefKey: string }) {
           : "text-ink-3 hover:text-ink"
       )}
     >
-      <svg
-        viewBox="0 0 24 24"
-        width={18}
-        height={18}
-        fill="none"
-        stroke="currentColor"
-        strokeWidth={1.75}
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      >
-        <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z" />
-        {on ? (
-          <circle cx={12} cy={12} r={3} fill="currentColor" stroke="none" />
-        ) : (
-          <circle cx={12} cy={12} r={3} />
-        )}
-      </svg>
+      <Star size={18} strokeWidth={1.75} fill={on ? "currentColor" : "none"} />
     </button>
   );
 }

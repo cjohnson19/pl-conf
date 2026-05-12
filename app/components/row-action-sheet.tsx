@@ -7,9 +7,9 @@ import {
   Check,
   Copy,
   Download,
-  Eye,
   MoreHorizontal,
   Rss,
+  Star,
   X,
 } from "lucide-react";
 import clsx from "clsx";
@@ -25,7 +25,7 @@ export function RowActionSheet({
   prefKey: string;
 }) {
   const [open, setOpen] = useState(false);
-  const { on: watching, toggle: toggleWatch } = useFavorite(prefKey);
+  const { on: starred, toggle: toggleStar } = useFavorite(prefKey);
   const {
     datesTBD,
     setHasOpened,
@@ -93,20 +93,24 @@ export function RowActionSheet({
 
           <button
             type="button"
-            onClick={toggleWatch}
+            onClick={toggleStar}
             className="flex w-full items-center gap-3 rounded-md px-3 py-3 text-left text-[14px] hover:bg-paper-2"
           >
             <span
               className={clsx(
                 "grid h-9 w-9 place-items-center rounded-sm",
-                watching ? "text-[color:var(--accent)]" : "text-ink-3"
+                starred ? "text-[color:var(--accent)]" : "text-ink-3"
               )}
               style={{ background: "var(--paper-2)" }}
             >
-              <Eye size={18} strokeWidth={1.75} />
+              <Star
+                size={18}
+                strokeWidth={1.75}
+                fill={starred ? "currentColor" : "none"}
+              />
             </span>
             <span className="flex-1 font-medium text-ink">
-              {watching ? "Stop watching" : "Watch this event"}
+              {starred ? "Unstar" : "Star this event"}
             </span>
           </button>
 

@@ -1,10 +1,15 @@
 import type { Metadata } from "next";
-import { GeistSans } from "geist/font/sans";
-import { Fraunces, JetBrains_Mono } from "next/font/google";
+import { Fraunces, Inter, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import "./typography.css";
 import { Header } from "./components/header";
 import { ThemeProvider } from "./components/theme-provider";
+
+const inter = Inter({
+  subsets: ["latin"],
+  variable: "--font-inter",
+  display: "swap",
+});
 
 const fraunces = Fraunces({
   subsets: ["latin"],
@@ -48,7 +53,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${GeistSans.variable} ${fraunces.variable} ${jetbrainsMono.variable}`}
+      className={`${inter.variable} ${fraunces.variable} ${jetbrainsMono.variable}`}
       suppressHydrationWarning
     >
       <head />

@@ -18,7 +18,7 @@ export function Header() {
         <span className="font-display text-[22px] font-medium tracking-[-0.06em] text-[color:var(--accent)]">
           PL
         </span>
-        <span className="font-display text-[22px] font-normal italic leading-none tracking-[-0.01em]">
+        <span className="font-display text-[22px] font-normal leading-none tracking-[-0.01em]">
           Conferences
         </span>
       </Link>
