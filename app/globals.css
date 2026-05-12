@@ -39,7 +39,7 @@
     --shadow-md: 0 4px 16px rgba(20, 19, 15, 0.06);
     --shadow-pop: 0 8px 32px rgba(20, 19, 15, 0.1);
 
-    /* shadcn aliases — kept so untouched primitives in /about and /submit still resolve */
+    /* shadcn aliases — kept so untouched primitives still resolve */
     --background: 44 33% 94%;
     --foreground: 45 9% 7%;
     --card-foreground: 45 9% 7%;

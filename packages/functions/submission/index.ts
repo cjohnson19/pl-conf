@@ -1,4 +1,3 @@
-import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
 import { SESv2Client, SendEmailCommand } from "@aws-sdk/client-sesv2";
 import {
   DynamoDBClient,
@@ -7,11 +6,9 @@ import {
 } from "@aws-sdk/client-dynamodb";
 import { z } from "zod";
 import { SubmissionSchema } from "@pl-conf/core/schemas";
-import YAML from "yaml";
 import { createHash } from "crypto";
 
 const RATE_LIMIT_TABLE_NAME = process.env.RATE_LIMIT_TABLE_NAME!;
-const SUBMISSIONS_BUCKET_NAME = process.env.SUBMISSIONS_BUCKET_NAME!;
 const SUBMISSION_EMAIL_SENDER = process.env.SUBMISSION_EMAIL_SENDER!;
 const NOTIFICATION_EMAIL = process.env.NOTIFICATION_EMAIL!;
 
@@ -32,11 +29,9 @@ interface APIGatewayResponse {
   body: string;
 }
 
-const s3 = new S3Client();
 const ses = new SESv2Client();
 const dynamodb = new DynamoDBClient();
 
-// Rate limiting: 5 submissions per IP per hour
 const RATE_LIMIT_REQUESTS = 5;
 const RATE_LIMIT_WINDOW = 60 * 60;
 
@@ -84,7 +79,7 @@ async function checkDuplicate(
   submissionHash: string
 ): Promise<{ isDuplicate: boolean }> {
   const key = `duplicate_${submissionHash}`;
-  const ttl = Math.floor(Date.now() / 1000) + 24 * 60 * 60; // 24 hours
+  const ttl = Math.floor(Date.now() / 1000) + 24 * 60 * 60;
 
   try {
     const result = await dynamodb.send(
@@ -98,7 +93,6 @@ async function checkDuplicate(
       return { isDuplicate: true };
     }
 
-    // Store hash to prevent duplicates
     await dynamodb.send(
       new PutItemCommand({
         TableName: RATE_LIMIT_TABLE_NAME,
@@ -112,20 +106,12 @@ async function checkDuplicate(
     return { isDuplicate: false };
   } catch (error) {
     console.error("Duplicate check failed:", error);
-    // Allow request on error
     return { isDuplicate: false };
   }
 }
 
 function hashSubmission(data: z.infer<typeof SubmissionSchema>): string {
-  const hashData = {
-    name: data.name,
-    abbreviation: data.abbreviation,
-    type: data.type,
-    url: data.url,
-    location: data.location,
-  };
-  return createHash("sha256").update(JSON.stringify(hashData)).digest("hex");
+  return createHash("sha256").update(data.url).digest("hex");
 }
 
 function getClientIP(event: APIGatewayEvent): string {
@@ -146,13 +132,8 @@ export const handler = async (
     "Access-Control-Allow-Methods": "POST, OPTIONS",
   };
 
-  // Handle preflight requests
   if (event.httpMethod === "OPTIONS") {
-    return {
-      statusCode: 200,
-      headers,
-      body: "",
-    };
+    return { statusCode: 200, headers, body: "" };
   }
 
   try {
@@ -177,9 +158,9 @@ export const handler = async (
     }
 
     const body = JSON.parse(event.body);
-    const eventData = SubmissionSchema.parse(body);
+    const submission = SubmissionSchema.parse(body);
 
-    const submissionHash = hashSubmission(eventData);
+    const submissionHash = hashSubmission(submission);
     const duplicateResult = await checkDuplicate(submissionHash);
     if (duplicateResult.isDuplicate) {
       return {
@@ -190,82 +171,26 @@ export const handler = async (
         },
         body: JSON.stringify({
           error: "Duplicate submission",
-          message: "This event has already been submitted recently.",
+          message: "This URL has already been submitted recently.",
         }),
       };
     }
-
-    const eventWithTimestamp = {
-      ...eventData,
-      lastUpdated: new Date().toISOString().split("T")[0],
-    };
-
-    const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
-    const yamlKey = `pending/${timestamp}-${eventData.abbreviation}.yaml`;
-    const metadataKey = `pending/${timestamp}-${eventData.abbreviation}.json`;
-
-    const yamlContent = YAML.stringify(eventWithTimestamp);
-
-    await s3.send(
-      new PutObjectCommand({
-        Bucket: SUBMISSIONS_BUCKET_NAME,
-        Key: yamlKey,
-        Body: yamlContent,
-        ContentType: "application/x-yaml",
-      })
-    );
 
     try {
       await ses.send(
         new SendEmailCommand({
           FromEmailAddress: SUBMISSION_EMAIL_SENDER,
-          Destination: {
-            ToAddresses: [NOTIFICATION_EMAIL],
-          },
+          Destination: { ToAddresses: [NOTIFICATION_EMAIL] },
           Content: {
             Simple: {
-              Subject: {
-                Data: `New Event Submission: ${eventData.name} (${eventData.abbreviation})`,
-              },
+              Subject: { Data: `New Event Submission: ${submission.url}` },
               Body: {
                 Text: {
-                  Data: `New event submission received:
+                  Data: `New event submission received.
 
-=== EVENT DETAILS ===
-Name: ${eventData.name}
-Abbreviation: ${eventData.abbreviation}
-Type: ${eventData.type}
-${eventData.location ? `Location: ${eventData.location}` : ""}
-${eventData.url ? `URL: ${eventData.url}` : ""}
-${eventData.submissionUrl ? `Submission URL: ${eventData.submissionUrl}` : ""}
+URL: ${submission.url}
 
-Event Dates:
-Start: ${eventData.date?.start !== "TBD" ? eventData.date.start : "TBD"}
-End: ${eventData.date?.end !== "TBD" ? eventData.date.end : "TBD"}
-
-${
-  Object.keys(eventData.importantDates || {}).length > 0
-    ? `Important Dates:
-${Object.entries(eventData.importantDates || {})
-  .map(([type, date]) => `${type}: ${date}`)
-  .join("\n")}
-${eventData.importantDateUrl ? `Reference: ${eventData.importantDateUrl}` : ""}`
-    : ""
-}
-
-${
-  eventData.notes && eventData.notes.length > 0
-    ? `Notes:
-${eventData.notes.join("\n")}`
-    : ""
-}
-
-=== SUBMISSION INFO ===
-Submitted at: ${new Date().toISOString()}
-
-Review the submission files in the S3 bucket:
-- YAML: ${yamlKey}
-- Metadata: ${metadataKey}`,
+Submitted at: ${new Date().toISOString()}`,
                 },
               },
             },
@@ -282,10 +207,7 @@ Review the submission files in the S3 bucket:
         ...headers,
         "X-RateLimit-Remaining": rateLimitResult.remaining.toString(),
       },
-      body: JSON.stringify({
-        message: "Event submission received successfully",
-        submissionId: `${timestamp}-${eventData.abbreviation}`,
-      }),
+      body: JSON.stringify({ message: "Submission received" }),
     };
   } catch (error) {
     console.error("Submission error:", error);

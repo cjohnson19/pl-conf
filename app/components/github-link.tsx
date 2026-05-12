@@ -9,11 +9,7 @@ export function GithubLink() {
       asChild
       aria-label="Visit website's GitHub page"
     >
-      <a
-        href="https://github.com/cjohnson19/pl-conf"
-        target="_blank"
-        rel="noopener noreferrer"
-      >
+      <a href="https://github.com/cjohnson19/pl-conf" target="_blank">
         <Github />
         <span className="sr-only">GitHub</span>
       </a>

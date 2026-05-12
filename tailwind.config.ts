@@ -32,7 +32,7 @@ export default {
         hot: "var(--hot)",
         past: "var(--past)",
 
-        // shadcn token aliases — kept so /about and /submit primitives still resolve
+        // shadcn token aliases — kept so untouched primitives still resolve
         background: "hsl(var(--background))",
         foreground: "hsl(var(--foreground))",
         card: {

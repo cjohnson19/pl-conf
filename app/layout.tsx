@@ -29,6 +29,7 @@ const jetbrainsMono = JetBrains_Mono({
 export const metadata: Metadata = {
   title: "PL Conferences",
   description: "Conferences and workshops in programming languages",
+  referrer: "no-referrer",
   authors: [
     {
       url: "https://chasej.dev",

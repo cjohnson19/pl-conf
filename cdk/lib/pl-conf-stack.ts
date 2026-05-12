@@ -54,14 +54,6 @@ export class PlConfStack extends cdk.Stack {
       autoDeleteObjects: !isProduction,
     });
 
-    const submissionsBucket = new s3.Bucket(this, "SubmissionsBucket", {
-      versioned: true,
-      removalPolicy: isProduction
-        ? cdk.RemovalPolicy.RETAIN
-        : cdk.RemovalPolicy.DESTROY,
-      autoDeleteObjects: !isProduction,
-    });
-
     const rateLimitTable = new dynamodb.Table(this, "RateLimitTable", {
       partitionKey: { name: "id", type: dynamodb.AttributeType.STRING },
       timeToLiveAttribute: "ttl",
@@ -79,14 +71,12 @@ export class PlConfStack extends cdk.Stack {
       ),
       timeout: cdk.Duration.seconds(30),
       environment: {
-        SUBMISSIONS_BUCKET_NAME: submissionsBucket.bucketName,
         RATE_LIMIT_TABLE_NAME: rateLimitTable.tableName,
         SUBMISSION_EMAIL_SENDER: `submissions-${stage}@pl-conferences.com`,
         NOTIFICATION_EMAIL: notificationEmail,
       },
     });
 
-    submissionsBucket.grantPut(submissionFunction);
     rateLimitTable.grantReadWriteData(submissionFunction);
     submissionFunction.addToRolePolicy(
       new iam.PolicyStatement({
@@ -246,11 +236,6 @@ export class PlConfStack extends cdk.Stack {
     new cdk.CfnOutput(this, "WebpageBucketName", {
       value: webpageBucket.bucketName,
       description: "S3 bucket for webpage snapshots",
-    });
-
-    new cdk.CfnOutput(this, "SubmissionsBucketName", {
-      value: submissionsBucket.bucketName,
-      description: "S3 bucket for event submissions",
     });
   }
 }

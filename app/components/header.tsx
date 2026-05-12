@@ -1,6 +1,7 @@
 import Link from "next/link";
-import { Github, Plus } from "lucide-react";
+import { Github } from "lucide-react";
 import { ThemeToggle } from "./theme-toggle";
+import { SubmitEventPopover } from "./submit-event-popover";
 
 export function Header() {
   return (
@@ -35,7 +36,6 @@ export function Header() {
         <a
           href="https://github.com/cjohnson19/pl-conf"
           target="_blank"
-          rel="noopener noreferrer"
           aria-label="Source on GitHub"
           className="grid h-11 w-11 place-items-center rounded-pill border border-rule text-ink transition-colors hover:bg-paper-2 sm:h-[34px] sm:w-[34px]"
         >
@@ -46,16 +46,7 @@ export function Header() {
           className="mx-1 hidden h-[18px] w-px bg-rule sm:inline-block"
           aria-hidden
         />
-        <Link
-          href="/submit"
-          aria-label="Submit event"
-          className="inline-flex h-11 w-max shrink-0 items-center gap-2 rounded-pill bg-ink px-3 text-[13px] font-medium text-paper no-underline transition-colors hover:bg-[color:var(--accent)] sm:h-[34px] sm:px-4"
-        >
-          <Plus size={12} strokeWidth={2} className="shrink-0" />
-          <span className="hidden whitespace-nowrap sm:inline">
-            Submit event
-          </span>
-        </Link>
+        <SubmitEventPopover />
       </nav>
     </header>
   );

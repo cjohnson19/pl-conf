@@ -114,24 +114,7 @@ export type ScheduledEvent = z.infer<typeof ScheduledEvent>;
 
 export const SubmissionSchema = z
   .object({
-    name: z.string().nonempty(),
-    abbreviation: z.string().nonempty(),
-    date: z
-      .object({
-        start: MaybeDate,
-        end: MaybeDate,
-      })
-      .optional()
-      .default({ start: "TBD", end: "TBD" }),
-    location: z.string().optional(),
-    importantDateUrl: z.string().url().optional(),
-    url: z.string().url().optional(),
-    submissionUrl: z.string().url().optional(),
-    importantDates: ImportantDates.default({}),
-    notes: z.string().array().default([]),
-    type: EventType,
-    partOf: AbbreviationList,
-    colocatedWith: AbbreviationList,
+    url: z.string().url().max(2048),
   })
   .strict();
 

@@ -240,7 +240,6 @@ export function EventRow({
           <a
             href={e.url}
             target="_blank"
-            rel="noopener noreferrer"
             aria-label={`Open ${e.abbreviation} website`}
             className="group/url flex w-fit min-w-0 max-w-full items-baseline gap-1.5 text-[13px] text-ink-2 no-underline"
           >
@@ -431,7 +430,6 @@ export function EventCard({
             <a
               href={e.url}
               target="_blank"
-              rel="noopener noreferrer"
               aria-label={`Open ${e.abbreviation} website`}
               className="group/title inline-flex min-w-0 items-center gap-0.5 no-underline"
             >
@@ -475,7 +473,6 @@ export function EventCard({
             <a
               href={e.importantDateUrl}
               target="_blank"
-              rel="noopener noreferrer"
               aria-label="View important dates"
               className="group/dates inline-flex items-center gap-1 self-start text-[12px] font-medium text-ink no-underline"
             >
@@ -719,7 +716,6 @@ function LeadLine({
       <a
         href={e.importantDateUrl}
         target="_blank"
-        rel="noopener noreferrer"
         aria-label="View important dates"
         className={clsx(
           "no-underline",
