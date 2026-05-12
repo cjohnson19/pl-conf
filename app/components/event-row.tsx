@@ -18,6 +18,7 @@ import {
   toAoeInstant,
   toCalendarDate,
 } from "../lib/event";
+import { shortCountdown } from "../lib/countdown";
 import { FavoriteButton } from "./favorite-button";
 import { CalendarMenu } from "./calendar-menu";
 import { RowActionSheet } from "./row-action-sheet";
@@ -50,21 +51,6 @@ function findLead(e: ScheduledEvent, now: Date): LeadInfo | null {
     );
   });
   return upcoming ?? fallback;
-}
-
-function shortCountdown(date: MaybeDate, now: Date): string {
-  const instant = toAoeInstant(date);
-  if (!instant) return "TBD";
-  const ms = instant.getTime() - now.getTime();
-  if (ms <= 0) return "passed";
-  const hours = ms / 3_600_000;
-  if (hours < 1) return "<1h";
-  if (hours < 24) return `${Math.round(hours)}h`;
-  const days = Math.round(hours / 24);
-  if (days < 14) return `${days}d`;
-  if (days < 36) return `${Math.floor(days / 7)}w`;
-  if (days < 365) return `${Math.round(days / 30)}mo`;
-  return `${Math.round(days / 365)}y`;
 }
 
 const monthYearFmt = new Intl.DateTimeFormat(undefined, {

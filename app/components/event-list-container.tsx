@@ -20,6 +20,7 @@ import {
   toAoeInstant,
   toCalendarDate,
 } from "../lib/event";
+import { humanCountdown } from "../lib/countdown";
 import {
   applyFilters,
   isActive,
@@ -69,36 +70,6 @@ function findNextDeadline(e: ScheduledEvent, now: Date): NextDeadline | null {
     );
   });
   return best;
-}
-
-function humanCountdown(date: string, now: Date): string {
-  const instant = toAoeInstant(date);
-  if (!instant) return "soon";
-  const ms = instant.getTime() - now.getTime();
-  if (ms <= 0) return "passed";
-  if (ms < 86_400_000) {
-    const totalMinutes = Math.floor(ms / 60_000);
-    const hours = Math.floor(totalMinutes / 60);
-    const minutes = totalMinutes % 60;
-    const hPart = `${hours} ${hours === 1 ? "hour" : "hours"}`;
-    const mPart = `${minutes} ${minutes === 1 ? "minute" : "minutes"}`;
-    if (hours === 0) return mPart;
-    if (minutes === 0) return hPart;
-    return `${hPart} ${mPart}`;
-  }
-  const days = Math.round(ms / 86_400_000);
-  if (days === 1) return "1 day";
-  if (days < 14) return `${days} days`;
-  if (days < 60) {
-    const weeks = Math.round(days / 7);
-    return weeks === 1 ? "1 week" : `${weeks} weeks`;
-  }
-  if (days < 365) {
-    const months = Math.round(days / 30);
-    return months === 1 ? "1 month" : `${months} months`;
-  }
-  const years = Math.round(days / 365);
-  return years === 1 ? "1 year" : `${years} years`;
 }
 
 function deadlineKindWord(name: DateName): string {
@@ -222,7 +193,7 @@ function Hero({
                 fontWeight: 600,
               }}
             >
-              in {humanCountdown(pick.date, now)}
+              {humanCountdown(pick.date, now)}
             </em>
             .
           </>
@@ -251,7 +222,7 @@ function Hero({
               fontWeight: 600,
             }}
           >
-            in {humanCountdown(pick.date, now)}
+            {humanCountdown(pick.date, now)}
           </em>
           .
         </>
