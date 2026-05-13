@@ -319,7 +319,7 @@ function DeadlineGroupHeader({
             </span>
           )}
           <span>
-            <b className="font-medium text-ink-2">{count}</b> deadline
+            <b className="font-medium text-ink-2">{count}</b> event
             {count === 1 ? "" : "s"}
           </span>
         </div>
