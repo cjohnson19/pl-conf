@@ -1,0 +1,17 @@
+name: International Symposium on Software Testing and Analysis
+abbreviation: ISSTA
+type: "symposium"
+date:
+  start: 2026-10-03
+  end: 2026-10-09
+location: Oakland, California
+url: "https://conf.researchr.org/home/issta-2026"
+submissionUrl: "https://issta2026.hotcrp.com/"
+importantDateUrl: "https://conf.researchr.org/dates/issta-2026"
+importantDates:
+  paper: 2026-01-29
+  rebuttal: 2026-03-26
+  conditional-acceptance: 2026-04-16
+  revisions: 2026-05-21
+  notification: 2026-06-25
+  camera-ready: 2026-07-23

@@ -1,0 +1,16 @@
+name: International Conference on Automated Software Engineering
+abbreviation: ASE
+type: "conference"
+date:
+  start: 2026-10-12
+  end: 2026-10-16
+location: Munich, Germany
+url: "https://conf.researchr.org/home/ase-2026"
+submissionUrl: "https://ase26.hotcrp.com/"
+importantDateUrl: "https://conf.researchr.org/track/ase-2026/ase-2026-research-track"
+importantDates:
+  paper: 2026-03-26
+  rebuttal: 2026-05-27
+  notification: 2026-06-18
+  revisions: 2026-07-16
+  camera-ready: 2026-08-03

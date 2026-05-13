@@ -1,0 +1,17 @@
+name: International Conference on Software Engineering
+abbreviation: ICSE
+type: "conference"
+date:
+  start: 2027-04-25
+  end: 2027-05-01
+location: Dublin, Ireland
+url: "https://conf.researchr.org/home/icse-2027"
+submissionUrl: "https://icse2027.hotcrp.com/"
+importantDateUrl: "https://conf.researchr.org/track/icse-2027/icse-2027-research-track"
+importantDates:
+  abstract: 2026-06-23
+  paper: 2026-06-30
+  rebuttal: 2026-09-27
+  notification: 2026-10-20
+  revisions: 2026-11-17
+  camera-ready: 2026-11-24

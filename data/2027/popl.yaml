@@ -1,0 +1,17 @@
+name: ACM SIGPLAN Symposium on Principles of Programming Languages
+abbreviation: POPL
+date:
+  start: 2027-01-10
+  end: 2027-01-16
+location: Mexico City, Mexico
+url: "https://popl27.sigplan.org/"
+submissionUrl: "https://popl27.sigplan.org/track/POPL-2027-popl-research-papers"
+importantDateUrl: "https://popl27.sigplan.org/track/POPL-2027-popl-research-papers"
+type: "symposium"
+importantDates:
+  paper: 2026-07-09
+  rebuttal: 2026-09-10
+  notification: 2026-10-05
+  revisions: 2026-10-26
+  conditional-acceptance: 2026-11-09
+  camera-ready: 2026-11-20
