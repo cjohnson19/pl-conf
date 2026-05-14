@@ -1,17 +1,12 @@
 packages:
   - packages/*
-  - cdk
-
-allowBuilds:
-  esbuild: false
-  puppeteer: false
-  sharp: false
 
 ignoredBuiltDependencies:
   - sharp
 
 onlyBuiltDependencies:
   - esbuild
+  - puppeteer
 
 overrides:
   "@eslint/plugin-kit@<0.3.4": ">=0.3.4"

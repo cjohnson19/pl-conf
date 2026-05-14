@@ -1,5 +1,5 @@
 import { getYear } from "date-fns";
-import type { DateName, MaybeDate, ScheduledEvent } from "./schemas.js";
+import type { DateName, MaybeDate, ScheduledEvent } from "./schemas";
 
 export const eventTypes = ["conference", "workshop", "symposium"] as const;
 
@@ -10,7 +10,7 @@ export type {
   Round,
   ScheduledEvent,
   SubmissionSchema,
-} from "./schemas.js";
+} from "./schemas";
 
 export function eventKey(e: ScheduledEvent): string {
   return `${e.abbreviation}-${getYear(e.date.start)}`;

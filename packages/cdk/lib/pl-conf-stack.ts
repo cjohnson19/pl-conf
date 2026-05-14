@@ -67,7 +67,7 @@ export class PlConfStack extends cdk.Stack {
       runtime: lambda.Runtime.NODEJS_22_X,
       handler: "index.handler",
       code: lambda.Code.fromAsset(
-        path.join(__dirname, "../../packages/functions/dist/submission")
+        path.join(__dirname, "../../functions/dist/submission")
       ),
       timeout: cdk.Duration.seconds(30),
       environment: {
@@ -89,7 +89,7 @@ export class PlConfStack extends cdk.Stack {
       runtime: lambda.Runtime.NODEJS_22_X,
       handler: "index.handler",
       code: lambda.Code.fromAsset(
-        path.join(__dirname, "../../packages/functions/dist/drift")
+        path.join(__dirname, "../../functions/dist/drift")
       ),
       timeout: cdk.Duration.minutes(5),
       memorySize: 512,

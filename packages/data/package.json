@@ -1,0 +1,26 @@
+{
+  "name": "@pl-conf/data",
+  "version": "1.0.0",
+  "description": "Conference YAML source files and generated event records",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "generate": "tsx scripts/generate.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@pl-conf/core": "workspace:*",
+    "date-fns": "^4.1.0",
+    "yaml": "^2.6.1"
+  },
+  "devDependencies": {
+    "@types/node": "^22",
+    "tsx": "^4.19.0",
+    "typescript": "^5.7.2"
+  },
+  "exports": {
+    ".": "./src/index.ts",
+    "./events": "./generated/events.ts",
+    "./events.json": "./generated/events.json"
+  }
+}

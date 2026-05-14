@@ -1,20 +1,10 @@
 import type { NextConfig } from "next";
 
-const useFixture = process.env.PL_CONF_TEST_FIXTURE === "1";
-const generatedPath = useFixture
-  ? "./tests/fixtures/events.ts"
-  : "./generated/events.ts";
-
 const nextConfig: NextConfig = {
   output: "export",
   trailingSlash: true,
   images: {
     unoptimized: true,
-  },
-  turbopack: {
-    resolveAlias: {
-      "@generated": generatedPath,
-    },
   },
   experimental: {
     inlineCss: true,

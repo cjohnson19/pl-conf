@@ -3,79 +3,29 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "workspaces": [
-    "packages/*"
-  ],
   "scripts": {
-    "generate": "tsx scripts/generate-events.ts",
-    "dev": "npm run generate && next dev --turbopack",
-    "build": "npm run generate && next build",
-    "build:lambdas": "npm run generate && pnpm --filter @pl-conf/functions run build",
-    "build:all": "npm run build && npm run build:lambdas",
+    "generate": "pnpm --filter @pl-conf/data run generate",
+    "dev": "pnpm run generate && pnpm --filter @pl-conf/web run dev",
+    "build": "pnpm run generate && pnpm --filter @pl-conf/web run build",
+    "build:lambdas": "pnpm run generate && pnpm --filter @pl-conf/functions run build",
+    "build:all": "pnpm run build && pnpm run build:lambdas",
     "deploy": "tsx scripts/deploy.ts",
-    "start": "next start",
     "test": "vitest run",
     "prepare": "husky"
   },
-  "dependencies": {
-    "@pl-conf/core": "workspace:*",
-    "@radix-ui/react-accordion": "^1.2.2",
-    "@radix-ui/react-dialog": "^1.1.4",
-    "@radix-ui/react-dropdown-menu": "^2.1.4",
-    "@radix-ui/react-popover": "^1.1.4",
-    "@radix-ui/react-select": "^2.1.4",
-    "@radix-ui/react-separator": "^1.1.1",
-    "@radix-ui/react-slot": "^1.1.1",
-    "@radix-ui/react-tabs": "^1.1.13",
-    "@radix-ui/react-toggle": "^1.1.1",
-    "@radix-ui/react-toggle-group": "^1.1.1",
-    "@radix-ui/react-tooltip": "^1.1.6",
-    "class-variance-authority": "^0.7.1",
-    "clsx": "^2.1.1",
-    "date-fns": "^4.1.0",
-    "geist": "^1.7.0",
-    "ics": "^3.8.1",
-    "lucide-react": "^0.469.0",
-    "next": "16.2.4",
-    "next-themes": "^0.4.4",
-    "react": "^19.0.0",
-    "react-dom": "^19.0.0",
-    "tailwind-merge": "^2.5.5",
-    "tailwindcss-animate": "^1.0.7",
-    "yaml": "^2.6.1",
-    "zod": "^3.24.1"
-  },
   "devDependencies": {
-    "@eslint/eslintrc": "^3",
-    "@tailwindcss/container-queries": "^0.1.1",
-    "@types/node": "^20.19.0",
-    "@types/react": "^19",
-    "@types/react-dom": "^19",
-    "baseline-browser-mapping": "^2.10.20",
-    "eslint": "^9",
-    "eslint-config-next": "16.2.4",
+    "@pl-conf/core": "workspace:*",
+    "@pl-conf/data": "workspace:*",
+    "@types/node": "^22",
     "husky": "^9.1.7",
     "lint-staged": "^16.1.6",
-    "postcss": "^8",
     "prettier": "^3.6.2",
     "puppeteer": "^24.37.4",
-    "tailwindcss": "^3.4.1",
     "tsx": "^4.19.0",
     "typescript": "^5.7.2",
     "vitest": "^4.0.18"
   },
   "lint-staged": {
     "**/*": "prettier --write --ignore-unknown"
-  },
-  "pnpm": {
-    "onlyBuiltDependencies": [
-      "puppeteer"
-    ]
-  },
-  "browserslist": [
-    "Chrome >= 100",
-    "Firefox >= 100",
-    "Safari >= 15",
-    "Edge >= 100"
-  ]
+  }
 }

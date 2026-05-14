@@ -14,13 +14,10 @@ node_modules
 /coverage
 
 # next.js
-/.next/
-/out/
-/out-test/
-/out-real-backup/
-
-# production
-/build
+.next/
+packages/web/out/
+packages/web/out-test/
+packages/web/out-real-backup/
 
 # misc
 .DS_Store
@@ -44,8 +41,8 @@ yarn-error.log*
 next-env.d.ts
 
 # Generated files
-/generated
-/public/ical
+packages/data/generated/
+packages/web/public/ical/
 
 # CDK
 cdk.out/

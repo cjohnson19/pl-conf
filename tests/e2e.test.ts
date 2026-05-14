@@ -1,4 +1,4 @@
-import { events } from "@generated";
+import { events } from "@pl-conf/data";
 import { eventKey, isActive, type ScheduledEvent } from "@pl-conf/core";
 import puppeteer, {
   type Browser,

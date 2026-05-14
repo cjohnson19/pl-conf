@@ -4,11 +4,14 @@ import { defineConfig } from "vitest/config";
 export default defineConfig({
   resolve: {
     alias: {
-      // E2e tests are the only consumer of @generated, and they run against
-      // the fixture-aliased static build. Keep both sides in sync by always
-      // resolving @generated to fixtures inside vitest.
-      "@generated": path.resolve(import.meta.dirname, "tests/fixtures/events"),
-      "@": path.resolve(import.meta.dirname, "app"),
+      // E2e tests are the only consumer of @pl-conf/data, and they run
+      // against the fixture-aliased static build. Keep both sides in sync by
+      // always resolving the data import to fixtures inside vitest.
+      "@pl-conf/data": path.resolve(
+        import.meta.dirname,
+        "tests/fixtures/events.ts"
+      ),
+      "@": path.resolve(import.meta.dirname, "packages/web/app"),
     },
   },
   test: {

@@ -9,7 +9,8 @@ import * as path from "path";
 import { fileURLToPath } from "url";
 
 const ROOT_DIR = path.join(path.dirname(fileURLToPath(import.meta.url)), "..");
-const CDK_DIR = path.join(ROOT_DIR, "cdk");
+const CDK_DIR = path.join(ROOT_DIR, "packages", "cdk");
+const WEB_OUT_DIR = path.join(ROOT_DIR, "packages", "web", "out");
 
 function run(
   command: string,
@@ -94,10 +95,10 @@ async function main() {
 
   console.log("\nUploading to S3...");
   run(
-    `aws s3 sync out/_next/static/ s3://${websiteBucketName}/_next/static --delete --cache-control "public, max-age=31536000, immutable"`
+    `aws s3 sync ${WEB_OUT_DIR}/_next/static/ s3://${websiteBucketName}/_next/static --delete --cache-control "public, max-age=31536000, immutable"`
   );
   run(
-    `aws s3 sync out/ s3://${websiteBucketName}/ --delete --cache-control "public, max-age=0, must-revalidate" --exclude "_next/static/*" --exclude "ical/*"`
+    `aws s3 sync ${WEB_OUT_DIR}/ s3://${websiteBucketName}/ --delete --cache-control "public, max-age=0, must-revalidate" --exclude "_next/static/*" --exclude "ical/*"`
   );
   // .ics files need an explicit text/calendar Content-Type (S3's auto-guess
   // is inconsistent for this extension) and an hour of CDN caching so
@@ -105,7 +106,7 @@ async function main() {
   // feeds for events that were removed from data/ so subscribers stop
   // receiving them.
   run(
-    `aws s3 sync out/ical/ s3://${websiteBucketName}/ical/ --delete --content-type "text/calendar; charset=utf-8" --cache-control "public, max-age=3600, must-revalidate"`
+    `aws s3 sync ${WEB_OUT_DIR}/ical/ s3://${websiteBucketName}/ical/ --delete --content-type "text/calendar; charset=utf-8" --cache-control "public, max-age=3600, must-revalidate"`
   );
 
   console.log("\nInvalidating CloudFront cache...");

@@ -2,6 +2,7 @@
   "name": "@pl-conf/functions",
   "version": "1.0.0",
   "description": "Lambda functions for PL Conference project",
+  "private": true,
   "type": "module",
   "scripts": {
     "build": "tsx build.ts",
@@ -9,6 +10,7 @@
   },
   "dependencies": {
     "@pl-conf/core": "workspace:*",
+    "@pl-conf/data": "workspace:*",
     "@aws-sdk/client-s3": "^3.726.1",
     "@aws-sdk/client-sesv2": "^3.726.1",
     "@aws-sdk/client-dynamodb": "^3.726.1",
@@ -19,7 +21,7 @@
     "zod": "^3.24.1"
   },
   "devDependencies": {
-    "@types/node": "^20",
+    "@types/node": "^22",
     "esbuild": "^0.24.0",
     "tsx": "^4.19.0",
     "typescript": "^5.7.2"

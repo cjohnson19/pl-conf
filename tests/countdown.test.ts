@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { humanCountdown, shortCountdown } from "../app/lib/countdown";
+import { humanCountdown, shortCountdown } from "@/lib/countdown";
 import { toAoeInstant } from "@pl-conf/core";
 
 const localNoon = (y: number, m: number, d: number) =>

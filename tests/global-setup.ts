@@ -7,10 +7,17 @@ const PORT =
   Number(new URL(process.env.E2E_BASE_URL ?? "http://localhost:3000").port) ||
   3000;
 const ROOT = path.resolve(import.meta.dirname, "..");
-const OUT_DIR = path.join(ROOT, "out");
-const OUT_TEST_DIR = path.join(ROOT, "out-test");
-const OUT_BACKUP_DIR = path.join(ROOT, "out-real-backup");
-const GENERATED_FILE = path.join(ROOT, "generated", "events.ts");
+const WEB_DIR = path.join(ROOT, "packages", "web");
+const OUT_DIR = path.join(WEB_DIR, "out");
+const OUT_TEST_DIR = path.join(WEB_DIR, "out-test");
+const OUT_BACKUP_DIR = path.join(WEB_DIR, "out-real-backup");
+const GENERATED_FILE = path.join(
+  ROOT,
+  "packages",
+  "data",
+  "generated",
+  "events.ts"
+);
 
 let serverProcess: ChildProcess | undefined;
 
@@ -42,6 +49,9 @@ function waitForPort(port: number, timeoutMs = 30_000): Promise<void> {
   });
 }
 
+const FIXTURE_SOURCE = path.join(ROOT, "tests", "fixtures", "events.ts");
+const GENERATED_BACKUP = `${GENERATED_FILE}.real-backup`;
+
 function buildFixtureSite() {
   if (!fs.existsSync(GENERATED_FILE)) {
     console.log("Running generate-events to satisfy TS path alias...");
@@ -59,10 +69,17 @@ function buildFixtureSite() {
   }
   fs.rmSync(OUT_TEST_DIR, { recursive: true, force: true });
 
+  // Swap the data package's generated file for the fixture so the build
+  // sees the mock events through the same import path as production.
+  fs.copyFileSync(GENERATED_FILE, GENERATED_BACKUP);
+  fs.copyFileSync(FIXTURE_SOURCE, GENERATED_FILE);
+
   console.log("Building fixture site (PL_CONF_TEST_FIXTURE=1)...");
   let build: ReturnType<typeof spawnSync> | undefined;
   try {
-    build = spawnSync("pnpm", ["exec", "next", "build"], {
+    // Run web's full build (prebuild generates ical files from the swapped
+    // fixture events, then next build emits the static site).
+    build = spawnSync("pnpm", ["--filter", "@pl-conf/web", "run", "build"], {
       cwd: ROOT,
       stdio: "inherit",
       env: { ...process.env, PL_CONF_TEST_FIXTURE: "1" },
@@ -72,6 +89,7 @@ function buildFixtureSite() {
       fs.renameSync(OUT_DIR, OUT_TEST_DIR);
     }
   } finally {
+    fs.renameSync(GENERATED_BACKUP, GENERATED_FILE);
     if (hadRealOut && fs.existsSync(OUT_BACKUP_DIR)) {
       fs.rmSync(OUT_DIR, { recursive: true, force: true });
       fs.renameSync(OUT_BACKUP_DIR, OUT_DIR);

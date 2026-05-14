@@ -4,8 +4,8 @@ import {
   eventKey,
   hasConcreteDates,
   parseDateParts,
-} from "./event.js";
-import type { DateName, ScheduledEvent } from "./schemas.js";
+} from "./event";
+import type { DateName, ScheduledEvent } from "./schemas";
 
 const UID_DOMAIN = "pl-conferences.com";
 

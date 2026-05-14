@@ -7,7 +7,7 @@ import {
 import { SESv2Client, SendEmailCommand } from "@aws-sdk/client-sesv2";
 import { eventKey, isActive } from "@pl-conf/core";
 import diff from "fast-diff";
-import { events } from "../../../generated/events";
+import { events } from "@pl-conf/data";
 
 interface EventWebInfo {
   main?: string;

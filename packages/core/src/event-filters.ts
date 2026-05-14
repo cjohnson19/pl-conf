@@ -3,8 +3,8 @@ import {
   isBefore as dateIsBefore,
   getYear,
 } from "date-fns";
-import { allDeadlines, firstDeadline, isDeadlinePast } from "./event.js";
-import type { EventType, MaybeDate, ScheduledEvent } from "./schemas.js";
+import { allDeadlines, firstDeadline, isDeadlinePast } from "./event";
+import type { EventType, MaybeDate, ScheduledEvent } from "./schemas";
 
 export type EventFilter = (event: ScheduledEvent) => boolean;
 

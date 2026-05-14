@@ -1,6 +1,6 @@
 import { isBefore } from "date-fns";
 import { z } from "zod";
-import { eventTypes } from "./event.js";
+import { eventTypes } from "./event";
 
 const DateSchema = z
   .string()

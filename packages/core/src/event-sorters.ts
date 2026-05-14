@@ -1,6 +1,6 @@
 import { compareAsc, compareDesc } from "date-fns";
-import { firstDeadline } from "./event.js";
-import type { ScheduledEvent } from "./schemas.js";
+import { firstDeadline } from "./event";
+import type { ScheduledEvent } from "./schemas";
 
 export type EventSorter = (a: ScheduledEvent, b: ScheduledEvent) => number;
 
