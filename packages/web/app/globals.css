@@ -164,9 +164,4 @@
     border-radius: 2px;
     display: inline-block;
   }
-  .pill.passed {
-    opacity: 0.6;
-    text-decoration: line-through;
-    text-decoration-color: var(--rule);
-  }
 }

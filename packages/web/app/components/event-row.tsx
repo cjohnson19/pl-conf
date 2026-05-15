@@ -211,12 +211,7 @@ function EventRowImpl({
       )}
     >
       {!hideDate && (
-        <div
-          className={clsx(
-            "flex flex-col items-start gap-1.5 self-start @[760px]/row:self-auto",
-            passed && "opacity-55"
-          )}
-        >
+        <div className="flex flex-col items-start gap-1.5 self-start @[760px]/row:self-auto">
           <div
             className={clsx(
               "font-ui font-semibold leading-none tracking-[-0.025em] tabular-nums",
@@ -582,14 +577,12 @@ function CardDeadlineTable({
 }
 
 function CardDeadlineRow({ row: r, now }: { row: RailRow; now: Date }) {
-  const past = r.kind === "past";
   const next = r.kind === "next";
   return (
-    <tr className={clsx(past && "text-ink-2")}>
+    <tr>
       <td
         className={clsx(
           "py-1 pr-2 align-baseline",
-          past && "line-through decoration-ink-2 decoration-[1.5px]",
           next && "font-medium text-ink"
         )}
       >
@@ -598,11 +591,7 @@ function CardDeadlineRow({ row: r, now }: { row: RailRow; now: Date }) {
       <td
         className={clsx(
           "py-1 pr-2 align-baseline whitespace-nowrap font-mono",
-          past
-            ? "text-ink-2 line-through decoration-ink-2 decoration-[1.5px]"
-            : next
-              ? "text-ink"
-              : "text-ink-3"
+          next ? "text-ink" : "text-ink-3"
         )}
       >
         {r.date === "TBD" ? "TBD" : roundShortDate(r.date)}
@@ -610,13 +599,11 @@ function CardDeadlineRow({ row: r, now }: { row: RailRow; now: Date }) {
       <td
         className={clsx(
           "py-1 text-right align-baseline whitespace-nowrap font-mono text-[11px]",
-          past
-            ? "text-ink-3 line-through decoration-ink-3 decoration-[1.5px]"
-            : next
-              ? r.urgent
-                ? "text-hot"
-                : "text-[color:var(--accent)]"
-              : "text-ink-3"
+          next
+            ? r.urgent
+              ? "text-hot"
+              : "text-[color:var(--accent)]"
+            : "text-ink-3"
         )}
       >
         {r.date === "TBD" ? "" : shortCountdown(r.date, now)}
@@ -825,27 +812,18 @@ function DateRow({ row: r }: { row: RailRow }) {
     <div
       className={clsx(
         "grid grid-cols-[1fr_auto] gap-2 text-[12px]",
-        r.kind === "past" && "text-ink-2",
-        r.kind === "next" && "font-medium text-ink",
-        r.kind === "default" && "text-ink-2"
+        r.kind === "next" ? "font-medium text-ink" : "text-ink-2"
       )}
     >
-      <span
-        className={clsx(
-          r.kind === "past" &&
-            "line-through decoration-ink-2 decoration-[1.5px]"
-        )}
-      >
-        {dateNameShort(r.name)}
-      </span>
+      <span>{dateNameShort(r.name)}</span>
       <span
         className={clsx(
           "font-mono text-[11px]",
-          r.kind === "past" &&
-            "text-ink-2 line-through decoration-ink-2 decoration-[1.5px]",
-          r.kind === "next" &&
-            (r.urgent ? "text-hot" : "text-[color:var(--accent)]"),
-          r.kind === "default" && "text-ink-3"
+          r.kind === "next"
+            ? r.urgent
+              ? "text-hot"
+              : "text-[color:var(--accent)]"
+            : "text-ink-3"
         )}
       >
         {r.date === "TBD" ? "TBD" : roundShortDate(r.date)}
