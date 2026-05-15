@@ -281,7 +281,10 @@ function DeadlineGroupHeader({
   onToggle?: () => void;
   controlsId?: string;
 }) {
-  const borderClasses = clsx("border-b border-rule", !isFirst && "border-t");
+  const borderClasses = clsx(
+    "border-b-2 border-rule",
+    !isFirst && "border-t-2"
+  );
   if (date === null) {
     return (
       <div
@@ -435,7 +438,10 @@ function CollapsibleGroup({
       }
     : undefined;
   return (
-    <section ref={sectionRef} className="relative">
+    <section
+      ref={sectionRef}
+      className={clsx("relative", !isFirst && "-mt-[2px]")}
+    >
       <DeadlineGroupHeader
         date={group.date}
         count={group.events.length}
