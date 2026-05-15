@@ -42,7 +42,9 @@ function git(command: string): Promise<string> {
 }
 
 async function lastUpdatedDate(fileName: string): Promise<string> {
-  const stdout = await git(`git log -1 --pretty="format:%cs" ${fileName}`);
+  const stdout = await git(
+    `git log -1 --follow --pretty="format:%cs" -- ${fileName}`
+  );
   if (stdout === "") {
     console.warn(`No git history for ${fileName}, using current date`);
     return format(new Date(), "yyyy-MM-dd");
@@ -52,10 +54,12 @@ async function lastUpdatedDate(fileName: string): Promise<string> {
 
 // RFC 5545 SEQUENCE for the iCal feed: calendar clients use it to detect
 // updates. Derived from the commit count touching the file (zero-indexed).
+// --follow traces history across renames so the count survives directory moves.
 async function commitSequence(fileName: string): Promise<number> {
-  const stdout = await git(`git rev-list --count HEAD -- ${fileName}`);
-  const count = Number.parseInt(stdout.trim(), 10);
-  return Number.isFinite(count) && count > 0 ? count - 1 : 0;
+  const stdout = await git(`git log --follow --format=%H -- ${fileName}`);
+  const trimmed = stdout.trim();
+  const count = trimmed === "" ? 0 : trimmed.split("\n").length;
+  return count > 0 ? count - 1 : 0;
 }
 
 async function fromYamlFile(fileName: string): Promise<ScheduledEvent> {
