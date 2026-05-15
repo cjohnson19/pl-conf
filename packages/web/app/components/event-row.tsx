@@ -256,6 +256,7 @@ function EventRowImpl({
             target="_blank"
             aria-label={`Open ${e.abbreviation} website`}
             className="group/url flex w-fit min-w-0 max-w-full items-baseline gap-1.5 text-[13px] text-ink-2 no-underline"
+            rel="noopener"
           >
             <span className="min-w-0 truncate underline decoration-rule decoration-1 underline-offset-[3px] transition-[text-decoration-color] duration-200 ease-out group-hover/url:decoration-ink">
               {e.name}
@@ -318,6 +319,7 @@ function EventRowImpl({
               if (i > 0) {
                 nodes.push(
                   <span
+                    // biome-ignore lint/suspicious/noArrayIndexKey: items list is built fresh each render with no preserved state
                     key={`sep-${i}`}
                     aria-hidden
                     className={clsx(
@@ -331,6 +333,7 @@ function EventRowImpl({
               }
               nodes.push(
                 <span
+                  // biome-ignore lint/suspicious/noArrayIndexKey: items list is built fresh each render with no preserved state
                   key={`item-${i}`}
                   className={clsx(
                     item.wideOnly && "hidden min-[1280px]:inline"
@@ -448,6 +451,7 @@ function EventCardImpl({
               target="_blank"
               aria-label={`Open ${e.abbreviation} website`}
               className="group/title inline-flex min-w-0 items-center gap-0.5 no-underline"
+              rel="noopener"
             >
               {titleInner}
               <ArrowUpRight
@@ -491,6 +495,7 @@ function EventCardImpl({
               target="_blank"
               aria-label="View important dates"
               className="group/dates inline-flex items-center gap-1 self-start text-[12px] font-medium text-ink no-underline"
+              rel="noopener"
             >
               <span className="underline decoration-rule decoration-1 underline-offset-[3px] transition-[text-decoration-color] duration-200 ease-out group-hover/dates:decoration-ink">
                 Dates &amp; Deadlines
@@ -505,7 +510,7 @@ function EventCardImpl({
           )}
           {deadlineRounds.map((r, idx) => (
             <CardDeadlineTable
-              key={idx}
+              key={r.name ?? idx}
               round={r}
               roundIndex={idx}
               showRoundLabel={deadlineRounds.length > 1}
@@ -748,6 +753,7 @@ function LeadLine({
           "no-underline",
           isMobile ? mobileWrapper : `group/lead ${desktopWrapper}`
         )}
+        rel="noopener"
       >
         {inner}
       </a>

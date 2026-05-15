@@ -1,4 +1,4 @@
-import { EventSorterOptions } from "./event-sorter";
+import type { EventSorterOptions } from "./event-sorter";
 
 export type EventPreferences = {
   hidden: boolean | undefined;

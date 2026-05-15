@@ -1,21 +1,21 @@
 import * as esbuild from "esbuild";
+import { mkdir } from "node:fs/promises";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { mkdir } from "node:fs/promises";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
+const PKG_DIR = join(__dirname, "..");
+const OUT_DIR = join(PKG_DIR, "dist");
 
 async function build() {
-  const outdir = join(__dirname, "dist");
-
-  await mkdir(outdir, { recursive: true });
+  await mkdir(OUT_DIR, { recursive: true });
 
   await esbuild.build({
-    entryPoints: [join(__dirname, "drift/index.ts")],
+    entryPoints: [join(PKG_DIR, "drift/index.ts")],
     bundle: true,
     platform: "node",
     target: "node22",
-    outfile: join(outdir, "drift/index.js"),
+    outfile: join(OUT_DIR, "drift/index.js"),
     format: "cjs",
     sourcemap: true,
     external: ["@aws-sdk/client-s3", "@aws-sdk/client-sesv2"],
@@ -23,11 +23,11 @@ async function build() {
   console.log("Built drift lambda");
 
   await esbuild.build({
-    entryPoints: [join(__dirname, "submission/index.ts")],
+    entryPoints: [join(PKG_DIR, "submission/index.ts")],
     bundle: true,
     platform: "node",
     target: "node22",
-    outfile: join(outdir, "submission/index.js"),
+    outfile: join(OUT_DIR, "submission/index.js"),
     format: "cjs",
     sourcemap: true,
     external: [

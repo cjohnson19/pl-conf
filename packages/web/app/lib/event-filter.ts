@@ -1,10 +1,10 @@
-import { eventKey, EventType } from "@pl-conf/core";
+import { eventKey, type EventType } from "@pl-conf/core";
 import {
   isActive,
   isType as coreIsType,
   hasYear as coreHasYear,
   hasOpenSubmission,
-  EventFilter,
+  type EventFilter,
   hasDate,
   hasTag,
   startsAfter,
@@ -14,7 +14,7 @@ import {
   matchesText,
   applyFilters,
 } from "@pl-conf/core";
-import { PreferenceCollection } from "./user-prefs";
+import type { PreferenceCollection } from "./user-prefs";
 
 export type { EventFilter };
 export {
@@ -33,10 +33,11 @@ export const isCategory: (category: string) => EventFilter = (c) =>
   c === "" ? () => true : coreIsType(c as EventType);
 
 export const hasYear: (year: string) => EventFilter = (year) =>
-  year === "" ? () => true : coreHasYear(parseInt(year));
+  year === "" ? () => true : coreHasYear(parseInt(year, 10));
 
 export const openToNewSubmissions: (enabled: boolean) => EventFilter =
-  (on) => (e) => (on ? hasOpenSubmission(e) : true);
+  (on) => (e) =>
+    on ? hasOpenSubmission(e) : true;
 
 export const hiddenFilter: (
   prefs: PreferenceCollection["eventPrefs"]

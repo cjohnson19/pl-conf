@@ -185,12 +185,6 @@ export const events: Record<string, ScheduledEvent> = ${JSON.stringify(events, n
 
   await writeFile(join(OUTPUT_DIR, "events.ts"), tsContent);
   console.log(`Wrote ${OUTPUT_DIR}/events.ts`);
-
-  await writeFile(
-    join(OUTPUT_DIR, "events.json"),
-    JSON.stringify(events, null, 2)
-  );
-  console.log(`Wrote ${OUTPUT_DIR}/events.json`);
 }
 
 main().catch((err) => {

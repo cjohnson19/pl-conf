@@ -4,9 +4,9 @@
 // generated URLs when building the website. Maybe there is a way to build this
 // in the CDK, which would be nicer.
 
-import { execSync } from "child_process";
-import * as path from "path";
-import { fileURLToPath } from "url";
+import { execSync } from "node:child_process";
+import * as path from "node:path";
+import { fileURLToPath } from "node:url";
 
 const ROOT_DIR = path.join(path.dirname(fileURLToPath(import.meta.url)), "..");
 const CDK_DIR = path.join(ROOT_DIR, "packages", "cdk");
@@ -114,7 +114,7 @@ async function main() {
     `aws cloudfront create-invalidation --distribution-id ${distributionId} --paths "/*"`
   );
 
-  console.log("\n" + "=".repeat(60));
+  console.log(`\n${"=".repeat(60)}`);
   console.log("Deployment complete");
   console.log(
     `Website URL: ${domainName ? `https://${domainName}` : outputs.WebsiteUrl}`

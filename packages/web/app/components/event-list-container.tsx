@@ -119,7 +119,7 @@ function localDeadlineString(date: string): string {
   const tz =
     tzFmt.formatToParts(instant).find((p) => p.type === "timeZoneName")
       ?.value ?? "";
-  return `${dow} · ${dat} · ${tim}${tz ? " " + tz : ""} (local)`;
+  return `${dow} · ${dat} · ${tim}${tz ? ` ${tz}` : ""} (local)`;
 }
 
 function isDueThisWeek(e: ScheduledEvent, now: Date): boolean {
@@ -587,9 +587,9 @@ function HeroShell({
                 className="max-w-[280px] border-rule text-ink shadow-pop"
                 style={{ background: "var(--card)" }}
               >
-                {menuItems.map((item, i) => (
+                {menuItems.map((item) => (
                   <DropdownMenuItem
-                    key={i}
+                    key={item.label}
                     onSelect={item.onSelect}
                     className="flex cursor-pointer flex-col items-start gap-0.5 rounded-sm text-[13px] text-ink focus:bg-paper-2 focus:text-ink"
                   >
@@ -983,7 +983,7 @@ function EventListInner({ events }: { events: ScheduledEvent[] }) {
       typeof window !== "undefined" &&
       window.sessionStorage.getItem(SESSION_VIEW_KEY) !== null;
     if (!hasStored && starredCount === 0) setView("all");
-  }, [prefsLoaded, viewLoaded, starredCount]);
+  }, [prefsLoaded, viewLoaded, starredCount, setView]);
 
   const lastUpdatedDate = useMemo(() => {
     const dates = events
@@ -1079,6 +1079,7 @@ function EventListInner({ events }: { events: ScheduledEvent[] }) {
         ) : (
           <div className="space-y-4 py-4">
             {Array.from({ length: 4 }).map((_, i) => (
+              // biome-ignore lint/suspicious/noArrayIndexKey: fixed-length static skeleton list, no reordering
               <Skeleton key={i} className="h-20 rounded-xs" />
             ))}
           </div>
@@ -1121,6 +1122,7 @@ function EventListInner({ events }: { events: ScheduledEvent[] }) {
           target="_blank"
           aria-label="Source on GitHub"
           className="inline-flex items-center gap-1.5 text-ink-3 no-underline transition-colors hover:text-ink"
+          rel="noopener"
         >
           <Github size={13} strokeWidth={1.75} />
           <span>Source</span>

@@ -6,7 +6,7 @@ import {
 } from "@aws-sdk/client-dynamodb";
 import { z } from "zod";
 import { SubmissionSchema } from "@pl-conf/core/schemas";
-import { createHash } from "crypto";
+import { createHash } from "node:crypto";
 
 const RATE_LIMIT_TABLE_NAME = process.env.RATE_LIMIT_TABLE_NAME!;
 const SUBMISSION_EMAIL_SENDER = process.env.SUBMISSION_EMAIL_SENDER!;
@@ -50,7 +50,7 @@ async function checkRateLimit(
     );
 
     const currentCount = result.Item
-      ? parseInt(result.Item.count?.N || "0")
+      ? parseInt(result.Item.count?.N || "0", 10)
       : 0;
 
     if (currentCount >= RATE_LIMIT_REQUESTS) {

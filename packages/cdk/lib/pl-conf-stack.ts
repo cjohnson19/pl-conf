@@ -12,8 +12,11 @@ import * as iam from "aws-cdk-lib/aws-iam";
 import * as acm from "aws-cdk-lib/aws-certificatemanager";
 import * as route53 from "aws-cdk-lib/aws-route53";
 import * as route53Targets from "aws-cdk-lib/aws-route53-targets";
-import { Construct } from "constructs";
-import * as path from "path";
+import type { Construct } from "constructs";
+import * as path from "node:path";
+import { fileURLToPath } from "node:url";
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 interface PlConfStackProps extends cdk.StackProps {
   stage: string;

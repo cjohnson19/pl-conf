@@ -38,10 +38,7 @@ export const hasOpenSubmission: EventFilter = (e) => {
   return !isDeadlinePast(first);
 };
 
-export const startsBetween: (range: {
-  from?: Date;
-  to?: Date;
-}) => EventFilter =
+export const startsBetween: (range: { from?: Date; to?: Date }) => EventFilter =
   ({ from, to }) =>
   (e) =>
     hasDate(e.date.start) &&

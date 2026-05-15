@@ -51,6 +51,7 @@ type Fixtures = {
 };
 
 const test = base.extend<Fixtures>({
+  // biome-ignore lint/correctness/noEmptyPattern: vitest fixture signature requires destructuring the fixtures arg even when unused
   page: async ({}, use) => {
     const context = await browser.createBrowserContext();
     const page = await context.newPage();
@@ -129,7 +130,9 @@ describe.concurrent("event list", () => {
     const keys = await renderedKeys();
     const expected = activeEvents().map(eventKey);
     expect(keys.length).toBe(expected.length);
-    keys.forEach((k) => expect(expected).toContain(k));
+    keys.forEach((k) => {
+      expect(expected).toContain(k);
+    });
   });
 
   test("orders events by next-deadline ascending, no-deadline last", async ({
@@ -160,7 +163,7 @@ describe.concurrent("watching", () => {
 
     const watch = await watchButton(key);
     expect(watch).not.toBeNull();
-    await watch!.evaluate((b) => (b as HTMLButtonElement).click());
+    await watch?.evaluate((b) => (b as HTMLButtonElement).click());
 
     await page.waitForSelector(
       `[data-event-key="${key}"] button[aria-pressed="true"]`,
@@ -184,7 +187,7 @@ describe.concurrent("watching", () => {
     const key = eventKey(sample);
 
     const watch = await watchButton(key);
-    await watch!.evaluate((b) => (b as HTMLButtonElement).click());
+    await watch?.evaluate((b) => (b as HTMLButtonElement).click());
     await page.waitForSelector(
       `[data-event-key="${key}"] button[aria-pressed="true"]`,
       { timeout: 5000 }
@@ -209,7 +212,7 @@ describe.concurrent("watching", () => {
     const key = eventKey(sample);
 
     const watch = await watchButton(key);
-    await watch!.evaluate((b) => (b as HTMLButtonElement).click());
+    await watch?.evaluate((b) => (b as HTMLButtonElement).click());
     await page.waitForSelector(
       `[data-event-key="${key}"] button[aria-pressed="true"]`,
       { timeout: 5000 }
@@ -220,7 +223,7 @@ describe.concurrent("watching", () => {
 
     const unwatch = await stopWatchingButton(key);
     expect(unwatch).not.toBeNull();
-    await unwatch!.evaluate((b) => (b as HTMLButtonElement).click());
+    await unwatch?.evaluate((b) => (b as HTMLButtonElement).click());
 
     await page.waitForFunction(
       (k) => !document.querySelector(`[data-event-key="${k}"]`),
@@ -248,7 +251,7 @@ describe.concurrent("hero", () => {
     const mockb = findFixture("MOCKB");
     const key = eventKey(mockb);
     const watch = await watchButton(key);
-    await watch!.evaluate((b) => (b as HTMLButtonElement).click());
+    await watch?.evaluate((b) => (b as HTMLButtonElement).click());
     await page.waitForSelector(
       `[data-event-key="${key}"] button[aria-pressed="true"]`,
       { timeout: 5000 }
@@ -279,8 +282,8 @@ describe.concurrent("search", () => {
 
     const input = await page.$('input[placeholder="Search events…"]');
     expect(input).not.toBeNull();
-    await input!.click({ clickCount: 3 });
-    await input!.type(term);
+    await input?.click({ clickCount: 3 });
+    await input?.type(term);
 
     await page.waitForFunction(
       (k) => !!document.querySelector(`[data-event-key="${k}"]`),
@@ -317,7 +320,9 @@ describe.concurrent("category chips", () => {
 
     const keys = await renderedKeys();
     expect(keys.length).toBe(expectedKeys.size);
-    keys.forEach((k) => expect(expectedKeys.has(k)).toBe(true));
+    keys.forEach((k) => {
+      expect(expectedKeys.has(k)).toBe(true);
+    });
   });
 });
 
@@ -385,7 +390,7 @@ describe.concurrent("calendar menu", () => {
 
     const withDeadlines = await fetchIcs(icsLinkSelector);
     expect(withDeadlines).toBeTruthy();
-    const withDeadlinesCount = (withDeadlines!.match(/BEGIN:VEVENT/g) ?? [])
+    const withDeadlinesCount = (withDeadlines?.match(/BEGIN:VEVENT/g) ?? [])
       .length;
     expect(withDeadlinesCount).toBeGreaterThan(1);
 
@@ -409,7 +414,7 @@ describe.concurrent("calendar menu", () => {
 
     const eventsOnly = await fetchIcs(icsLinkSelector);
     expect(eventsOnly).toBeTruthy();
-    const eventsOnlyCount = (eventsOnly!.match(/BEGIN:VEVENT/g) ?? []).length;
+    const eventsOnlyCount = (eventsOnly?.match(/BEGIN:VEVENT/g) ?? []).length;
     expect(eventsOnlyCount).toBe(1);
     expect(eventsOnlyCount).toBeLessThan(withDeadlinesCount);
   });
@@ -561,7 +566,7 @@ describe.concurrent("mobile layout", () => {
     const trigger = await page.$(
       `[data-event-key="${key}"] button[aria-label^="Actions for MOCKB"]`
     );
-    await trigger!.evaluate((b) => (b as HTMLButtonElement).click());
+    await trigger?.evaluate((b) => (b as HTMLButtonElement).click());
     await page.waitForFunction(
       () => /Watch this event/i.test(document.body.innerText),
       { timeout: 5000 }

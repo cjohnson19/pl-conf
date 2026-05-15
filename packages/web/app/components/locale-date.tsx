@@ -2,10 +2,10 @@
 
 import { useEffect, useState } from "react";
 import {
-  DateFormatStyle,
+  type DateFormatStyle,
   formatDate,
   formatDateRange,
-  MaybeDate,
+  type MaybeDate,
 } from "../lib/event";
 import { usePreferences } from "./preferences-provider";
 

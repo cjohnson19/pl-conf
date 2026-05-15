@@ -17,7 +17,6 @@ node_modules
 .next/
 packages/web/out/
 packages/web/out-test/
-packages/web/out-real-backup/
 
 # misc
 .DS_Store

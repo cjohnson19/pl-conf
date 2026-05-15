@@ -166,7 +166,7 @@ async function getStoredEventInfo(): Promise<Record<string, EventWebInfo>> {
       });
       const res = await s3Client.send(getImportantDatesCommand);
       return {
-        importantDates: await res.Body!.transformToString(),
+        importantDates: await res.Body?.transformToString(),
       };
     })
   );
@@ -179,7 +179,7 @@ async function getStoredEventInfo(): Promise<Record<string, EventWebInfo>> {
         });
         const res = await s3Client.send(getMainCommand);
         return {
-          main: await res.Body!.transformToString(),
+          main: await res.Body?.transformToString(),
         };
       })
     );

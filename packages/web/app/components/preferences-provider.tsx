@@ -2,12 +2,15 @@
 
 import {
   createContext,
-  Dispatch,
-  ReactNode,
-  SetStateAction,
+  type Dispatch,
+  type ReactNode,
+  type SetStateAction,
   useContext,
 } from "react";
-import { defaultPreferences, PreferenceCollection } from "@/lib/user-prefs";
+import {
+  defaultPreferences,
+  type PreferenceCollection,
+} from "@/lib/user-prefs";
 import { useLocalStorage } from "@/hooks/use-local-storage";
 
 type PreferencesContextType = {

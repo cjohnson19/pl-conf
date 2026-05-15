@@ -1,11 +1,12 @@
 {
-  "extends": "./tsconfig.base.json",
-  "compilerOptions": {
-    "lib": ["ES2023", "DOM"],
-    "paths": {
-      "@/*": ["./packages/web/app/*"]
-    }
-  },
-  "include": ["scripts/**/*.ts", "tests/**/*.ts"],
-  "exclude": ["node_modules", "packages", ".next"]
+  "files": [],
+  "references": [
+    { "path": "./scripts" },
+    { "path": "./tests" },
+    { "path": "./packages/core" },
+    { "path": "./packages/data" },
+    { "path": "./packages/functions" },
+    { "path": "./packages/web" },
+    { "path": "./packages/cdk" }
+  ]
 }

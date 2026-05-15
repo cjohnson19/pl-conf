@@ -1,6 +1,6 @@
 "use client";
 
-import { formatDuration, Interval, intervalToDuration } from "date-fns";
+import { formatDuration, type Interval, intervalToDuration } from "date-fns";
 import React from "react";
 import { toAoeInstant } from "../lib/event";
 
@@ -21,9 +21,9 @@ export function TimeUntil({
   React.useEffect(() => {
     setNow(new Date());
     if (!deadline) return;
-    if (new Date().getTime() > deadline.getTime()) return;
+    if (Date.now() > deadline.getTime()) return;
 
-    const withinDay = deadline.getTime() - new Date().getTime() <= DAY_MS;
+    const withinDay = deadline.getTime() - Date.now() <= DAY_MS;
     const tick = withinDay ? MINUTE_MS : HOUR_MS;
     const interval = setInterval(() => setNow(new Date()), tick);
     return () => clearInterval(interval);
@@ -32,7 +32,7 @@ export function TimeUntil({
   if (!now || !deadline) return null;
 
   const remaining = deadline.getTime() - now.getTime();
-  if (remaining <= 0) return <>{prefix ? prefix + " " : null}Passed</>;
+  if (remaining <= 0) return <>{prefix ? `${prefix} ` : null}Passed</>;
 
   const interval: Interval = { start: now, end: deadline };
   const duration = intervalToDuration(interval);
@@ -43,7 +43,7 @@ export function TimeUntil({
 
   return (
     <>
-      {prefix ? prefix + " " : null}
+      {prefix ? `${prefix} ` : null}
       {formatDuration(duration, {
         format: [...format],
         zero: false,
