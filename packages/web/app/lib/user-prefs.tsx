@@ -17,6 +17,7 @@ export type DisplayPreferences = {
   includeCalendarDeadlines: boolean;
   introHeroDismissed: boolean;
   deadlineHeroDismissed: boolean;
+  collapseHintDismissed: boolean;
   permanentlyHiddenEventHeroes: string[];
   layout: "list" | "grid";
 };
@@ -42,6 +43,7 @@ export const defaultPreferences: PreferenceCollection = {
     includeCalendarDeadlines: true,
     introHeroDismissed: false,
     deadlineHeroDismissed: false,
+    collapseHintDismissed: false,
     permanentlyHiddenEventHeroes: [],
     layout: "list",
   },

@@ -12,6 +12,7 @@ import {
 import clsx from "clsx";
 import {
   Calendar,
+  ChevronDown,
   Command,
   Github,
   LayoutGrid,
@@ -154,6 +155,7 @@ const MS_PER_DAY = 24 * 60 * 60 * 1000;
 const HERO_CUTOFF_DAYS = 14;
 const SESSION_DISMISSED_KEY = "dismissedHeroKeys";
 const SESSION_VIEW_KEY = "view";
+const SESSION_COLLAPSED_KEY = "collapsedDateGroups";
 
 function useSessionState<T extends string>(
   key: string,
@@ -178,6 +180,31 @@ function useSessionState<T extends string>(
     });
   };
   return [value, set, loaded];
+}
+
+function useSessionCollapsedDates() {
+  const [dates, setDates] = useState<Set<string>>(new Set());
+  useEffect(() => {
+    try {
+      const stored = window.sessionStorage.getItem(SESSION_COLLAPSED_KEY);
+      if (stored) setDates(new Set(JSON.parse(stored)));
+    } catch {}
+  }, []);
+  const toggle = (date: string) => {
+    setDates((prev) => {
+      const next = new Set(prev);
+      if (next.has(date)) next.delete(date);
+      else next.add(date);
+      try {
+        window.sessionStorage.setItem(
+          SESSION_COLLAPSED_KEY,
+          JSON.stringify([...next])
+        );
+      } catch {}
+      return next;
+    });
+  };
+  return { dates, toggle };
 }
 
 function useSessionDismissedHeroes() {
@@ -242,11 +269,17 @@ function DeadlineGroupHeader({
   count,
   now,
   isFirst,
+  collapsed,
+  onToggle,
+  controlsId,
 }: {
   date: string | null;
   count: number;
   now: Date;
   isFirst: boolean;
+  collapsed?: boolean;
+  onToggle?: () => void;
+  controlsId?: string;
 }) {
   const borderClasses = clsx("border-b border-rule", !isFirst && "border-t");
   if (date === null) {
@@ -277,36 +310,30 @@ function DeadlineGroupHeader({
   const urgent = isDeadlineUrgent(date, now);
   const instant = toAoeInstant(date);
   const past = instant ? instant.getTime() < now.getTime() : false;
-  return (
-    <div
-      className="sticky top-0 z-10 -mx-5 md:-mx-8"
-      style={{ background: "var(--paper)" }}
-    >
-      <div
-        className={clsx(
-          "flex items-end justify-between gap-4 px-5 pb-3 pt-4 md:px-8",
-          borderClasses
-        )}
-      >
-        <h2 className="flex items-end gap-3 font-ui">
-          <span
-            className={clsx(
-              "font-semibold leading-[0.8] tracking-[-0.025em] tabular-nums",
-              "text-[30px] sm:text-[36px]",
-              urgent ? "text-hot" : "text-[color:var(--accent)]"
-            )}
-          >
-            {cal.getDate()}
+  const collapsible = onToggle !== undefined;
+  const dateLabel = monDayYearFmt.format(cal);
+  const innerContent = (
+    <>
+      <h2 className="flex items-end gap-3 font-ui">
+        <span
+          className={clsx(
+            "font-semibold leading-[0.8] tracking-[-0.025em] tabular-nums",
+            "text-[30px] sm:text-[36px]",
+            urgent ? "text-hot" : "text-[color:var(--accent)]"
+          )}
+        >
+          {cal.getDate()}
+        </span>
+        <span className="flex flex-col gap-1 leading-none">
+          <span className="font-mono text-[12px] font-medium uppercase tracking-[0.08em] text-ink sm:text-[13px]">
+            {monthLongFmt.format(cal)} {cal.getFullYear()}
           </span>
-          <span className="flex flex-col gap-1 leading-none">
-            <span className="font-mono text-[12px] font-medium uppercase tracking-[0.08em] text-ink sm:text-[13px]">
-              {monthLongFmt.format(cal)} {cal.getFullYear()}
-            </span>
-            <span className="font-mono text-[10px] uppercase tracking-[0.06em] text-ink-3 sm:text-[11px]">
-              {weekdayLongFmt.format(cal)}
-            </span>
+          <span className="font-mono text-[10px] uppercase tracking-[0.06em] text-ink-3 sm:text-[11px]">
+            {weekdayLongFmt.format(cal)}
           </span>
-        </h2>
+        </span>
+      </h2>
+      <div className="flex items-end gap-3">
         <div className="flex flex-col items-end gap-1 font-mono text-[11px] uppercase tracking-[0.04em] text-ink-3">
           {!past && (
             <span
@@ -323,7 +350,135 @@ function DeadlineGroupHeader({
             {count === 1 ? "" : "s"}
           </span>
         </div>
+        {collapsible && (
+          <ChevronDown
+            aria-hidden
+            size={16}
+            strokeWidth={1.75}
+            className={clsx(
+              "shrink-0 text-ink-3 transition-transform duration-200",
+              collapsed && "-rotate-90"
+            )}
+          />
+        )}
       </div>
+    </>
+  );
+  return (
+    <div
+      className="sticky top-0 z-10 -mx-5 md:-mx-8"
+      style={{ background: "var(--paper)" }}
+    >
+      {collapsible ? (
+        <button
+          type="button"
+          onClick={onToggle}
+          aria-expanded={!collapsed}
+          aria-controls={controlsId}
+          aria-label={
+            collapsed
+              ? `Show events for ${dateLabel}`
+              : `Hide events for ${dateLabel}`
+          }
+          className={clsx(
+            "flex w-full items-end justify-between gap-4 px-5 pb-3 pt-4 text-left transition-colors md:px-8 hover:bg-paper-2",
+            borderClasses
+          )}
+        >
+          {innerContent}
+        </button>
+      ) : (
+        <div
+          className={clsx(
+            "flex items-end justify-between gap-4 px-5 pb-3 pt-4 md:px-8",
+            borderClasses
+          )}
+        >
+          {innerContent}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function CollapsibleGroup({
+  group,
+  isFirst,
+  showHint,
+  onDismissHint,
+  now,
+  collapsed,
+  onToggle,
+}: {
+  group: Group;
+  isFirst: boolean;
+  showHint: boolean;
+  onDismissHint: () => void;
+  now: Date;
+  collapsed: boolean;
+  onToggle: (() => void) | undefined;
+}) {
+  const sectionRef = useRef<HTMLElement>(null);
+  const contentId = `group-content-${group.key.replace(/[^a-zA-Z0-9_-]/g, "-")}`;
+  const handleToggle = onToggle
+    ? () => {
+        const willCollapse = !collapsed;
+        const el = sectionRef.current;
+        const shouldRestoreScroll =
+          willCollapse && el !== null && el.getBoundingClientRect().top < 0;
+        onToggle();
+        if (shouldRestoreScroll) {
+          requestAnimationFrame(() => {
+            sectionRef.current?.scrollIntoView({ block: "start" });
+          });
+        }
+      }
+    : undefined;
+  return (
+    <section ref={sectionRef} className="relative">
+      <DeadlineGroupHeader
+        date={group.date}
+        count={group.events.length}
+        now={now}
+        isFirst={isFirst}
+        collapsed={collapsed}
+        onToggle={handleToggle}
+        controlsId={contentId}
+      />
+      <div
+        id={contentId}
+        className="grid transition-[grid-template-rows] duration-200 ease-out motion-reduce:transition-none"
+        style={{ gridTemplateRows: collapsed ? "0fr" : "1fr" }}
+        aria-hidden={collapsed}
+      >
+        <div className="overflow-hidden">
+          {showHint && <CollapseHint onDismiss={onDismissHint} />}
+          {group.events.map((e, i) => (
+            <div
+              key={eventKey(e)}
+              className={clsx("@container/row", i === 0 && "[&>*]:border-t-0")}
+            >
+              <EventRow event={e} now={now} hideDate={group.date !== null} />
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function CollapseHint({ onDismiss }: { onDismiss: () => void }) {
+  return (
+    <div className="-mx-5 flex items-center justify-between gap-3 border-b border-rule px-5 py-2 text-[11px] italic text-ink-3 md:-mx-8 md:px-8">
+      <span>Tip: tap any date heading to hide its events.</span>
+      <button
+        type="button"
+        onClick={onDismiss}
+        aria-label="Dismiss tip"
+        className="grid h-6 w-6 place-items-center rounded-full text-ink-3 transition-colors hover:bg-paper-2 hover:text-ink"
+      >
+        <X size={12} strokeWidth={1.75} />
+      </button>
     </div>
   );
 }
@@ -971,6 +1126,22 @@ function EventListInner({ events }: { events: ScheduledEvent[] }) {
     () => buildGroups(displayEvents, now),
     [displayEvents, now]
   );
+  const { dates: collapsedDates, toggle: toggleCollapsed } =
+    useSessionCollapsedDates();
+  const firstCollapsibleIdx = useMemo(
+    () => groups.findIndex((g) => g.date !== null),
+    [groups]
+  );
+  const showCollapseHint =
+    prefsLoaded &&
+    !prefs.display.collapseHintDismissed &&
+    firstCollapsibleIdx >= 0 &&
+    groups.length > 1;
+  const dismissCollapseHint = () =>
+    setPrefs((p) => ({
+      ...p,
+      display: { ...p.display, collapseHintDismissed: true },
+    }));
   const totalActive = activeEvents.length;
   const starredCount = starredKeys.size;
   const hasOthers = view === "starred" && totalActive > starredCount;
@@ -1046,29 +1217,18 @@ function EventListInner({ events }: { events: ScheduledEvent[] }) {
               ))
             ) : (
               groups.map((g, gi) => (
-                <section key={g.key} className="relative">
-                  <DeadlineGroupHeader
-                    date={g.date}
-                    count={g.events.length}
-                    now={now}
-                    isFirst={gi === 0}
-                  />
-                  {g.events.map((e, i) => (
-                    <div
-                      key={eventKey(e)}
-                      className={clsx(
-                        "@container/row",
-                        i === 0 && "[&>*]:border-t-0"
-                      )}
-                    >
-                      <EventRow
-                        event={e}
-                        now={now}
-                        hideDate={g.date !== null}
-                      />
-                    </div>
-                  ))}
-                </section>
+                <CollapsibleGroup
+                  key={g.key}
+                  group={g}
+                  isFirst={gi === 0}
+                  showHint={showCollapseHint && gi === firstCollapsibleIdx}
+                  onDismissHint={dismissCollapseHint}
+                  now={now}
+                  collapsed={g.date !== null && collapsedDates.has(g.date)}
+                  onToggle={
+                    g.date ? () => toggleCollapsed(g.date as string) : undefined
+                  }
+                />
               ))
             )
           ) : view === "starred" ? null : (
