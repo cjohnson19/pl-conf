@@ -1,0 +1,16 @@
+name: Symposium on Logic-Based Program Synthesis and Transformation, and Symposium on Principles and Practice of Declarative Programming
+abbreviation: LOPSTR+PPDP
+date:
+  start: 2026-08-27
+  end: 2026-08-29
+location: Indianapolis, United States
+importantDates:
+  abstract: 2026-05-20
+  paper: 2026-05-27
+  notification: 2026-06-26
+  camera-ready: 2026-07-08
+url: "https://icfp26.sigplan.org/home/lopstr-ppdp-2026"
+submissionUrl: "https://lopstr-ppdp26.hotcrp.com/"
+importantDateUrl: "https://icfp26.sigplan.org/home/lopstr-ppdp-2026"
+type: "symposium"
+colocatedWith: ICFP
