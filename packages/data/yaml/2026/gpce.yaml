@@ -1,6 +1,8 @@
 name: "International Conference on Generative Programming: Concepts & Experiences"
 abbreviation: GPCE
 type: "conference"
+tags:
+  - compilers
 date:
   start: 2026-06-29
   end: 2026-06-29

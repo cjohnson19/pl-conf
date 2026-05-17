@@ -1,6 +1,9 @@
 name: International Workshop on Type-Driven Development
 abbreviation: TyDe
 type: "workshop"
+tags:
+  - types
+  - functional-programming
 date:
   start: 2026-08-26
   end: 2026-08-27

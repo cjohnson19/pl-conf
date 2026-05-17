@@ -5,6 +5,9 @@ date:
   start: 2025-07-28
   end: 2025-08-01
 type: "symposium"
+tags:
+  - concurrency
+  - systems
 url: "https://spaa.acm.org/"
 importantDateUrl: "https://spaa.acm.org/call-for-papers/"
 importantDates:

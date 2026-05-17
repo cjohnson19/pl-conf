@@ -15,3 +15,5 @@ url: "https://icfp25.sigplan.org/"
 submissionUrl: "https://icfp2025.hotcrp.com/"
 importantDateUrl: "https://icfp25.sigplan.org/dates"
 type: "conference"
+tags:
+  - functional-programming

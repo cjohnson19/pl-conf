@@ -1,6 +1,9 @@
 name: 19th Conference on Intelligent Computer Mathematics
 abbreviation: CICM
 type: "conference"
+tags:
+  - theorem-proving
+  - proof-assistants
 date:
   start: 2026-09-21
   end: 2026-09-25

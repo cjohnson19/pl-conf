@@ -1,6 +1,9 @@
 name: 40th International Workshop on Unification
 abbreviation: UNIF
 type: workshop
+tags:
+  - logic
+  - theorem-proving
 date:
   start: 2026-07-24
   end: 2026-07-24

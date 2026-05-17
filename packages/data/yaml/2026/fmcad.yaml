@@ -1,6 +1,9 @@
 name: Formal Methods in Computer-Aided Design
 abbreviation: FMCAD
 type: "conference"
+tags:
+  - verification
+  - model-checking
 date:
   start: 2026-09-14
   end: 2026-09-18

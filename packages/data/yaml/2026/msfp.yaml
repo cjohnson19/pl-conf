@@ -1,6 +1,9 @@
 name: Workshop on Mathematically Structured Functional Programming
 abbreviation: MSFP
 type: "workshop"
+tags:
+  - functional-programming
+  - category-theory
 date:
   start: 2026-07-18
   end: 2026-07-18

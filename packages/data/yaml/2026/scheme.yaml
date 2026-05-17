@@ -1,6 +1,8 @@
 name: Scheme and Functional Programming Workshop
 abbreviation: Scheme
 type: "workshop"
+tags:
+  - functional-programming
 date:
   start: 2026-08-29
   end: 2026-08-29

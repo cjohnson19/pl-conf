@@ -1,6 +1,9 @@
 name: International Symposium on Mathematical Foundations of Computer Science
 abbreviation: MFCS
 type: "symposium"
+tags:
+  - logic
+  - automata
 date:
   start: 2026-08-24
   end: 2026-08-28

@@ -8,6 +8,9 @@ format: easychair
 url: "https://msp.cis.strath.ac.uk/types2025/index.html"
 importantDateUrl: "https://msp.cis.strath.ac.uk/types2025/cfp.html"
 type: "conference"
+tags:
+  - types
+  - proof-assistants
 importantDates:
   abstract: 2025-03-10
   notification: 2025-04-11

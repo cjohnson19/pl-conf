@@ -9,6 +9,9 @@ url: "https://itp-conference-2026.github.io/"
 submissionUrl: "https://submissions.floc26.org/itp/"
 importantDateUrl: "https://itp-conference-2026.github.io/cfp"
 type: "conference"
+tags:
+  - theorem-proving
+  - proof-assistants
 importantDates:
   abstract: 2026-02-12
   paper: 2026-02-19

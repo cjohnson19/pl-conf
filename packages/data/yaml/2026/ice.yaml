@@ -13,3 +13,5 @@ url: "https://www.discotec.org/2026/satellite/ice"
 importantDateUrl: "https://www.discotec.org/2026/satellite/ice"
 submissionUrl: "https://ice26.hotcrp.com/"
 type: "workshop"
+tags:
+  - concurrency

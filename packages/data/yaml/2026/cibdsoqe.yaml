@@ -1,6 +1,9 @@
 name: Workshop on Craig Interpolation, Beth Definability, and Second-Order Quantifier Elimination
 abbreviation: CI-BD-SOQE
 type: "workshop"
+tags:
+  - logic
+  - theorem-proving
 date:
   start: 2026-07-24
   end: 2026-07-25

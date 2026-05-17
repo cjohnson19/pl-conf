@@ -9,3 +9,5 @@ importantDates:
 url: "https://math.nmsu.edu/asl-2025/index.html"
 importantDateUrl: "https://math.nmsu.edu/asl-2025/index.html"
 type: "symposium"
+tags:
+  - logic

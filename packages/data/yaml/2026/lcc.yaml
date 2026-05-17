@@ -1,6 +1,8 @@
 name: International Workshop on Logic and Computational Complexity
 abbreviation: LCC
 type: "workshop"
+tags:
+  - logic
 date:
   start: 2026-07-18
   end: 2026-07-19

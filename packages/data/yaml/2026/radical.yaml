@@ -1,6 +1,9 @@
 name: International Workshop on Recent Advances in Concurrency and Logic
 abbreviation: RADICAL
 type: "workshop"
+tags:
+  - concurrency
+  - logic
 date:
   start: 2026-09-05
   end: 2026-09-05

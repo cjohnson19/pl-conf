@@ -1,6 +1,9 @@
 name: International Workshop on Rewriting Techniques for Program Transformations and Evaluation
 abbreviation: WPTE
 type: "workshop"
+tags:
+  - semantics
+  - compilers
 date:
   start: 2026-07-19
   end: 2026-07-19

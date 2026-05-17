@@ -9,6 +9,8 @@ importantDateUrl: >
   https://lists.seas.upenn.edu/pipermail/types-announce/2026/012324.html
 submissionUrl: "https://easychair.org/conferences/?conf=wollic2026"
 type: "workshop"
+tags:
+  - logic
 importantDates:
   abstract: 2026-03-02
   paper: 2026-03-02

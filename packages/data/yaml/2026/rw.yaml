@@ -9,6 +9,8 @@ url: "https://sites.google.com/view/rustverify2026"
 submissionUrl: "https://easychair.org/conferences/?conf=rw2026"
 importantDateUrl: "https://sites.google.com/view/rustverify2026"
 type: "workshop"
+tags:
+  - verification
 importantDates:
   paper: 2026-02-13
   notification: 2026-02-20

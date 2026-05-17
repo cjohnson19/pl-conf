@@ -1,6 +1,9 @@
 name: International Symposium on Software Testing and Analysis
 abbreviation: ISSTA
 type: "symposium"
+tags:
+  - software-engineering
+  - program-analysis
 date:
   start: 2026-10-03
   end: 2026-10-09

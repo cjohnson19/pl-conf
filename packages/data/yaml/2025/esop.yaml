@@ -12,3 +12,6 @@ importantDates:
 url: "https://etaps.org/2025/conferences/esop/"
 importantDateUrl: "https://etaps.org/2025/cfp/"
 type: "conference"
+tags:
+  - semantics
+  - program-analysis

@@ -1,6 +1,9 @@
 name: Italian Conference on Theoretical Computer Science
 abbreviation: ICTCS
 type: "conference"
+tags:
+  - logic
+  - automata
 date:
   start: 2026-09-07
   end: 2026-09-09

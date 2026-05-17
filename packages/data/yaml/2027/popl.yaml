@@ -4,6 +4,9 @@ date:
   start: 2027-01-10
   end: 2027-01-16
 location: Mexico City, Mexico
+tags:
+  - semantics
+  - types
 url: "https://popl27.sigplan.org/"
 submissionUrl: "https://popl27.sigplan.org/track/POPL-2027-popl-research-papers"
 importantDateUrl: "https://popl27.sigplan.org/track/POPL-2027-popl-research-papers"

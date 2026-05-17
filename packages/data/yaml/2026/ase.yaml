@@ -1,6 +1,8 @@
 name: International Conference on Automated Software Engineering
 abbreviation: ASE
 type: "conference"
+tags:
+  - software-engineering
 date:
   start: 2026-10-12
   end: 2026-10-16

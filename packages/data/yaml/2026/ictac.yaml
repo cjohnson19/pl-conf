@@ -1,6 +1,9 @@
 name: International Colloquium on Theoretical Aspects of Computing
 abbreviation: ICTAC
 type: "conference"
+tags:
+  - formal-methods
+  - semantics
 date:
   start: 2026-11-11
   end: 2026-11-13

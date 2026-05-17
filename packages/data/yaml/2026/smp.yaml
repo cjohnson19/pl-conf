@@ -1,6 +1,9 @@
 name: Structure Meets Power 2026
 abbreviation: SmP
 type: "workshop"
+tags:
+  - logic
+  - semantics
 date:
   start: 2026-07-18
   end: 2026-07-18

@@ -12,3 +12,6 @@ url: "https://conf.researchr.org/home/Formalise-2026"
 submissionUrl: "https://formalise26.hotcrp.com/"
 importantDateUrl: "https://conf.researchr.org/home/Formalise-2026#Call-for-Papers"
 type: "conference"
+tags:
+  - formal-methods
+  - software-engineering

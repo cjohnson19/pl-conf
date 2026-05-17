@@ -9,6 +9,8 @@ url: "https://www.semsys.aau.at/events/iclp2026/"
 submissionUrl: "https://submissions.floc26.org/iclp/"
 importantDateUrl: "https://www.semsys.aau.at/events/iclp2026/content/0-callforpapers.html"
 type: "conference"
+tags:
+  - logic-programming
 importantDates:
   abstract: 2026-01-31
   paper: 2026-02-07

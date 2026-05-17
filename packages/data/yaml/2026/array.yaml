@@ -1,6 +1,8 @@
 name: ACM SIGPLAN International Workshop on Libraries, Languages, and Compilers for Array Programming
 abbreviation: ARRAY
 type: "workshop"
+tags:
+  - compilers
 date:
   start: 2026-06-16
   end: 2026-06-16

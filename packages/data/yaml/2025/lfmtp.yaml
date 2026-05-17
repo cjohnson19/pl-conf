@@ -12,3 +12,6 @@ importantDates:
 importantDateUrl: "https://lfmtp.github.io/lfmtp-page/workshops/2025/"
 format: EPTCS
 type: "workshop"
+tags:
+  - logic
+  - types

@@ -9,6 +9,9 @@ url: "https://satisfiability.org/SAT26/"
 submissionUrl: "https://submissions.floc26.org/sat/"
 importantDateUrl: "https://satisfiability.org/SAT26/pages/dates.html"
 type: "conference"
+tags:
+  - logic
+  - theorem-proving
 importantDates:
   abstract: 2026-03-02
   paper: 2026-03-10

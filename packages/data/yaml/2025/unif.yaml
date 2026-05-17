@@ -6,6 +6,9 @@ date:
   end: 2025-07-14
 url: "https://cs.newpaltz.edu/unif2025/"
 type: "workshop"
+tags:
+  - theorem-proving
+  - logic
 importantDates:
   paper: 2025-05-17
   notification: 2025-05-29

@@ -12,3 +12,6 @@ importantDates:
   camera-ready: 2025-06-18
 importantDateUrl: "https://lsfa-workshop.github.io/2025/cfp.html"
 type: "workshop"
+tags:
+  - logic
+  - semantics

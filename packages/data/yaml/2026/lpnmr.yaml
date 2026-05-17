@@ -1,6 +1,9 @@
 name: International Conference on Logic Programming and Non-monotonic Reasoning
 abbreviation: LPNMR
 type: "conference"
+tags:
+  - logic-programming
+  - logic
 date:
   start: 2026-09-07
   end: 2026-09-11

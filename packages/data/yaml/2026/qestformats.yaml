@@ -1,6 +1,10 @@
 name: International Conferences on Quantitative Evaluation of Systems and Formal Modeling and Analysis of Timed Systems
 abbreviation: QEST+FORMATS
 type: "conference"
+tags:
+  - formal-methods
+  - probabilistic
+  - model-checking
 date:
   start: 2026-09-02
   end: 2026-09-04

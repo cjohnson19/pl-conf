@@ -14,3 +14,6 @@ url: "https://pldi26.sigplan.org/home/LCTES-2026"
 importantDateUrl: "https://pldi26.sigplan.org/home/LCTES-2026"
 submissionUrl: "https://lctes2026.hotcrp.com/"
 type: "conference"
+tags:
+  - compilers
+  - systems

@@ -6,3 +6,6 @@ date:
 location: Rennes, France
 url: "https://popl26.sigplan.org/"
 type: "symposium"
+tags:
+  - semantics
+  - types

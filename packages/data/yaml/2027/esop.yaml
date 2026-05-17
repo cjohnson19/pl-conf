@@ -1,6 +1,9 @@
 name: European Symposium on Programming
 abbreviation: ESOP
 type: "conference"
+tags:
+  - semantics
+  - types
 date:
   start: 2027-04-12
   end: 2027-04-15

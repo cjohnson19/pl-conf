@@ -9,6 +9,9 @@ url: "https://www.floc26.org/ijcar"
 importantDateUrl: "https://www.floc26.org/ijcar"
 submissionUrl: "https://submissions.floc26.org/ijcar"
 type: "conference"
+tags:
+  - theorem-proving
+  - logic
 importantDates:
   abstract: 2026-02-06
   paper: 2026-02-15

@@ -14,3 +14,6 @@ importantDates:
   camera-ready: 2026-01-22
 importantDateUrl: "https://etaps.org/2026/cfp/"
 type: "conference"
+tags:
+  - semantics
+  - logic

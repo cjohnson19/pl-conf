@@ -14,3 +14,5 @@ url: "https://lics.siglog.org/lics26/"
 submissionUrl: "https://submissions.floc26.org/lics/"
 importantDateUrl: "https://lics.siglog.org/lics26/"
 type: "symposium"
+tags:
+  - logic

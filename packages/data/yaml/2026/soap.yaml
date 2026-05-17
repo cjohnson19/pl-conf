@@ -1,6 +1,8 @@
 name: ACM SIGPLAN International Workshop on the State Of the Art in Program Analysis
 abbreviation: SOAP
 type: "workshop"
+tags:
+  - program-analysis
 date:
   start: 2026-06-16
   end: 2026-06-16

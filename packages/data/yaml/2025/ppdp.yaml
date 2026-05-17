@@ -7,6 +7,9 @@ date:
 format: ACM
 url: "https://ppdp25.github.io/site/"
 type: "conference"
+tags:
+  - functional-programming
+  - logic-programming
 importantDates:
   abstract: 2025-05-26
   paper: 2025-06-02

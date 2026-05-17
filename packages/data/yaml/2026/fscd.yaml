@@ -9,6 +9,9 @@ url: "https://fscd2026.github.io/"
 submissionUrl: "https://submissions.floc26.org/fscd/"
 importantDateUrl: "https://fscd2026.github.io/CFP/"
 type: "conference"
+tags:
+  - logic
+  - types
 importantDates:
   abstract: 2026-01-23
   paper: 2026-01-30

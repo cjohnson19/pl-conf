@@ -5,6 +5,9 @@ date:
   end: 2026-06-12
 location: Urbino, Italy
 format: Springer LNCS-IFIP
+tags:
+  - concurrency
+  - formal-methods
 importantDates:
   abstract: 2026-02-13
   paper: 2026-02-20

@@ -1,6 +1,9 @@
 name: "International Conference on Software Language Engineering"
 abbreviation: SLE
 type: "conference"
+tags:
+  - software-engineering
+  - compilers
 date:
   start: 2026-07-02
   end: 2026-07-03

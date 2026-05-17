@@ -8,6 +8,8 @@ format: IEEE Proceedings
 url: "https://lics.siglog.org/lics25/"
 importantDateUrl: "https://lics.siglog.org/lics25/cfp.php"
 type: "conference"
+tags:
+  - logic
 importantDates:
   abstract: 2025-01-16
   paper: 2025-01-23

@@ -1,6 +1,8 @@
 name: International Workshop on Confluence
 abbreviation: IWC
 type: "workshop"
+tags:
+  - logic
 date:
   start: 2026-07-24
   end: 2026-07-24

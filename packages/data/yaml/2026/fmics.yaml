@@ -1,6 +1,9 @@
 name: Formal Methods for Industrial Critical Systems
 abbreviation: FMICS
 type: "conference"
+tags:
+  - formal-methods
+  - verification
 date:
   start: 2026-09-02
   end: 2026-09-04

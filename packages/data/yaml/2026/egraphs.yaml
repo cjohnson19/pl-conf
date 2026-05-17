@@ -10,6 +10,9 @@ url: "https://pldi26.sigplan.org/home/egraphs-2026"
 submissionUrl: "https://egraphs2026.hotcrp.com/"
 importantDateUrl: "https://pldi26.sigplan.org/home/egraphs-2026#Call-for-Papers"
 type: "workshop"
+tags:
+  - compilers
+  - program-analysis
 colocatedWith: PLDI
 notes:
   - Specific workshop day not yet announced

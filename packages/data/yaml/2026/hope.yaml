@@ -1,6 +1,9 @@
 name: Workshop on Higher-Order Programming with Effects
 abbreviation: HOPE
 type: "workshop"
+tags:
+  - functional-programming
+  - semantics
 date:
   start: 2026-08-24
   end: 2026-08-24

@@ -1,6 +1,9 @@
 name: Object-oriented Programming, Systems, Languages, and Applications
 abbreviation: OOPSLA
 type: "conference"
+tags:
+  - compilers
+  - program-analysis
 date:
   start: 2027-08-11
   end: 2027-08-13

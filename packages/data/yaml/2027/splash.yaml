@@ -1,6 +1,8 @@
 name: "ACM SIGPLAN Conference on Systems, Programming, Languages, and Applications: Software for Humanity"
 abbreviation: SPLASH
 type: "conference"
+tags:
+  - software-engineering
 date:
   start: 2027-08-11
   end: 2027-08-13

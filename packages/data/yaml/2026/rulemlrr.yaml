@@ -1,6 +1,9 @@
 name: International Joint Conference on Rules and Reasoning
 abbreviation: RuleML+RR
 type: "conference"
+tags:
+  - logic-programming
+  - logic
 date:
   start: 2026-08-24
   end: 2026-08-26

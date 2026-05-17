@@ -1,6 +1,9 @@
 name: Foundations of Software Science and Computation Structures
 abbreviation: FoSSaCS
 type: "conference"
+tags:
+  - semantics
+  - logic
 date:
   start: 2027-04-12
   end: 2027-04-15

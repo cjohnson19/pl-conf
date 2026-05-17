@@ -9,6 +9,8 @@ url: "https://womeninlogic.org/workshops/2026/"
 submissionUrl: "https://submissions.floc26.org/wil/paper/new"
 importantDateUrl: "https://womeninlogic.org/workshops/2026/call-for-papers/"
 type: "workshop"
+tags:
+  - logic
 importantDates:
   abstract: 2026-05-10
   notification: 2026-05-18

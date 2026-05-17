@@ -13,4 +13,7 @@ url: "https://icfp26.sigplan.org/home/lopstr-ppdp-2026"
 submissionUrl: "https://lopstr-ppdp26.hotcrp.com/"
 importantDateUrl: "https://icfp26.sigplan.org/home/lopstr-ppdp-2026"
 type: "symposium"
+tags:
+  - logic-programming
+  - program-synthesis
 colocatedWith: ICFP

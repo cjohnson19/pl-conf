@@ -11,3 +11,6 @@ importantDates:
 url: "https://popl26.sigplan.org/home/wits-2026"
 importantDateUrl: "https://popl26.sigplan.org/home/wits-2026#Call-for-Participation"
 type: "workshop"
+tags:
+  - types
+  - compilers

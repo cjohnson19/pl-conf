@@ -1,6 +1,9 @@
 name: Mathematical Foundations of Programming Semantics
 abbreviation: MFPS
 type: "conference"
+tags:
+  - semantics
+  - category-theory
 date:
   start: 2026-06-01
   end: 2026-06-03

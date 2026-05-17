@@ -1,6 +1,8 @@
 name: ACM International Conference on the Foundations of Software Engineering
 abbreviation: FSE
 type: "conference"
+tags:
+  - software-engineering
 date:
   start: 2027-07-12
   end: 2027-07-16

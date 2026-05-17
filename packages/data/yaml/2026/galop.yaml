@@ -1,6 +1,9 @@
 name: Workshop on Games for Logic and Programming Languages
 abbreviation: GaLoP
 type: "workshop"
+tags:
+  - semantics
+  - logic
 date:
   start: 2026-07-18
   end: 2026-07-19

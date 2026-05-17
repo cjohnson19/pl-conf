@@ -10,6 +10,8 @@ importantDates:
 url: "https://trendsfp.github.io"
 importantDateUrl: "https://trendsfp.github.io/cfp.html"
 type: "symposium"
+tags:
+  - functional-programming
 notes:
   - Features multiple submission rounds and avenues. The dates here reflect
     "full paper" deadlines. TFP also provides a forum for submitting draft

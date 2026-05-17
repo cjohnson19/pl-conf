@@ -1,6 +1,9 @@
 name: "International Workshop on Logical Frameworks and Meta-Languages: Theory and Practice"
 abbreviation: LFMTP
 type: "workshop"
+tags:
+  - logic
+  - proof-assistants
 date:
   start: 2026-07-24
   end: 2026-07-24

@@ -1,6 +1,9 @@
 name: International Workshop on Satisfiability Checking and Symbolic Computation
 abbreviation: SC-Square
 type: "workshop"
+tags:
+  - theorem-proving
+  - logic
 date:
   start: 2026-07-13
   end: 2026-07-13

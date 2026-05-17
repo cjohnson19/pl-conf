@@ -1,6 +1,8 @@
 name: Workshop on Intuitionistic Modal Logic and Applications
 abbreviation: IMLA
 type: "workshop"
+tags:
+  - logic
 date:
   start: 2026-07-24
   end: 2026-07-25

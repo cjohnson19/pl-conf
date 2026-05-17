@@ -1,6 +1,8 @@
 name: International Symposium on Code Generation and Optimization
 abbreviation: CGO
 type: "symposium"
+tags:
+  - compilers
 date:
   start: TBD
   end: TBD

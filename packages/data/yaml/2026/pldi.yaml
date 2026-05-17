@@ -13,3 +13,6 @@ url: "https://pldi26.sigplan.org"
 submissionUrl: "https://pldi2026.hotcrp.com"
 importantDateUrl: "https://pldi26.sigplan.org/dates"
 type: "conference"
+tags:
+  - compilers
+  - program-analysis

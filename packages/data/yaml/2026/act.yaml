@@ -1,6 +1,8 @@
 name: International Conference on Applied Category Theory
 abbreviation: ACT
 type: "conference"
+tags:
+  - category-theory
 date:
   start: 2026-07-06
   end: 2026-07-10

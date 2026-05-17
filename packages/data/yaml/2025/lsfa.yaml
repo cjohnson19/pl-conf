@@ -6,6 +6,9 @@ date:
   end: 2025-10-08
 url: "https://lsfa-workshop.github.io/2025/"
 type: "symposium"
+tags:
+  - logic
+  - semantics
 importantDates:
   abstract: 2025-05-30
   paper: 2025-06-01

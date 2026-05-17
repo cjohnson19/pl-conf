@@ -1,6 +1,9 @@
 name: 3rd Workshop on Syntax and Semantics of Type Theory
 abbreviation: SSTT
 type: "workshop"
+tags:
+  - types
+  - semantics
 date:
   start: 2026-06-04
   end: 2026-06-05

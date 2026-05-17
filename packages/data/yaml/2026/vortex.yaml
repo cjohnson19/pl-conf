@@ -1,6 +1,8 @@
 name: 9th International Workshop on Verification and Monitoring at Runtime Execution
 abbreviation: VORTEX
 type: "workshop"
+tags:
+  - verification
 date:
   start: 2026-06-30
   end: 2026-06-30

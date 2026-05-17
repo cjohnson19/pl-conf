@@ -13,3 +13,6 @@ url: "https://wrla2026.github.io"
 submissionUrl: "https://easychair.org/conferences/?conf=wrla2026"
 importantDateUrl: "https://wrla2026.github.io/cfp.html"
 type: "workshop"
+tags:
+  - logic
+  - semantics

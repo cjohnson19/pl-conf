@@ -1,6 +1,9 @@
 name: International Workshop on Automated Reasoning in Quantified Non-Classical Logics
 abbreviation: ARQNL
 type: "workshop"
+tags:
+  - theorem-proving
+  - logic
 date:
   start: 2026-07-24
   end: 2026-07-24

@@ -9,6 +9,9 @@ url: "https://conferences.i-cav.org/2026/"
 submissionUrl: "https://submissions.floc26.org/cav/"
 importantDateUrl: "https://conferences.i-cav.org/2026/cfp/"
 type: "conference"
+tags:
+  - verification
+  - model-checking
 importantDates:
   paper: 2026-01-28
   rebuttal: 2026-04-02

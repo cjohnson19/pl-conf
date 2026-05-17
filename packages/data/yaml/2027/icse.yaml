@@ -1,6 +1,8 @@
 name: International Conference on Software Engineering
 abbreviation: ICSE
 type: "conference"
+tags:
+  - software-engineering
 date:
   start: 2027-04-25
   end: 2027-05-01

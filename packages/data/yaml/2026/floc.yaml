@@ -6,3 +6,6 @@ date:
 location: Lisbon, Portugal
 url: "https://www.floc26.org"
 type: "conference"
+tags:
+  - logic
+  - formal-methods

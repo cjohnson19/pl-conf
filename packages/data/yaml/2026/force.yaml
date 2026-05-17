@@ -1,6 +1,9 @@
 name: Workshop on Formal Reasoning for Compositional Systems Engineering
 abbreviation: FORCE
 type: "workshop"
+tags:
+  - formal-methods
+  - verification
 date:
   start: 2026-07-25
   end: 2026-07-25

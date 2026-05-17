@@ -1,6 +1,9 @@
 name: International Conference on Fundamentals of Software Engineering
 abbreviation: FSEN
 type: "conference"
+tags:
+  - software-engineering
+  - formal-methods
 date:
   start: 2027-05-24
   end: 2027-05-25

@@ -21,3 +21,6 @@ url: "https://etaps.org/2026/conferences/esop/"
 submissionUrl: "https://esop26.hotcrp.com/"
 importantDateUrl: "https://etaps.org/2026/cfp/"
 type: "conference"
+tags:
+  - semantics
+  - types

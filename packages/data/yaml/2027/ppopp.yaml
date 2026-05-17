@@ -1,6 +1,8 @@
 name: ACM SIGPLAN Annual Symposium on Principles and Practice of Parallel Programming
 abbreviation: PPoPP
 type: "symposium"
+tags:
+  - concurrency
 date:
   start: 2027-03-27
   end: 2027-03-31

@@ -13,3 +13,7 @@ importantDates:
 url: "https://conf.researchr.org/home/VMCAI-2026"
 importantDateUrl: "https://conf.researchr.org/home/VMCAI-2026"
 type: "conference"
+tags:
+  - verification
+  - model-checking
+  - program-analysis

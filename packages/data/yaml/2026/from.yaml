@@ -1,6 +1,8 @@
 name: Tenth Working Formal Methods Symposium
 abbreviation: FROM
 type: symposium
+tags:
+  - formal-methods
 date:
   start: 2026-09-15
   end: 2026-09-17

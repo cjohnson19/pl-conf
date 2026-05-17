@@ -14,3 +14,6 @@ importantDates:
 url: "https://www.dhbw-stuttgart.de/cade-30/"
 importantDateUrl: "https://www.dhbw-stuttgart.de/cade-30/calls/"
 type: "conference"
+tags:
+  - theorem-proving
+  - logic

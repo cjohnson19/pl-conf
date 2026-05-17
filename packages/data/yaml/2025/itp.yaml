@@ -6,6 +6,9 @@ date:
 location: Reykjavik, Iceland
 url: "https://icetcs.github.io/frocos-itp-tableaux25/itp/"
 type: "conference"
+tags:
+  - proof-assistants
+  - theorem-proving
 importantDateUrl: "https://icetcs.github.io/frocos-itp-tableaux25/itp/"
 importantDates:
   abstract: 2025-03-12

@@ -6,3 +6,6 @@ date:
 location: Turin, Italy
 url: "https://etaps.org/2026/"
 type: "conference"
+tags:
+  - formal-methods
+  - verification

@@ -9,6 +9,9 @@ url: "https://csf2026.ieee-security.org/"
 submissionUrl: "https://hotcrp.csf2026.ieee-security.org/"
 importantDateUrl: "https://csf2026.ieee-security.org/"
 type: "symposium"
+tags:
+  - security
+  - formal-methods
 rounds:
   - name: Summer
     importantDates:

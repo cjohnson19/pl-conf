@@ -20,3 +20,6 @@ url: "https://2026.ecoop.org"
 submissionUrl: "https://ecoop26.hotcrp.com"
 importantDateUrl: "https://2026.ecoop.org/dates"
 type: "conference"
+tags:
+  - types
+  - program-analysis

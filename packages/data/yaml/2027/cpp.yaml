@@ -1,6 +1,9 @@
 name: International Conference on Certified Programs and Proofs
 abbreviation: CPP
 type: "conference"
+tags:
+  - proof-assistants
+  - verification
 date:
   start: TBD
   end: TBD

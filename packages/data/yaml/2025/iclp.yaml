@@ -5,6 +5,8 @@ date:
   start: 2025-09-12
   end: 2025-09-19
 type: "conference"
+tags:
+  - logic-programming
 url: "https://iclp25.demacs.unical.it/"
 importantDateUrl: "https://iclp25.demacs.unical.it/calls/main-track"
 importantDates:

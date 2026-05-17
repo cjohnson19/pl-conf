@@ -13,3 +13,6 @@ url: "https://functional-logic.org/events/flops/2026/"
 submissionUrl: "https://meteor.springer.com/FLOPS2026"
 importantDateUrl: "https://functional-logic.org/events/flops/2026/cfp/"
 type: "symposium"
+tags:
+  - functional-programming
+  - logic-programming

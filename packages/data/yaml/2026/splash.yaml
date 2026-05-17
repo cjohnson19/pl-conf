@@ -6,3 +6,5 @@ date:
 location: Oakland, California
 url: "https://2026.splashcon.org/"
 type: "conference"
+tags:
+  - software-engineering

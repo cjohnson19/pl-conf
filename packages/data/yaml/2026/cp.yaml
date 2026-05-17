@@ -9,6 +9,8 @@ url: "https://cp2026.a4cp.org/"
 submissionUrl: "https://submissions.floc26.org/cp/"
 importantDateUrl: "https://cp2026.a4cp.org/"
 type: "conference"
+tags:
+  - logic-programming
 importantDates:
   abstract: 2026-03-02
   paper: 2026-03-14

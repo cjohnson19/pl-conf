@@ -9,6 +9,8 @@ url: "https://kr.org/KR2026/"
 submissionUrl: "https://submissions.floc26.org/kr/"
 importantDateUrl: "https://kr.org/KR2026/dates.html"
 type: "conference"
+tags:
+  - logic
 importantDates:
   abstract: 2026-02-08
   paper: 2026-02-13

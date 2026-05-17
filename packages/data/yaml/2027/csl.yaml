@@ -1,6 +1,8 @@
 name: Computer Science Logic
 abbreviation: CSL
 type: "conference"
+tags:
+  - logic
 date:
   start: 2027-01-25
   end: 2027-01-29

@@ -11,3 +11,5 @@ importantDates:
 url: "https://popl26.sigplan.org/home/tpsa-2026"
 importantDateUrl: "https://popl26.sigplan.org/home/tpsa-2026#Call-for-Presentations"
 type: "workshop"
+tags:
+  - program-analysis
