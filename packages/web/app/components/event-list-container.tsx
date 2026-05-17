@@ -287,10 +287,7 @@ function DeadlineGroupHeader({
   );
   if (date === null) {
     return (
-      <div
-        className="sticky top-0 z-10 -mx-5 md:-mx-8"
-        style={{ background: "var(--paper)" }}
-      >
+      <div className="sticky top-0 z-10" style={{ background: "var(--paper)" }}>
         <div
           className={clsx(
             "flex items-end justify-between gap-4 px-5 pb-3 pt-4 md:px-8",
@@ -368,10 +365,7 @@ function DeadlineGroupHeader({
     </>
   );
   return (
-    <div
-      className="sticky top-0 z-10 -mx-5 md:-mx-8"
-      style={{ background: "var(--paper)" }}
-    >
+    <div className="sticky top-0 z-10" style={{ background: "var(--paper)" }}>
       {collapsible ? (
         <button
           type="button"
@@ -475,7 +469,7 @@ function CollapsibleGroup({
 
 function CollapseHint({ onDismiss }: { onDismiss: () => void }) {
   return (
-    <div className="-mx-5 flex items-center justify-between gap-3 border-b border-rule px-5 py-2 text-[11px] italic text-ink-3 md:-mx-8 md:px-8">
+    <div className="flex items-center justify-between gap-3 border-b border-rule px-5 py-2 text-[11px] italic text-ink-3 md:px-8">
       <span>Tip: tap any date heading to hide its events.</span>
       <button
         type="button"
@@ -1210,9 +1204,9 @@ function EventListInner({ events }: { events: ScheduledEvent[] }) {
 
       <div
         className={clsx(
-          "px-5 md:px-8",
-          layout === "grid" &&
-            "mt-4 grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3"
+          layout === "grid"
+            ? "mt-4 grid grid-cols-1 gap-3 px-5 md:grid-cols-2 md:px-8 xl:grid-cols-3"
+            : undefined
         )}
       >
         {prefsLoaded ? (
@@ -1238,12 +1232,12 @@ function EventListInner({ events }: { events: ScheduledEvent[] }) {
               ))
             )
           ) : view === "starred" ? null : (
-            <div className="py-8 text-[13px] text-ink-3">
+            <div className="px-5 py-8 text-[13px] text-ink-3 md:px-8">
               No events match these filters.
             </div>
           )
         ) : (
-          <div className="space-y-4 py-4">
+          <div className="space-y-4 px-5 py-4 md:px-8">
             {Array.from({ length: 4 }).map((_, i) => (
               // biome-ignore lint/suspicious/noArrayIndexKey: fixed-length static skeleton list, no reordering
               <Skeleton key={i} className="h-20 rounded-xs" />

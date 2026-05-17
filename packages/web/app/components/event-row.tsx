@@ -12,7 +12,6 @@ import {
   eventKey,
   formatDate,
   formatDateRange,
-  isDeadline,
   isDeadlinePast,
   isDeadlineUrgent,
   toAoeInstant,
@@ -53,36 +52,11 @@ function findLead(e: ScheduledEvent, now: Date): LeadInfo | null {
   return upcoming ?? fallback;
 }
 
-const monthYearFmt = new Intl.DateTimeFormat(undefined, {
-  month: "short",
-  year: "numeric",
-});
 const monthShortFmt = new Intl.DateTimeFormat(undefined, { month: "short" });
 const monthDayFmt = new Intl.DateTimeFormat(undefined, {
   month: "short",
   day: "numeric",
 });
-
-function eventStatusMessage(
-  e: ScheduledEvent,
-  now: Date
-): { label: string; when?: string } {
-  if (e.date.start === "TBD") return { label: "Submissions closed" };
-  const startInstant = toAoeInstant(e.date.start);
-  const endInstant =
-    e.date.end !== "TBD" ? toAoeInstant(e.date.end) : startInstant;
-  const startCalendar = toCalendarDate(e.date.start);
-  if (endInstant && endInstant.getTime() < now.getTime()) {
-    return {
-      label: "Concluded",
-      when: startCalendar ? monthYearFmt.format(startCalendar) : undefined,
-    };
-  }
-  if (startInstant && startInstant.getTime() <= now.getTime()) {
-    return { label: "Happening now" };
-  }
-  return { label: "Submissions closed" };
-}
 
 function dateNameShort(n: DateName): string {
   switch (n) {
@@ -165,6 +139,28 @@ function buildRoundRows(
   });
 }
 
+function DatesDeadlinesLink({ href }: { href: string }) {
+  return (
+    <a
+      href={href}
+      target="_blank"
+      aria-label="View important dates"
+      className="group/dates inline-flex items-center gap-1 self-start text-[12px] font-medium text-ink no-underline"
+      rel="noopener"
+    >
+      <span className="underline decoration-rule decoration-1 underline-offset-[3px] transition-[text-decoration-color] duration-200 ease-out group-hover/dates:decoration-ink">
+        Dates &amp; Deadlines
+      </span>
+      <ArrowUpRight
+        size={12}
+        strokeWidth={1.75}
+        className="text-ink-3 transition-all duration-200 ease-out group-hover/dates:-translate-y-0.5 group-hover/dates:translate-x-0.5 group-hover/dates:text-ink"
+        aria-hidden
+      />
+    </a>
+  );
+}
+
 function EventRowImpl({
   event: e,
   now,
@@ -206,7 +202,7 @@ function EventRowImpl({
       className={clsx(
         "group grid items-center rounded-xs border-t border-rule",
         hideDate ? "event-row-grid--no-date" : "event-row-grid",
-        "py-[22px] px-5 -mx-5 md:px-8 md:-mx-8 transition-colors",
+        "py-[22px] px-5 md:px-8 transition-colors",
         "hover:bg-[color-mix(in_srgb,var(--card)_70%,transparent)]"
       )}
     >
@@ -341,20 +337,11 @@ function EventRowImpl({
             });
           })()}
         </div>
-        {lead &&
-          (passed ? (
-            <StatusLine size="mobile" status={eventStatusMessage(e, now)} />
-          ) : (
-            <LeadLine
-              size="mobile"
-              event={e}
-              lead={lead}
-              now={now}
-              urgent={urgent}
-              showMultiRound={showMultiRound}
-              compact={hideDate}
-            />
-          ))}
+        {e.importantDateUrl && (
+          <div className="@[760px]/row:hidden">
+            <DatesDeadlinesLink href={e.importantDateUrl} />
+          </div>
+        )}
         <div className="block pt-1 @[760px]/row:hidden">
           <RoundRail
             event={e}
@@ -368,23 +355,7 @@ function EventRowImpl({
       </div>
 
       <div className="hidden min-w-0 flex-col gap-1 text-[13px] @[760px]/row:flex">
-        {passed && lead ? (
-          <StatusLine size="desktop" status={eventStatusMessage(e, now)} />
-        ) : lead ? (
-          <LeadLine
-            size="desktop"
-            event={e}
-            lead={lead}
-            now={now}
-            urgent={urgent}
-            showMultiRound={showMultiRound}
-            compact={hideDate}
-          />
-        ) : (
-          <div className="font-mono text-[11px] uppercase tracking-[0.04em] text-ink-3">
-            No deadlines tracked
-          </div>
-        )}
+        {e.importantDateUrl && <DatesDeadlinesLink href={e.importantDateUrl} />}
 
         <RoundRail
           event={e}
@@ -485,23 +456,7 @@ function EventCardImpl({
       {(deadlineRounds.length > 0 || e.importantDateUrl) && (
         <div className="mt-1 flex flex-col gap-2">
           {e.importantDateUrl && (
-            <a
-              href={e.importantDateUrl}
-              target="_blank"
-              aria-label="View important dates"
-              className="group/dates inline-flex items-center gap-1 self-start text-[12px] font-medium text-ink no-underline"
-              rel="noopener"
-            >
-              <span className="underline decoration-rule decoration-1 underline-offset-[3px] transition-[text-decoration-color] duration-200 ease-out group-hover/dates:decoration-ink">
-                Dates &amp; Deadlines
-              </span>
-              <ArrowUpRight
-                size={12}
-                strokeWidth={1.75}
-                className="text-ink-3 transition-all duration-200 ease-out group-hover/dates:-translate-y-0.5 group-hover/dates:translate-x-0.5 group-hover/dates:text-ink"
-                aria-hidden
-              />
-            </a>
+            <DatesDeadlinesLink href={e.importantDateUrl} />
           )}
           {deadlineRounds.map((r, idx) => (
             <CardDeadlineTable
@@ -609,145 +564,6 @@ function CardDeadlineRow({ row: r, now }: { row: RailRow; now: Date }) {
         {r.date === "TBD" ? "" : shortCountdown(r.date, now)}
       </td>
     </tr>
-  );
-}
-
-function StatusLine({
-  size,
-  status,
-}: {
-  size: "mobile" | "desktop";
-  status: { label: string; when?: string };
-}) {
-  return (
-    <div
-      className={clsx(
-        "items-baseline",
-        size === "mobile"
-          ? "flex gap-2 text-[12px] @[760px]/row:hidden"
-          : "flex gap-2.5"
-      )}
-    >
-      <span className="font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-ink-2">
-        {status.label}
-      </span>
-      {status.when && (
-        <span
-          className={clsx(
-            "font-mono text-[11px] text-ink-3",
-            size === "desktop" && "tracking-[0.04em]"
-          )}
-        >
-          {status.when}
-        </span>
-      )}
-    </div>
-  );
-}
-
-function LeadLine({
-  size,
-  event: e,
-  lead,
-  now,
-  urgent,
-  showMultiRound,
-  compact = false,
-}: {
-  size: "mobile" | "desktop";
-  event: ScheduledEvent;
-  lead: LeadInfo;
-  now: Date;
-  urgent: boolean;
-  showMultiRound: boolean;
-  compact?: boolean;
-}) {
-  const leadKindLabel = showMultiRound
-    ? `R${lead.roundIdx + 1} ${dateNameShort(lead.name).toLowerCase()}`
-    : dateNameShort(lead.name);
-  const isMobile = size === "mobile";
-  const inner = (
-    <>
-      {!compact && (
-        <span
-          className={clsx(
-            "font-ui font-semibold leading-none tracking-[-0.01em] tabular-nums",
-            isMobile ? "text-[13px]" : "text-[15px]",
-            urgent ? "text-hot" : "text-[color:var(--accent)]"
-          )}
-        >
-          {shortCountdown(lead.date, now)}
-        </span>
-      )}
-      <span
-        className={clsx(
-          isMobile
-            ? "min-w-0 truncate text-ink-2"
-            : "font-normal text-ink-2 transition-[text-decoration-color] duration-200 ease-out",
-          e.importantDateUrl &&
-            (isMobile
-              ? "underline decoration-rule decoration-1 underline-offset-[3px]"
-              : "underline decoration-rule decoration-1 underline-offset-[3px] group-hover/lead:decoration-ink")
-        )}
-      >
-        <b className="font-medium text-ink">{leadKindLabel}</b>
-        {isDeadline(lead.name) ? " deadline" : ""}
-        {!compact && (
-          <>
-            {" "}
-            <span
-              className={clsx(
-                "font-mono tracking-[0.04em] text-ink-3",
-                isMobile ? "text-[10px]" : "text-[11px]"
-              )}
-            >
-              {roundShortDate(lead.date)} 23:59 AoE
-            </span>
-          </>
-        )}
-      </span>
-      {e.importantDateUrl &&
-        (isMobile ? (
-          <ArrowUpRight
-            size={10}
-            strokeWidth={1.75}
-            className="self-center text-ink-3"
-            aria-hidden
-          />
-        ) : (
-          <ArrowUpRight
-            size={11}
-            strokeWidth={1.75}
-            className="-ml-1.5 self-center text-ink-3 transition-all duration-200 ease-out group-hover/lead:text-ink group-hover/lead:translate-x-0.5 group-hover/lead:-translate-y-0.5"
-            aria-hidden
-          />
-        ))}
-    </>
-  );
-
-  const mobileWrapper =
-    "flex w-fit max-w-full items-baseline gap-2 py-2 -my-2 text-[12px] @[760px]/row:hidden";
-  const desktopWrapper =
-    "flex w-fit max-w-full items-baseline gap-2.5 font-medium text-ink";
-
-  if (e.importantDateUrl) {
-    return (
-      <a
-        href={e.importantDateUrl}
-        target="_blank"
-        aria-label="View important dates"
-        className={clsx(
-          "no-underline",
-          isMobile ? mobileWrapper : `group/lead ${desktopWrapper}`
-        )}
-        rel="noopener"
-      >
-        {inner}
-      </a>
-    );
-  }
-  return (
-    <div className={isMobile ? mobileWrapper : desktopWrapper}>{inner}</div>
   );
 }
 
