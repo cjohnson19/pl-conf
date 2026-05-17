@@ -1,0 +1,20 @@
+name: International Conference on Architectural Support for Programming Languages and Operating Systems
+abbreviation: ASPLOS
+type: "conference"
+date:
+  start: 2027-04-11
+  end: 2027-04-15
+location: Crete, Greece
+url: "https://www.asplos-conference.org/asplos2027/"
+importantDateUrl: "https://www.asplos-conference.org/asplos2027/cfp/"
+rounds:
+  - name: Round 1
+    importantDates:
+      paper: 2026-04-15
+      rebuttal: 2026-07-09
+      notification: 2026-07-27
+  - name: Round 2
+    importantDates:
+      paper: 2026-09-09
+      rebuttal: 2026-12-04
+      notification: 2026-12-21

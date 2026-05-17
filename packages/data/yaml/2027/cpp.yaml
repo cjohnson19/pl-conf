@@ -1,0 +1,9 @@
+name: International Conference on Certified Programs and Proofs
+abbreviation: CPP
+type: "conference"
+date:
+  start: TBD
+  end: TBD
+location: Mexico City, Mexico
+colocatedWith: POPL
+url: "https://popl27.sigplan.org/home/CPP-2027"

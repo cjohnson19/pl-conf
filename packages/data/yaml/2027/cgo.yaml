@@ -1,0 +1,15 @@
+name: International Symposium on Code Generation and Optimization
+abbreviation: CGO
+type: "symposium"
+date:
+  start: TBD
+  end: TBD
+location: Salt Lake City, UT, USA
+url: "https://conf.researchr.org/home/cgo-2027"
+importantDateUrl: "https://conf.researchr.org/home/cgo-2027"
+rounds:
+  - name: Round 1
+    importantDates:
+      paper: 2026-06-11
+      rebuttal: 2026-07-23
+      notification: 2026-08-03

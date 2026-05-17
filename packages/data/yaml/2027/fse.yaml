@@ -1,0 +1,15 @@
+name: ACM International Conference on the Foundations of Software Engineering
+abbreviation: FSE
+type: "conference"
+date:
+  start: 2027-07-12
+  end: 2027-07-16
+location: Shenzhen, China
+url: "https://conf.researchr.org/home/fse-2027"
+importantDateUrl: "https://conf.researchr.org/dates/fse-2027"
+importantDates:
+  paper: 2026-10-02
+  rebuttal: 2026-12-18
+  notification: 2027-01-22
+  revisions: 2027-03-05
+  conditional-acceptance: 2027-03-31
