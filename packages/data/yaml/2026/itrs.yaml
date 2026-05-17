@@ -1,0 +1,19 @@
+name: Workshop on Intersection Types and Related Systems
+abbreviation: ITRS
+type: "workshop"
+date:
+  start: 2026-07-18
+  end: 2026-07-18
+location: Lisbon, Portugal
+partOf: FLoC
+colocatedWith:
+  - FSCD
+  - TLLA
+  - GaLoP
+url: "https://itrs2026.tu-dortmund.de/"
+submissionUrl: "https://submissions.floc26.org/itrs/"
+importantDateUrl: "https://itrs2026.tu-dortmund.de/#toc_5"
+importantDates:
+  paper: 2026-05-22
+  notification: 2026-05-29
+  camera-ready: 2026-06-28

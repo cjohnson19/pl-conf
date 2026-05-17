@@ -1,0 +1,16 @@
+name: International Workshop on Type-Driven Development
+abbreviation: TyDe
+type: "workshop"
+date:
+  start: 2026-08-26
+  end: 2026-08-27
+location: Paris, France
+colocatedWith: ICFP
+url: "https://tydeworkshop.org/2026"
+submissionUrl: "https://tyde2026.hotcrp.com"
+importantDateUrl: "https://tydeworkshop.org/2026#important-dates"
+importantDates:
+  paper: 2026-06-03
+  abstract: 2026-06-24
+  notification: 2026-07-10
+  camera-ready: 2026-07-17
