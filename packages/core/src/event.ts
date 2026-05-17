@@ -1,7 +1,31 @@
 import { getYear } from "date-fns";
-import type { DateName, MaybeDate, ScheduledEvent } from "./schemas";
+import type { DateName, MaybeDate, ScheduledEvent, Tag } from "./schemas";
 
 export const eventTypes = ["conference", "workshop", "symposium"] as const;
+
+export const tagValues = [
+  "types",
+  "semantics",
+  "verification",
+  "model-checking",
+  "theorem-proving",
+  "logic",
+  "automata",
+  "concurrency",
+  "compilers",
+  "program-analysis",
+  "program-synthesis",
+  "formal-methods",
+  "software-engineering",
+  "category-theory",
+  "proof-assistants",
+  "functional-programming",
+  "logic-programming",
+  "quantum",
+  "probabilistic",
+  "security",
+  "systems",
+] as const;
 
 export type {
   MaybeDate,
@@ -10,7 +34,36 @@ export type {
   Round,
   ScheduledEvent,
   SubmissionSchema,
+  Tag,
 } from "./schemas";
+
+const tagDisplayNames: Record<Tag, string> = {
+  types: "Types",
+  semantics: "Semantics",
+  verification: "Verification",
+  "model-checking": "Model Checking",
+  "theorem-proving": "Theorem Proving",
+  logic: "Logic",
+  automata: "Automata",
+  concurrency: "Concurrency",
+  compilers: "Compilers",
+  "program-analysis": "Program Analysis",
+  "program-synthesis": "Program Synthesis",
+  "formal-methods": "Formal Methods",
+  "software-engineering": "Software Engineering",
+  "category-theory": "Category Theory",
+  "proof-assistants": "Proof Assistants",
+  "functional-programming": "Functional Programming",
+  "logic-programming": "Logic Programming",
+  quantum: "Quantum",
+  probabilistic: "Probabilistic",
+  security: "Security",
+  systems: "Systems",
+};
+
+export function tagDisplayName(tag: Tag): string {
+  return tagDisplayNames[tag];
+}
 
 export function eventKey(e: ScheduledEvent): string {
   return `${e.abbreviation}-${getYear(e.date.start)}`;

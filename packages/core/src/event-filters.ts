@@ -4,7 +4,7 @@ import {
   getYear,
 } from "date-fns";
 import { allDeadlines, firstDeadline, isDeadlinePast } from "./event";
-import type { EventType, MaybeDate, ScheduledEvent } from "./schemas";
+import type { EventType, MaybeDate, ScheduledEvent, Tag } from "./schemas";
 
 export type EventFilter = (event: ScheduledEvent) => boolean;
 
@@ -17,7 +17,7 @@ export const isActive: EventFilter = (e) =>
 
 export const isType: (t: EventType) => EventFilter = (t) => (e) => e.type === t;
 
-export const hasTag: (tag: string) => EventFilter = (tag) => (e) =>
+export const hasTag: (tag: Tag) => EventFilter = (tag) => (e) =>
   e.tags.includes(tag);
 
 export const startsAfter: (date: Date) => EventFilter = (date) => (e) =>

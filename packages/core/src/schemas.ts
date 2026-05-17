@@ -1,6 +1,6 @@
 import { isBefore } from "date-fns";
 import { z } from "zod";
-import { eventTypes } from "./event";
+import { eventTypes, tagValues } from "./event";
 
 const DateSchema = z
   .string()
@@ -28,6 +28,9 @@ export type DateName = z.infer<typeof DateName>;
 
 export const EventType = z.enum(eventTypes);
 export type EventType = z.infer<typeof EventType>;
+
+export const Tag = z.enum(tagValues);
+export type Tag = z.infer<typeof Tag>;
 
 const ImportantDates = z.record(DateName, MaybeDate);
 
@@ -66,7 +69,7 @@ const ScheduledEventNormalized = z
     rounds: z.array(Round).default([]),
     notes: z.string().array().default([]),
     type: EventType,
-    tags: z.array(z.string()).default([]),
+    tags: z.array(Tag).default([]),
     partOf: AbbreviationList,
     colocatedWith: AbbreviationList,
     lastUpdated: DateSchema,
