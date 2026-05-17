@@ -44,7 +44,7 @@ const rawEvents = [
     importantDateUrl: "https://example.com/mockb/dates",
     url: "https://example.com/mockb",
     importantDates: {
-      paper: "2026-06-20",
+      paper: "2026-06-10",
       notification: "2026-08-01",
     },
     lastUpdated: "2026-01-01",

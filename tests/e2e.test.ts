@@ -44,8 +44,8 @@ const findFixture = (abbrev: string): ScheduledEvent => {
 type Fixtures = {
   page: Page;
   renderedKeys: () => Promise<string[]>;
-  watchButton: (key: string) => Promise<ElementHandle<Element> | null>;
-  stopWatchingButton: (key: string) => Promise<ElementHandle<Element> | null>;
+  starButton: (key: string) => Promise<ElementHandle<Element> | null>;
+  unstarButton: (key: string) => Promise<ElementHandle<Element> | null>;
   clickButtonStartingWith: (label: string) => Promise<void>;
   goToAllEvents: () => Promise<void>;
 };
@@ -87,14 +87,14 @@ const test = base.extend<Fixtures>({
       )
     );
   },
-  watchButton: async ({ page }, use) => {
+  starButton: async ({ page }, use) => {
     await use((key) =>
-      page.$(`[data-event-key="${key}"] button[aria-label^="Watch "]`)
+      page.$(`[data-event-key="${key}"] button[aria-label^="Star "]`)
     );
   },
-  stopWatchingButton: async ({ page }, use) => {
+  unstarButton: async ({ page }, use) => {
     await use((key) =>
-      page.$(`[data-event-key="${key}"] button[aria-label^="Stop watching "]`)
+      page.$(`[data-event-key="${key}"] button[aria-label^="Unstar "]`)
     );
   },
   clickButtonStartingWith: async ({ page }, use) => {
@@ -119,7 +119,7 @@ const test = base.extend<Fixtures>({
 });
 
 describe.concurrent("event list", () => {
-  test("auto-switches to All events when no events are watched", async ({
+  test("auto-switches to All events when no events are starred", async ({
     page,
     renderedKeys,
   }) => {
@@ -150,10 +150,10 @@ describe.concurrent("event list", () => {
   });
 });
 
-describe.concurrent("watching", () => {
-  test("clicking the watch button toggles aria-pressed and persists to localStorage", async ({
+describe.concurrent("starring", () => {
+  test("clicking the star button toggles aria-pressed and persists to localStorage", async ({
     page,
-    watchButton,
+    starButton,
     goToAllEvents,
   }) => {
     await goToAllEvents();
@@ -161,9 +161,9 @@ describe.concurrent("watching", () => {
     expect(sample).toBeDefined();
     const key = eventKey(sample);
 
-    const watch = await watchButton(key);
-    expect(watch).not.toBeNull();
-    await watch?.evaluate((b) => (b as HTMLButtonElement).click());
+    const star = await starButton(key);
+    expect(star).not.toBeNull();
+    await star?.evaluate((b) => (b as HTMLButtonElement).click());
 
     await page.waitForSelector(
       `[data-event-key="${key}"] button[aria-pressed="true"]`,
@@ -176,18 +176,18 @@ describe.concurrent("watching", () => {
     expect(store?.eventPrefs?.[key]?.favorite).toBe(true);
   });
 
-  test("watched events appear in the Watching view across refresh", async ({
+  test("starred events appear in the Starred view across refresh", async ({
     page,
     renderedKeys,
-    watchButton,
+    starButton,
     goToAllEvents,
   }) => {
     await goToAllEvents();
     const sample = activeEvents()[0];
     const key = eventKey(sample);
 
-    const watch = await watchButton(key);
-    await watch?.evaluate((b) => (b as HTMLButtonElement).click());
+    const star = await starButton(key);
+    await star?.evaluate((b) => (b as HTMLButtonElement).click());
     await page.waitForSelector(
       `[data-event-key="${key}"] button[aria-pressed="true"]`,
       { timeout: 5000 }
@@ -199,11 +199,11 @@ describe.concurrent("watching", () => {
     expect(keys).toContain(key);
   });
 
-  test("unwatching removes the event from the Watching view", async ({
+  test("unstarring removes the event from the Starred view", async ({
     page,
     renderedKeys,
-    watchButton,
-    stopWatchingButton,
+    starButton,
+    unstarButton,
     clickButtonStartingWith,
     goToAllEvents,
   }) => {
@@ -211,19 +211,19 @@ describe.concurrent("watching", () => {
     const sample = activeEvents()[0];
     const key = eventKey(sample);
 
-    const watch = await watchButton(key);
-    await watch?.evaluate((b) => (b as HTMLButtonElement).click());
+    const star = await starButton(key);
+    await star?.evaluate((b) => (b as HTMLButtonElement).click());
     await page.waitForSelector(
       `[data-event-key="${key}"] button[aria-pressed="true"]`,
       { timeout: 5000 }
     );
 
-    await clickButtonStartingWith("Watching");
+    await clickButtonStartingWith("Starred");
     await page.waitForSelector(`[data-event-key="${key}"]`, { timeout: 5000 });
 
-    const unwatch = await stopWatchingButton(key);
-    expect(unwatch).not.toBeNull();
-    await unwatch?.evaluate((b) => (b as HTMLButtonElement).click());
+    const unstar = await unstarButton(key);
+    expect(unstar).not.toBeNull();
+    await unstar?.evaluate((b) => (b as HTMLButtonElement).click());
 
     await page.waitForFunction(
       (k) => !document.querySelector(`[data-event-key="${k}"]`),
@@ -236,28 +236,28 @@ describe.concurrent("watching", () => {
 });
 
 describe.concurrent("hero", () => {
-  test("shows the intro hero when nothing is watched", async ({ page }) => {
+  test("shows the intro hero when nothing is starred", async ({ page }) => {
     const introText = await page.evaluate(() => document.body.innerText);
     expect(introText).toMatch(/small index of/i);
   });
 
-  test("swaps to the next-deadline hero once an event is watched", async ({
+  test("swaps to the next-deadline hero once an event is starred", async ({
     page,
-    watchButton,
+    starButton,
     clickButtonStartingWith,
     goToAllEvents,
   }) => {
     await goToAllEvents();
     const mockb = findFixture("MOCKB");
     const key = eventKey(mockb);
-    const watch = await watchButton(key);
-    await watch?.evaluate((b) => (b as HTMLButtonElement).click());
+    const star = await starButton(key);
+    await star?.evaluate((b) => (b as HTMLButtonElement).click());
     await page.waitForSelector(
       `[data-event-key="${key}"] button[aria-pressed="true"]`,
       { timeout: 5000 }
     );
 
-    await clickButtonStartingWith("Watching");
+    await clickButtonStartingWith("Starred");
     await page.waitForFunction(
       () =>
         /Your next deadline/i.test(document.body.innerText) ||
@@ -558,7 +558,7 @@ describe.concurrent("mobile layout", () => {
     expect(await isVisible(`button[aria-label^="Actions for MOCKB"]`)).toBe(
       true
     );
-    expect(await isVisible(`button[aria-label^="Watch "]`)).toBe(false);
+    expect(await isVisible(`button[aria-label^="Star "]`)).toBe(false);
     expect(await isVisible(`button[aria-label^="Add MOCKB to calendar"]`)).toBe(
       false
     );
@@ -568,7 +568,7 @@ describe.concurrent("mobile layout", () => {
     );
     await trigger?.evaluate((b) => (b as HTMLButtonElement).click());
     await page.waitForFunction(
-      () => /Watch this event/i.test(document.body.innerText),
+      () => /Star this event/i.test(document.body.innerText),
       { timeout: 5000 }
     );
   });
