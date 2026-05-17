@@ -11,7 +11,7 @@ type: "symposium"
 importantDates:
   paper: 2026-07-09
   rebuttal: 2026-09-10
-  notification: 2026-10-05
+  conditional-acceptance: 2026-10-05
   revisions: 2026-10-26
-  conditional-acceptance: 2026-11-09
+  notification: 2026-11-09
   camera-ready: 2026-11-20
