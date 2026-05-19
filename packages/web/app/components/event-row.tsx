@@ -16,6 +16,7 @@ import {
 import { dayNum, monthShort, yearNum } from "../lib/date-formatters";
 import { FavoriteButton } from "./favorite-button";
 import { CalendarMenu } from "./calendar-menu";
+import { ConnectedEventTags } from "./event-tags";
 import { RowActionSheet } from "./row-action-sheet";
 import {
   DatesDeadlinesLink,
@@ -91,7 +92,7 @@ function EventRowImpl({
       )}
 
       <div className="flex min-w-0 flex-col gap-1.5">
-        <div className="inline-flex items-baseline gap-2 font-ui text-[22px] font-bold leading-none tracking-[-0.015em]">
+        <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1 font-ui text-[22px] font-bold leading-none tracking-[-0.015em]">
           <span>{e.abbreviation}</span>
           <span className="font-mono text-[14px] font-medium text-ink-3">
             &rsquo;{year2}
@@ -104,6 +105,7 @@ function EventRowImpl({
               Round {(lead?.roundIdx ?? totalRounds - 1) + 1} / {totalRounds}
             </span>
           )}
+          {e.tags.length > 0 && <ConnectedEventTags tags={e.tags} />}
         </div>
         <EventNameLink event={e} />
         <RowMetadata event={e} />
@@ -246,7 +248,7 @@ function EventCardImpl({
       style={{ background: "var(--card)" }}
     >
       <div className="flex items-center justify-between gap-2">
-        <div className="flex min-w-0 items-center gap-2">
+        <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1">
           {e.url ? (
             <a
               href={e.url}
@@ -266,6 +268,7 @@ function EventCardImpl({
           ) : (
             titleInner
           )}
+          {e.tags.length > 0 && <ConnectedEventTags tags={e.tags} />}
         </div>
         <div className="-my-2 -mr-1 flex shrink-0 items-center gap-0.5 [&_button]:h-8 [&_button]:w-8">
           <FavoriteButton prefKey={eventKey(e)} />

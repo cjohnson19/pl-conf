@@ -1,9 +1,11 @@
 "use client";
 
+import { useMemo } from "react";
 import clsx from "clsx";
 import { Github } from "lucide-react";
 import { type ScheduledEvent, eventKey } from "../lib/event";
 import { EventCard } from "./event-row";
+import { TagFilterProvider } from "./event-tags";
 import { Skeleton } from "./ui/skeleton";
 import { LastUpdated } from "./last-updated";
 import { useEventListState } from "./event-list/use-event-list-state";
@@ -13,6 +15,7 @@ import {
   FilterChips,
   LayoutToggle,
   SearchPill,
+  TagsFilter,
   ViewTabs,
 } from "./event-list/filters";
 
@@ -26,6 +29,9 @@ export function EventListContainer({ events }: { events: ScheduledEvent[] }) {
     setSearch,
     category,
     setCategory,
+    activeTags,
+    toggleTag,
+    clearTags,
     view,
     setView,
     starredKeys,
@@ -33,6 +39,7 @@ export function EventListContainer({ events }: { events: ScheduledEvent[] }) {
     displayEvents,
     groups,
     categoryCounts,
+    tagCounts,
     viewCounts,
     dueThisWeek,
     totalActive,
@@ -46,8 +53,13 @@ export function EventListContainer({ events }: { events: ScheduledEvent[] }) {
     dismissCollapseHint,
   } = useEventListState(events);
 
+  const tagFilter = useMemo(
+    () => ({ activeTags, onToggle: toggleTag }),
+    [activeTags, toggleTag]
+  );
+
   return (
-    <>
+    <TagFilterProvider value={tagFilter}>
       {prefsLoaded && (
         <Hero
           events={visibleEvents}
@@ -64,6 +76,12 @@ export function EventListContainer({ events }: { events: ScheduledEvent[] }) {
             active={category}
             counts={categoryCounts}
             onSelect={setCategory}
+          />
+          <TagsFilter
+            activeTags={activeTags}
+            tagCounts={tagCounts}
+            onToggle={toggleTag}
+            onClear={clearTags}
           />
         </div>
       </div>
@@ -179,6 +197,6 @@ export function EventListContainer({ events }: { events: ScheduledEvent[] }) {
           )}
         </span>
       </footer>
-    </>
+    </TagFilterProvider>
   );
 }

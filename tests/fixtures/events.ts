@@ -16,6 +16,7 @@ const rawEvents = [
     location: "Atlantis, AT",
     importantDateUrl: "https://example.com/mocka/dates",
     url: "https://example.com/mocka",
+    tags: ["types", "verification"],
     rounds: [
       {
         name: "Round 1",
@@ -43,6 +44,7 @@ const rawEvents = [
     location: "Borgo, BG",
     importantDateUrl: "https://example.com/mockb/dates",
     url: "https://example.com/mockb",
+    tags: ["semantics"],
     importantDates: {
       paper: "2026-06-10",
       notification: "2026-08-01",
@@ -58,6 +60,7 @@ const rawEvents = [
     location: "Coruscant, CR",
     importantDateUrl: "https://example.com/mockc/dates",
     url: "https://example.com/mockc",
+    tags: ["types"],
     importantDates: {
       paper: "2026-10-01",
     },

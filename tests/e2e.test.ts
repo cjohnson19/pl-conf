@@ -326,6 +326,156 @@ describe.concurrent("category chips", () => {
   });
 });
 
+describe.concurrent("tags", () => {
+  const tagsTriggerSelector = 'button[aria-label="Filter by tags"]';
+  const popoverSelector = '[role="dialog"]';
+
+  test("renders tag pills inside the title row next to the abbreviation", async ({
+    page,
+    goToAllEvents,
+  }) => {
+    await goToAllEvents();
+    const mocka = findFixture("MOCKA");
+    const key = eventKey(mocka);
+
+    const result = await page.$eval(
+      `[data-event-key="${key}"]`,
+      (row, expected) => {
+        const tagButtons = Array.from(
+          row.querySelectorAll("button[data-tag]")
+        ) as HTMLButtonElement[];
+        const tags = tagButtons.map((b) => b.dataset.tag ?? "");
+        const abbrevSpan = Array.from(row.querySelectorAll("span")).find(
+          (s) => s.textContent?.trim() === (expected as string)
+        );
+        const titleContainer = abbrevSpan?.parentElement ?? null;
+        const sharesContainer =
+          titleContainer !== null &&
+          tagButtons.length > 0 &&
+          tagButtons.every((b) => titleContainer.contains(b));
+        return { tags, sharesContainer };
+      },
+      mocka.abbreviation
+    );
+
+    expect(result.tags).toEqual(["types", "verification"]);
+    expect(result.sharesContainer).toBe(true);
+  });
+
+  test("opens the popover and shows a checkbox row per canonical tag", async ({
+    page,
+    goToAllEvents,
+  }) => {
+    await goToAllEvents();
+    await page.click(tagsTriggerSelector);
+    await page.waitForSelector(popoverSelector, { timeout: 5000 });
+
+    const tagsInPopover = await page.$$eval(
+      `${popoverSelector} button[data-tag]`,
+      (btns) => btns.map((b) => (b as HTMLButtonElement).dataset.tag ?? "")
+    );
+    expect(tagsInPopover).toContain("types");
+    expect(tagsInPopover).toContain("verification");
+    expect(tagsInPopover).toContain("semantics");
+    expect(tagsInPopover.length).toBeGreaterThan(10);
+  });
+
+  test("selecting one tag narrows the list to events with that tag", async ({
+    page,
+    renderedKeys,
+    goToAllEvents,
+  }) => {
+    await goToAllEvents();
+    await page.click(tagsTriggerSelector);
+    await page.waitForSelector(`${popoverSelector} button[data-tag="types"]`, {
+      timeout: 5000,
+    });
+    await page.click(`${popoverSelector} button[data-tag="types"]`);
+
+    const expectedKeys = new Set(
+      [findFixture("MOCKA"), findFixture("MOCKC")].map(eventKey)
+    );
+    await page.waitForFunction(
+      (n) => document.querySelectorAll("[data-event-key]").length === n,
+      { timeout: 5000 },
+      expectedKeys.size
+    );
+    expect(new Set(await renderedKeys())).toEqual(expectedKeys);
+  });
+
+  test("selecting multiple tags applies OR semantics", async ({
+    page,
+    renderedKeys,
+    goToAllEvents,
+  }) => {
+    await goToAllEvents();
+    await page.click(tagsTriggerSelector);
+    await page.waitForSelector(`${popoverSelector} button[data-tag="types"]`, {
+      timeout: 5000,
+    });
+    await page.click(`${popoverSelector} button[data-tag="types"]`);
+    await page.click(`${popoverSelector} button[data-tag="semantics"]`);
+
+    const expectedKeys = new Set(
+      [findFixture("MOCKA"), findFixture("MOCKB"), findFixture("MOCKC")].map(
+        eventKey
+      )
+    );
+    await page.waitForFunction(
+      (n) => document.querySelectorAll("[data-event-key]").length === n,
+      { timeout: 5000 },
+      expectedKeys.size
+    );
+    expect(new Set(await renderedKeys())).toEqual(expectedKeys);
+  });
+
+  test("Clear resets active tags and restores the full list", async ({
+    page,
+    renderedKeys,
+    goToAllEvents,
+  }) => {
+    await goToAllEvents();
+    await page.click(tagsTriggerSelector);
+    await page.waitForSelector(`${popoverSelector} button[data-tag="types"]`, {
+      timeout: 5000,
+    });
+    await page.click(`${popoverSelector} button[data-tag="types"]`);
+    await page.waitForFunction(
+      () => document.querySelectorAll("[data-event-key]").length === 2,
+      { timeout: 5000 }
+    );
+
+    await page.click(`${popoverSelector} button:not([data-tag])`);
+    await page.waitForFunction(
+      (n) => document.querySelectorAll("[data-event-key]").length === n,
+      { timeout: 5000 },
+      activeEvents().length
+    );
+    const keys = await renderedKeys();
+    expect(keys.length).toBe(activeEvents().length);
+  });
+
+  test("clicking a tag pill on a row toggles that tag into the filter", async ({
+    page,
+    renderedKeys,
+    goToAllEvents,
+  }) => {
+    await goToAllEvents();
+    const mocka = findFixture("MOCKA");
+    const key = eventKey(mocka);
+
+    await page.click(
+      `[data-event-key="${key}"] button[data-tag="verification"]`
+    );
+
+    await page.waitForFunction(
+      () => document.querySelectorAll("[data-event-key]").length === 1,
+      { timeout: 5000 }
+    );
+    expect(await renderedKeys()).toEqual([key]);
+  });
+});
+
 describe.concurrent("submissions open view", () => {
   test("only shows events whose first deadline is still in the future", async ({
     page,

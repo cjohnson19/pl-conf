@@ -2,7 +2,16 @@
 
 import { useEffect, useRef, useState } from "react";
 import clsx from "clsx";
-import { Command, LayoutGrid, Rows3, Search, Star } from "lucide-react";
+import {
+  Command,
+  LayoutGrid,
+  Rows3,
+  Search,
+  Star,
+  Tags as TagsIcon,
+} from "lucide-react";
+import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
+import { type Tag, tagDisplayName, tagValues } from "../../lib/event";
 import type { Category, Layout, View } from "./use-event-list-state";
 
 const CATEGORY_CHIPS: { key: Category; label: string }[] = [
@@ -99,6 +108,122 @@ export function FilterChips({
         );
       })}
     </>
+  );
+}
+
+export function TagsFilter({
+  activeTags,
+  tagCounts,
+  onToggle,
+  onClear,
+}: {
+  activeTags: Set<Tag>;
+  tagCounts: Record<Tag, number>;
+  onToggle: (tag: Tag) => void;
+  onClear: () => void;
+}) {
+  const activeCount = activeTags.size;
+  return (
+    <Popover>
+      <PopoverTrigger asChild>
+        <button
+          type="button"
+          aria-label="Filter by tags"
+          className={clsx(
+            "inline-flex h-8 items-center gap-1.5 rounded-pill border px-3.5 text-[13px] transition-colors",
+            activeCount > 0
+              ? "border-ink bg-ink text-paper"
+              : "border-rule bg-transparent text-ink-2 hover:text-ink"
+          )}
+        >
+          <TagsIcon size={13} strokeWidth={1.75} />
+          Tags
+          {activeCount > 0 && (
+            <span className="font-mono text-[10px] opacity-80">
+              {activeCount}
+            </span>
+          )}
+        </button>
+      </PopoverTrigger>
+      <PopoverContent
+        align="start"
+        sideOffset={8}
+        className="w-[min(320px,calc(100vw-2rem))] border-rule p-0 shadow-pop"
+        style={{ background: "var(--card)" }}
+      >
+        <div className="flex items-center justify-between gap-3 border-b border-rule px-4 py-3">
+          <p className="label-cap">Filter by tags</p>
+          <button
+            type="button"
+            onClick={onClear}
+            disabled={activeCount === 0}
+            className="text-[11px] font-medium text-ink-2 transition-colors hover:text-ink disabled:cursor-not-allowed disabled:text-ink-3"
+          >
+            Clear
+          </button>
+        </div>
+        <ul className="max-h-[320px] overflow-y-auto py-1">
+          {tagValues.map((tag) => {
+            const checked = activeTags.has(tag);
+            const count = tagCounts[tag];
+            const disabled = count === 0 && !checked;
+            return (
+              <li key={tag}>
+                <button
+                  type="button"
+                  data-tag={tag}
+                  aria-pressed={checked}
+                  onClick={() => onToggle(tag)}
+                  disabled={disabled}
+                  className={clsx(
+                    "flex w-full items-center justify-between gap-3 px-4 py-1.5 text-left text-[13px] transition-colors",
+                    disabled
+                      ? "cursor-not-allowed text-ink-3"
+                      : "text-ink-2 hover:bg-paper-2 hover:text-ink"
+                  )}
+                >
+                  <span className="flex min-w-0 items-center gap-2.5">
+                    <span
+                      aria-hidden
+                      className={clsx(
+                        "inline-flex h-3.5 w-3.5 shrink-0 items-center justify-center rounded-xs border transition-colors",
+                        checked
+                          ? "border-ink bg-ink"
+                          : "border-rule bg-transparent"
+                      )}
+                    >
+                      {checked && (
+                        <svg
+                          width="8"
+                          height="8"
+                          viewBox="0 0 8 8"
+                          fill="none"
+                          role="presentation"
+                          aria-hidden
+                        >
+                          <title>Checked</title>
+                          <path
+                            d="M1.5 4.25 3.25 6 6.5 2"
+                            stroke="var(--paper)"
+                            strokeWidth="1.5"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          />
+                        </svg>
+                      )}
+                    </span>
+                    <span className="truncate">{tagDisplayName(tag)}</span>
+                  </span>
+                  <span className="shrink-0 font-mono text-[10px] text-ink-3">
+                    {count}
+                  </span>
+                </button>
+              </li>
+            );
+          })}
+        </ul>
+      </PopoverContent>
+    </Popover>
   );
 }
 

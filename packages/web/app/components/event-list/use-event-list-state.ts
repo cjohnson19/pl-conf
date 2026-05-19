@@ -1,5 +1,10 @@
 import { useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
-import { type ScheduledEvent, eventKey } from "../../lib/event";
+import {
+  type ScheduledEvent,
+  type Tag,
+  eventKey,
+  tagValues,
+} from "../../lib/event";
 import { findNextDeadline, isDueThisWeek } from "../../lib/deadline";
 import {
   applyFilters,
@@ -58,6 +63,9 @@ export type EventListState = {
   setSearch: (next: string) => void;
   category: Category;
   setCategory: (next: Category) => void;
+  activeTags: Set<Tag>;
+  toggleTag: (tag: Tag) => void;
+  clearTags: () => void;
   view: View;
   setView: (next: View) => void;
 
@@ -68,6 +76,7 @@ export type EventListState = {
   groups: Group[];
 
   categoryCounts: Record<Category, number>;
+  tagCounts: Record<Tag, number>;
   viewCounts: Record<View, number>;
   dueThisWeek: number;
   totalActive: number;
@@ -91,6 +100,15 @@ export function useEventListState(events: ScheduledEvent[]): EventListState {
   const [search, setSearch] = useState("");
   const deferredSearch = useDeferredValue(search);
   const [category, setCategory] = useState<Category>("all");
+  const [activeTags, setActiveTags] = useState<Set<Tag>>(() => new Set());
+  const toggleTag = (tag: Tag) =>
+    setActiveTags((prev) => {
+      const next = new Set(prev);
+      if (next.has(tag)) next.delete(tag);
+      else next.add(tag);
+      return next;
+    });
+  const clearTags = () => setActiveTags(new Set());
   const [view, setView, viewLoaded] = useSessionStorage<View>(
     SESSION_VIEW_KEY,
     "starred",
@@ -151,7 +169,7 @@ export function useEventListState(events: ScheduledEvent[]): EventListState {
     return m;
   }, [events]);
 
-  const baseFiltered = useMemo(() => {
+  const preTagFiltered = useMemo(() => {
     const needle = deferredSearch.trim().toLowerCase();
     const matchesSearch: (e: ScheduledEvent) => boolean =
       needle === ""
@@ -162,6 +180,24 @@ export function useEventListState(events: ScheduledEvent[]): EventListState {
       matchesSearch,
     ]);
   }, [activeEvents, category, deferredSearch, searchHaystacks]);
+
+  const tagCounts = useMemo<Record<Tag, number>>(() => {
+    const counts = Object.fromEntries(tagValues.map((t) => [t, 0])) as Record<
+      Tag,
+      number
+    >;
+    preTagFiltered.forEach((e) => {
+      e.tags.forEach((t) => {
+        counts[t] += 1;
+      });
+    });
+    return counts;
+  }, [preTagFiltered]);
+
+  const baseFiltered = useMemo(() => {
+    if (activeTags.size === 0) return preTagFiltered;
+    return preTagFiltered.filter((e) => e.tags.some((t) => activeTags.has(t)));
+  }, [preTagFiltered, activeTags]);
 
   const viewCounts = useMemo<Record<View, number>>(
     () => ({
@@ -259,6 +295,9 @@ export function useEventListState(events: ScheduledEvent[]): EventListState {
     setSearch,
     category,
     setCategory,
+    activeTags,
+    toggleTag,
+    clearTags,
     view,
     setView,
     starredKeys,
@@ -267,6 +306,7 @@ export function useEventListState(events: ScheduledEvent[]): EventListState {
     displayEvents,
     groups,
     categoryCounts,
+    tagCounts,
     viewCounts,
     dueThisWeek,
     totalActive,
