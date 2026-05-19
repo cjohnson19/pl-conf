@@ -116,7 +116,7 @@
       gap: 0.75rem;
     }
   }
-  @container row (min-width: 760px) {
+  @container row (min-width: 680px) {
     .event-row-grid {
       grid-template-columns: 80px minmax(0, 1.4fr) minmax(0, 1.5fr) 104px;
       gap: 1.25rem;
@@ -139,7 +139,7 @@
       gap: 0.75rem;
     }
   }
-  @container row (min-width: 760px) {
+  @container row (min-width: 680px) {
     .event-row-grid--no-date {
       grid-template-columns: minmax(0, 1.4fr) minmax(0, 1.5fr) 104px;
       gap: 1.25rem;

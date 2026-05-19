@@ -6,19 +6,19 @@ import { SettingsPopover } from "./settings-popover";
 export function Header() {
   return (
     <header
-      className="grid items-center gap-6 border-b border-rule px-5 py-3.5 md:px-8"
+      className="grid items-center gap-3 border-b border-rule px-4 py-3.5 sm:gap-6 sm:px-5 md:px-8"
       style={{
         gridTemplateColumns: "auto 1fr auto",
       }}
     >
       <Link
         href="/"
-        className="flex items-baseline gap-1.5 text-ink no-underline"
+        className="flex min-w-0 items-baseline gap-1.5 text-ink no-underline"
       >
-        <span className="font-display text-[22px] font-medium tracking-[-0.06em] text-[color:var(--accent)]">
+        <span className="font-display text-[20px] font-medium tracking-[-0.06em] text-[color:var(--accent)] sm:text-[22px]">
           PL
         </span>
-        <span className="font-display text-[22px] font-normal leading-none tracking-[-0.01em]">
+        <span className="font-display text-[20px] font-normal leading-none tracking-[-0.01em] sm:text-[22px]">
           Conferences
         </span>
       </Link>

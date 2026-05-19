@@ -1,12 +1,10 @@
 "use client";
 
-import { memo, useMemo } from "react";
+import { memo } from "react";
 import clsx from "clsx";
 import { ArrowUpRight } from "lucide-react";
 import {
-  type DateName,
   type MaybeDate,
-  type Round,
   type ScheduledEvent,
   allDeadlines,
   eventKey,
@@ -14,152 +12,18 @@ import {
   formatDateRange,
   isDeadlinePast,
   isDeadlineUrgent,
-  toAoeInstant,
-  toCalendarDate,
 } from "../lib/event";
-import { shortCountdown } from "../lib/countdown";
+import { dayNum, monthShort, yearNum } from "../lib/date-formatters";
 import { FavoriteButton } from "./favorite-button";
 import { CalendarMenu } from "./calendar-menu";
 import { RowActionSheet } from "./row-action-sheet";
-
-type LeadInfo = {
-  roundIdx: number;
-  name: DateName;
-  date: string;
-  time: number;
-};
-
-function findLead(e: ScheduledEvent, now: Date): LeadInfo | null {
-  const nowTime = now.getTime();
-  let upcoming: LeadInfo | null = null;
-  let fallback: LeadInfo | null = null;
-  e.rounds.forEach((r, roundIdx) => {
-    (Object.entries(r.importantDates) as Array<[DateName, MaybeDate]>).forEach(
-      ([name, date]) => {
-        if (date === "TBD") return;
-        const instant = toAoeInstant(date);
-        if (!instant) return;
-        const time = instant.getTime();
-        const candidate = { roundIdx, name, date, time };
-        if (time > nowTime) {
-          if (!upcoming || time < upcoming.time) upcoming = candidate;
-        } else {
-          if (!fallback || time > fallback.time) fallback = candidate;
-        }
-      }
-    );
-  });
-  return upcoming ?? fallback;
-}
-
-const monthShortFmt = new Intl.DateTimeFormat(undefined, { month: "short" });
-const monthDayFmt = new Intl.DateTimeFormat(undefined, {
-  month: "short",
-  day: "numeric",
-});
-
-function dateNameShort(n: DateName): string {
-  switch (n) {
-    case "paper":
-      return "Paper";
-    case "abstract":
-      return "Abstract";
-    case "notification":
-      return "Notification";
-    case "rebuttal":
-      return "Rebuttal";
-    case "conditional-acceptance":
-      return "Conditional Acceptance";
-    case "camera-ready":
-      return "Camera-ready";
-    case "revisions":
-      return "Revisions";
-  }
-}
-
-function monthShort(date: MaybeDate): string {
-  if (date === "TBD") return "TBD";
-  const cal = toCalendarDate(date);
-  return cal ? monthShortFmt.format(cal) : "TBD";
-}
-
-function dayNum(date: MaybeDate): string {
-  if (date === "TBD") return "—";
-  const cal = toCalendarDate(date);
-  return cal ? cal.getDate().toString() : "—";
-}
-
-function yearNum(date: MaybeDate): string {
-  if (date === "TBD") return "";
-  const cal = toCalendarDate(date);
-  return cal ? cal.getFullYear().toString() : "";
-}
-
-function roundShortDate(date: MaybeDate): string {
-  if (date === "TBD") return "TBD";
-  const cal = toCalendarDate(date);
-  return cal ? monthDayFmt.format(cal) : "TBD";
-}
-
-type ChipKind = "past" | "next" | "default";
-
-type RailRow = {
-  name: DateName;
-  date: MaybeDate;
-  kind: ChipKind;
-  urgent?: boolean;
-};
-
-function buildRoundRows(
-  round: Round,
-  now: Date,
-  activeNext?: DateName
-): RailRow[] {
-  const entries = (
-    Object.entries(round.importantDates) as Array<[DateName, MaybeDate]>
-  )
-    .filter(([, d]) => d !== undefined)
-    .sort(([, a], [, b]) => {
-      if (a === "TBD") return 1;
-      if (b === "TBD") return -1;
-      return a < b ? -1 : 1;
-    });
-  return entries.map(([name, date]) => {
-    if (date === "TBD") return { name, date, kind: "default" as ChipKind };
-    if (isDeadlinePast(date, now))
-      return { name, date, kind: "past" as ChipKind };
-    if (activeNext && name === activeNext)
-      return {
-        name,
-        date,
-        kind: "next" as ChipKind,
-        urgent: isDeadlineUrgent(date, now),
-      };
-    return { name, date, kind: "default" as ChipKind };
-  });
-}
-
-function DatesDeadlinesLink({ href }: { href: string }) {
-  return (
-    <a
-      href={href}
-      target="_blank"
-      aria-label="View important dates"
-      className="group/dates inline-flex items-center gap-1 self-start text-[12px] font-medium text-ink no-underline"
-      rel="noopener"
-    >
-      <span className="underline decoration-rule decoration-1 underline-offset-[3px] transition-[text-decoration-color] duration-200 ease-out group-hover/dates:decoration-ink">
-        Dates &amp; Deadlines
-      </span>
-      <ArrowUpRight
-        size={12}
-        strokeWidth={1.75}
-        className="text-ink-3 transition-all duration-200 ease-out group-hover/dates:-translate-y-0.5 group-hover/dates:translate-x-0.5 group-hover/dates:text-ink"
-        aria-hidden
-      />
-    </a>
-  );
-}
+import {
+  DatesDeadlinesLink,
+  EventNameLink,
+  useEventLead,
+} from "./event-row/shared";
+import { RoundRail } from "./event-row/rail";
+import { CardDeadlineTable } from "./event-row/card-deadlines";
 
 function EventRowImpl({
   event: e,
@@ -170,7 +34,7 @@ function EventRowImpl({
   now: Date;
   hideDate?: boolean;
 }) {
-  const lead = useMemo(() => findLead(e, now), [e, now]);
+  const lead = useEventLead(e, now);
 
   const leadDate = lead?.date;
   const anchorDate: MaybeDate =
@@ -207,11 +71,11 @@ function EventRowImpl({
       )}
     >
       {!hideDate && (
-        <div className="flex flex-col items-start gap-1.5 self-start @[760px]/row:self-auto">
+        <div className="flex flex-col items-start gap-1.5 self-start @[680px]/row:self-auto">
           <div
             className={clsx(
               "font-ui font-semibold leading-none tracking-[-0.025em] tabular-nums",
-              "text-[22px] @[420px]/row:text-[24px] @[760px]/row:text-[32px]",
+              "text-[22px] @[420px]/row:text-[24px] @[680px]/row:text-[32px]",
               urgent ? "text-hot" : "text-ink"
             )}
           >
@@ -241,108 +105,14 @@ function EventRowImpl({
             </span>
           )}
         </div>
-        {e.url ? (
-          <a
-            href={e.url}
-            target="_blank"
-            aria-label={`Open ${e.abbreviation} website`}
-            className="group/url flex w-fit min-w-0 max-w-full items-baseline gap-1.5 text-[13px] text-ink-2 no-underline"
-            rel="noopener"
-          >
-            <span className="min-w-0 truncate underline decoration-rule decoration-1 underline-offset-[3px] transition-[text-decoration-color] duration-200 ease-out group-hover/url:decoration-ink">
-              {e.name}
-            </span>
-            <ArrowUpRight
-              size={11}
-              strokeWidth={1.75}
-              className="shrink-0 self-center text-ink-3 transition-all duration-200 ease-out group-hover/url:translate-x-0.5 group-hover/url:-translate-y-0.5 group-hover/url:text-ink"
-              aria-hidden
-            />
-          </a>
-        ) : (
-          <div className="overflow-hidden text-ellipsis whitespace-nowrap text-[13px] text-ink-2">
-            {e.name}
-          </div>
-        )}
-        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 whitespace-nowrap font-mono text-[11px] uppercase tracking-[0.04em] text-ink-3">
-          {(() => {
-            const items: { node: React.ReactNode; wideOnly: boolean }[] = [];
-            if (e.location)
-              items.push({
-                node: <span className="text-ink-2">{e.location}</span>,
-                wideOnly: false,
-              });
-            if (e.date.start !== "TBD" && e.date.end !== "TBD")
-              items.push({
-                node: (
-                  <span>
-                    {formatDateRange(e.date.start, e.date.end, "short")}
-                  </span>
-                ),
-                wideOnly: false,
-              });
-            if (e.partOf.length > 0)
-              items.push({
-                node: (
-                  <span>
-                    part of{" "}
-                    <b className="font-medium text-ink-2">
-                      {e.partOf.join(", ")}
-                    </b>
-                  </span>
-                ),
-                wideOnly: true,
-              });
-            if (e.colocatedWith.length > 0)
-              items.push({
-                node: (
-                  <span>
-                    co-located{" "}
-                    <b className="font-medium text-ink-2">
-                      {e.colocatedWith.join(", ")}
-                    </b>
-                  </span>
-                ),
-                wideOnly: true,
-              });
-            return items.flatMap((item, i) => {
-              const nodes: React.ReactNode[] = [];
-              if (i > 0) {
-                nodes.push(
-                  <span
-                    // biome-ignore lint/suspicious/noArrayIndexKey: items list is built fresh each render with no preserved state
-                    key={`sep-${i}`}
-                    aria-hidden
-                    className={clsx(
-                      "text-ink-3/60",
-                      item.wideOnly && "hidden min-[1280px]:inline"
-                    )}
-                  >
-                    ·
-                  </span>
-                );
-              }
-              nodes.push(
-                <span
-                  // biome-ignore lint/suspicious/noArrayIndexKey: items list is built fresh each render with no preserved state
-                  key={`item-${i}`}
-                  className={clsx(
-                    item.wideOnly && "hidden min-[1280px]:inline"
-                  )}
-                >
-                  {item.node}
-                </span>
-              );
-              return nodes;
-            });
-          })()}
-        </div>
+        <EventNameLink event={e} />
+        <RowMetadata event={e} />
         {e.importantDateUrl && (
-          <div className="@[760px]/row:hidden">
+          <div className="@[680px]/row:hidden">
             <DatesDeadlinesLink href={e.importantDateUrl} />
           </div>
         )}
-        <div className="block pt-1 @[760px]/row:hidden">
+        <div className="block pt-1 @[680px]/row:hidden">
           <RoundRail
             event={e}
             now={now}
@@ -354,7 +124,7 @@ function EventRowImpl({
         </div>
       </div>
 
-      <div className="hidden min-w-0 flex-col gap-1 text-[13px] @[760px]/row:flex">
+      <div className="hidden min-w-0 flex-col gap-1 text-[13px] @[680px]/row:flex">
         {e.importantDateUrl && <DatesDeadlinesLink href={e.importantDateUrl} />}
 
         <RoundRail
@@ -367,15 +137,81 @@ function EventRowImpl({
         />
       </div>
 
-      <div className="flex items-center justify-end gap-1 self-start @[760px]/row:self-auto">
-        <div className="hidden @[760px]/row:contents">
+      <div className="flex items-center justify-end gap-1 self-start @[680px]/row:self-auto">
+        <div className="hidden @[680px]/row:contents">
           <FavoriteButton prefKey={eventKey(e)} />
           <CalendarMenu event={e} />
         </div>
-        <div className="contents @[760px]/row:hidden">
+        <div className="contents @[680px]/row:hidden">
           <RowActionSheet event={e} prefKey={eventKey(e)} />
         </div>
       </div>
+    </div>
+  );
+}
+
+function RowMetadata({ event: e }: { event: ScheduledEvent }) {
+  const items: { node: React.ReactNode; wideOnly: boolean }[] = [];
+  if (e.location)
+    items.push({
+      node: <span className="text-ink-2">{e.location}</span>,
+      wideOnly: false,
+    });
+  if (e.date.start !== "TBD" && e.date.end !== "TBD")
+    items.push({
+      node: <span>{formatDateRange(e.date.start, e.date.end, "short")}</span>,
+      wideOnly: false,
+    });
+  if (e.partOf.length > 0)
+    items.push({
+      node: (
+        <span>
+          part of{" "}
+          <b className="font-medium text-ink-2">{e.partOf.join(", ")}</b>
+        </span>
+      ),
+      wideOnly: true,
+    });
+  if (e.colocatedWith.length > 0)
+    items.push({
+      node: (
+        <span>
+          co-located{" "}
+          <b className="font-medium text-ink-2">{e.colocatedWith.join(", ")}</b>
+        </span>
+      ),
+      wideOnly: true,
+    });
+  return (
+    <div className="flex flex-wrap items-center gap-x-3 gap-y-1 whitespace-nowrap font-mono text-[11px] uppercase tracking-[0.04em] text-ink-3">
+      {items.flatMap((item, i) => {
+        const nodes: React.ReactNode[] = [];
+        if (i > 0) {
+          nodes.push(
+            <span
+              // biome-ignore lint/suspicious/noArrayIndexKey: items list is built fresh each render with no preserved state
+              key={`sep-${i}`}
+              aria-hidden
+              className={clsx(
+                "text-ink-3/60",
+                item.wideOnly && "hidden min-[1280px]:inline"
+              )}
+            >
+              ·
+            </span>
+          );
+        }
+        nodes.push(
+          <span
+            // biome-ignore lint/suspicious/noArrayIndexKey: items list is built fresh each render with no preserved state
+            key={`item-${i}`}
+            className={clsx(item.wideOnly && "hidden min-[1280px]:inline")}
+          >
+            {item.node}
+          </span>
+        );
+        return nodes;
+      })}
     </div>
   );
 }
@@ -387,7 +223,7 @@ function EventCardImpl({
   event: ScheduledEvent;
   now: Date;
 }) {
-  const lead = useMemo(() => findLead(e, now), [e, now]);
+  const lead = useEventLead(e, now);
   const year2 = formatDate(e.date.start, "year2", "en-US");
   const startStr =
     e.date.start !== "TBD" && e.date.end !== "TBD"
@@ -494,245 +330,6 @@ function EventCardImpl({
           )}
         </div>
       )}
-    </div>
-  );
-}
-
-function CardDeadlineTable({
-  round,
-  roundIndex,
-  showRoundLabel,
-  activeName,
-  now,
-}: {
-  round: Round;
-  roundIndex: number;
-  showRoundLabel: boolean;
-  activeName: DateName | undefined;
-  now: Date;
-}) {
-  const rows = buildRoundRows(round, now, activeName);
-  if (rows.length === 0) return null;
-  return (
-    <div className="flex flex-col gap-1">
-      {showRoundLabel && (
-        <div className="text-[10px] font-medium tracking-[0.06em] text-ink-3">
-          {round.name ?? `Round ${roundIndex + 1}`}
-        </div>
-      )}
-      <table className="w-full border-collapse text-[12px]">
-        <tbody>
-          {rows.map((r) => (
-            <CardDeadlineRow key={r.name} row={r} now={now} />
-          ))}
-        </tbody>
-      </table>
-    </div>
-  );
-}
-
-function CardDeadlineRow({ row: r, now }: { row: RailRow; now: Date }) {
-  const next = r.kind === "next";
-  return (
-    <tr>
-      <td
-        className={clsx(
-          "py-1 pr-2 align-baseline",
-          next && "font-medium text-ink"
-        )}
-      >
-        {dateNameShort(r.name)}
-      </td>
-      <td
-        className={clsx(
-          "py-1 pr-2 align-baseline whitespace-nowrap font-mono",
-          next ? "text-ink" : "text-ink-3"
-        )}
-      >
-        {r.date === "TBD" ? "TBD" : roundShortDate(r.date)}
-      </td>
-      <td
-        className={clsx(
-          "py-1 text-right align-baseline whitespace-nowrap font-mono text-[11px]",
-          next
-            ? r.urgent
-              ? "text-hot"
-              : "text-[color:var(--accent)]"
-            : "text-ink-3"
-        )}
-      >
-        {r.date === "TBD" ? "" : shortCountdown(r.date, now)}
-      </td>
-    </tr>
-  );
-}
-
-function RoundRail({
-  event: e,
-  now,
-  lead,
-  passed,
-  showMultiRound,
-  totalRounds,
-}: {
-  event: ScheduledEvent;
-  now: Date;
-  lead: LeadInfo | null;
-  passed: boolean;
-  showMultiRound: boolean;
-  totalRounds: number;
-}) {
-  if (showMultiRound) {
-    return (
-      <MultiRoundRail
-        event={e}
-        now={now}
-        activeRoundIdx={lead?.roundIdx ?? totalRounds - 1}
-        activeNext={lead?.name}
-      />
-    );
-  }
-  return (
-    <SingleRoundRail
-      event={e}
-      now={now}
-      activeNext={passed ? undefined : lead?.name}
-    />
-  );
-}
-
-function SingleRoundRail({
-  event: e,
-  now,
-  activeNext,
-}: {
-  event: ScheduledEvent;
-  now: Date;
-  activeNext?: DateName;
-}) {
-  const round = e.rounds[0];
-  if (!round) return null;
-  const rows = buildRoundRows(round, now, activeNext);
-  if (rows.length === 0) return null;
-  return (
-    <div className="mt-2 flex max-w-xs flex-col gap-1 border-l-2 border-rule pl-2.5">
-      {rows.map((r) => (
-        <DateRow key={r.name} row={r} />
-      ))}
-    </div>
-  );
-}
-
-function DateRow({ row: r }: { row: RailRow }) {
-  return (
-    <div
-      className={clsx(
-        "grid grid-cols-[1fr_auto] gap-2 text-[12px]",
-        r.kind === "next" ? "font-medium text-ink" : "text-ink-2"
-      )}
-    >
-      <span>{dateNameShort(r.name)}</span>
-      <span
-        className={clsx(
-          "font-mono text-[11px]",
-          r.kind === "next"
-            ? r.urgent
-              ? "text-hot"
-              : "text-[color:var(--accent)]"
-            : "text-ink-3"
-        )}
-      >
-        {r.date === "TBD" ? "TBD" : roundShortDate(r.date)}
-      </span>
-    </div>
-  );
-}
-
-function MultiRoundRail({
-  event: e,
-  now,
-  activeRoundIdx,
-  activeNext,
-}: {
-  event: ScheduledEvent;
-  now: Date;
-  activeRoundIdx: number;
-  activeNext?: DateName;
-}) {
-  const earlierIdx = e.rounds.findLastIndex(
-    (r, i) => i < activeRoundIdx && r !== undefined
-  );
-  const prevIdx =
-    earlierIdx >= 0
-      ? earlierIdx
-      : e.rounds.findIndex((_, i) => i !== activeRoundIdx);
-
-  const prev = prevIdx >= 0 ? e.rounds[prevIdx] : null;
-  const active = e.rounds[activeRoundIdx] ?? e.rounds[e.rounds.length - 1];
-
-  const prevRows = prev ? buildRoundRows(prev, now) : [];
-  const activeRows = active ? buildRoundRows(active, now, activeNext) : [];
-
-  return (
-    <div className="mt-2 grid grid-cols-2 gap-3">
-      {prev ? (
-        <RoundColumn
-          idx={prevIdx}
-          status="done"
-          rows={prevRows}
-          active={false}
-        />
-      ) : (
-        <div />
-      )}
-      <RoundColumn
-        idx={activeRoundIdx}
-        status="active"
-        rows={activeRows}
-        active
-      />
-    </div>
-  );
-}
-
-function RoundColumn({
-  idx,
-  status,
-  rows,
-  active,
-}: {
-  idx: number;
-  status: "done" | "active";
-  rows: RailRow[];
-  active: boolean;
-}) {
-  const urgent = active && rows.some((r) => r.kind === "next" && r.urgent);
-  const accentClass = urgent ? "text-hot" : "text-[color:var(--accent)]";
-  const borderClass = urgent ? "border-hot" : "border-[color:var(--accent)]";
-  return (
-    <div
-      className={clsx(
-        "flex flex-col gap-1 border-l-2 pl-2.5",
-        active ? borderClass : "border-rule"
-      )}
-    >
-      <div
-        className={clsx(
-          "flex items-baseline gap-2 font-mono text-[10px] font-medium uppercase tracking-[0.08em]",
-          active ? accentClass : "text-ink-3"
-        )}
-      >
-        Round {idx + 1}
-        <span
-          className="rounded-xs border px-1 py-px text-[9px]"
-          style={{ borderColor: "currentColor" }}
-        >
-          {status}
-        </span>
-      </div>
-      {rows.map((r) => (
-        <DateRow key={r.name} row={r} />
-      ))}
     </div>
   );
 }

@@ -1,0 +1,282 @@
+import { useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
+import { type ScheduledEvent, eventKey } from "../../lib/event";
+import { findNextDeadline, isDueThisWeek } from "../../lib/deadline";
+import {
+  applyFilters,
+  isActive,
+  openToNewSubmissions,
+} from "../../lib/event-filter";
+import {
+  type Codec,
+  stringCodec,
+  stringSetCodec,
+  useSessionStorage,
+} from "../../hooks/use-session-storage";
+import { usePreferences } from "../preferences-provider";
+import { type Group, buildGroups } from "./grouping";
+
+export type Category =
+  | "all"
+  | "conference"
+  | "workshop"
+  | "symposium"
+  | "school";
+export type View = "starred" | "all" | "submissions";
+
+export type Layout = "list" | "grid";
+
+const SESSION_VIEW_KEY = "view";
+const SESSION_COLLAPSED_KEY = "collapsedDateGroups";
+
+const hasOpenSubmission = openToNewSubmissions(true);
+
+function useNowTick(): Date {
+  const [now, setNow] = useState(() => new Date());
+  useEffect(() => {
+    const msToNextMinute = 60_000 - (Date.now() % 60_000);
+    let intervalId: ReturnType<typeof setInterval> | undefined;
+    const timeoutId = setTimeout(() => {
+      setNow(new Date());
+      intervalId = setInterval(() => setNow(new Date()), 60_000);
+    }, msToNextMinute);
+    return () => {
+      clearTimeout(timeoutId);
+      if (intervalId) clearInterval(intervalId);
+    };
+  }, []);
+  return now;
+}
+
+export type EventListState = {
+  prefsLoaded: boolean;
+  now: Date;
+
+  layout: Layout;
+  setLayout: (next: Layout) => void;
+
+  search: string;
+  setSearch: (next: string) => void;
+  category: Category;
+  setCategory: (next: Category) => void;
+  view: View;
+  setView: (next: View) => void;
+
+  starredKeys: Set<string>;
+  visibleEvents: ScheduledEvent[];
+  activeEvents: ScheduledEvent[];
+  displayEvents: ScheduledEvent[];
+  groups: Group[];
+
+  categoryCounts: Record<Category, number>;
+  viewCounts: Record<View, number>;
+  dueThisWeek: number;
+  totalActive: number;
+  starredCount: number;
+  hasOthers: boolean;
+  lastUpdatedDate: string | undefined;
+
+  collapsedDates: Set<string>;
+  toggleCollapsed: (date: string) => void;
+  firstCollapsibleIdx: number;
+  showCollapseHint: boolean;
+  dismissCollapseHint: () => void;
+};
+
+export function useEventListState(events: ScheduledEvent[]): EventListState {
+  const { prefs, setPrefs, prefsLoaded } = usePreferences();
+  const layout: Layout = prefs.display.layout ?? "list";
+  const setLayout = (next: Layout) =>
+    setPrefs((p) => ({ ...p, display: { ...p.display, layout: next } }));
+
+  const [search, setSearch] = useState("");
+  const deferredSearch = useDeferredValue(search);
+  const [category, setCategory] = useState<Category>("all");
+  const [view, setView, viewLoaded] = useSessionStorage<View>(
+    SESSION_VIEW_KEY,
+    "starred",
+    stringCodec as Codec<View>
+  );
+
+  const now = useNowTick();
+
+  const starredKeys = useMemo(
+    () =>
+      new Set(
+        Object.entries(prefs.eventPrefs)
+          .filter(([, v]) => v?.favorite)
+          .map(([k]) => k)
+      ),
+    // useLocalStorage's mergeDeep mutates prefs.eventPrefs in place during
+    // hydration, so depend on the outer prefs object to catch new keys.
+    [prefs]
+  );
+
+  const visibleEvents = useMemo(
+    () =>
+      events.filter((e) => !(prefs.eventPrefs[eventKey(e)]?.hidden === true)),
+    [events, prefs]
+  );
+
+  const activeEvents = useMemo(
+    () => applyFilters(visibleEvents, [isActive]),
+    [visibleEvents]
+  );
+
+  const categoryCounts = useMemo<Record<Category, number>>(() => {
+    const counts = activeEvents.reduce(
+      (acc, e) => {
+        acc[e.type] = (acc[e.type] ?? 0) + 1;
+        return acc;
+      },
+      {} as Record<ScheduledEvent["type"], number>
+    );
+    return {
+      all: activeEvents.length,
+      conference: counts.conference ?? 0,
+      workshop: counts.workshop ?? 0,
+      symposium: counts.symposium ?? 0,
+      school: 0,
+    };
+  }, [activeEvents]);
+
+  const searchHaystacks = useMemo(() => {
+    const m = new WeakMap<ScheduledEvent, string>();
+    events.forEach((e) => {
+      const parts = [e.name, e.abbreviation];
+      if (e.location) parts.push(e.location);
+      if (e.format) parts.push(e.format);
+      parts.push(...e.tags);
+      m.set(e, parts.join("\n").toLowerCase());
+    });
+    return m;
+  }, [events]);
+
+  const baseFiltered = useMemo(() => {
+    const needle = deferredSearch.trim().toLowerCase();
+    const matchesSearch: (e: ScheduledEvent) => boolean =
+      needle === ""
+        ? () => true
+        : (e) => (searchHaystacks.get(e) ?? "").includes(needle);
+    return applyFilters(activeEvents, [
+      (e) => (category === "all" ? true : e.type === category),
+      matchesSearch,
+    ]);
+  }, [activeEvents, category, deferredSearch, searchHaystacks]);
+
+  const viewCounts = useMemo<Record<View, number>>(
+    () => ({
+      starred: baseFiltered.filter((e) => starredKeys.has(eventKey(e))).length,
+      all: baseFiltered.length,
+      submissions: baseFiltered.filter(hasOpenSubmission).length,
+    }),
+    [baseFiltered, starredKeys]
+  );
+
+  const displayEvents = useMemo(() => {
+    const filtered = baseFiltered.filter((e) => {
+      if (view === "starred") return starredKeys.has(eventKey(e));
+      if (view === "submissions") return hasOpenSubmission(e);
+      return true;
+    });
+    const decorated = filtered.map((e) => ({
+      e,
+      time: findNextDeadline(e, now)?.time,
+    }));
+    decorated.sort((a, b) => {
+      if (a.time !== undefined && b.time !== undefined) return a.time - b.time;
+      if (a.time !== undefined) return -1;
+      if (b.time !== undefined) return 1;
+      return a.e.abbreviation.localeCompare(b.e.abbreviation);
+    });
+    return decorated.map((d) => d.e);
+  }, [baseFiltered, view, starredKeys, now]);
+
+  const dueThisWeek = useMemo(
+    () => displayEvents.filter((e) => isDueThisWeek(e, now)).length,
+    [displayEvents, now]
+  );
+  const groups = useMemo(
+    () => buildGroups(displayEvents, now),
+    [displayEvents, now]
+  );
+
+  const [collapsedDates, setCollapsedDates] = useSessionStorage(
+    SESSION_COLLAPSED_KEY,
+    new Set<string>(),
+    stringSetCodec
+  );
+  const toggleCollapsed = (date: string) =>
+    setCollapsedDates((prev) => {
+      const next = new Set(prev);
+      if (next.has(date)) next.delete(date);
+      else next.add(date);
+      return next;
+    });
+
+  const firstCollapsibleIdx = useMemo(
+    () => groups.findIndex((g) => g.date !== null),
+    [groups]
+  );
+  const showCollapseHint =
+    prefsLoaded &&
+    !prefs.display.collapseHintDismissed &&
+    firstCollapsibleIdx >= 0 &&
+    groups.length > 1;
+  const dismissCollapseHint = () =>
+    setPrefs((p) => ({
+      ...p,
+      display: { ...p.display, collapseHintDismissed: true },
+    }));
+
+  const totalActive = activeEvents.length;
+  const starredCount = starredKeys.size;
+  const hasOthers = view === "starred" && totalActive > starredCount;
+
+  const didInitView = useRef(false);
+  useEffect(() => {
+    if (!prefsLoaded || !viewLoaded || didInitView.current) return;
+    didInitView.current = true;
+    const hasStored =
+      typeof window !== "undefined" &&
+      window.sessionStorage.getItem(SESSION_VIEW_KEY) !== null;
+    if (!hasStored && starredCount === 0) setView("all");
+  }, [prefsLoaded, viewLoaded, starredCount, setView]);
+
+  const lastUpdatedDate = useMemo(() => {
+    const dates = events
+      .map((e) => e.lastUpdated)
+      .filter((d): d is string => typeof d === "string");
+    if (dates.length === 0) return undefined;
+    return dates.reduce((max, d) => (d > max ? d : max));
+  }, [events]);
+
+  return {
+    prefsLoaded,
+    now,
+    layout,
+    setLayout,
+    search,
+    setSearch,
+    category,
+    setCategory,
+    view,
+    setView,
+    starredKeys,
+    visibleEvents,
+    activeEvents,
+    displayEvents,
+    groups,
+    categoryCounts,
+    viewCounts,
+    dueThisWeek,
+    totalActive,
+    starredCount,
+    hasOthers,
+    lastUpdatedDate,
+    collapsedDates,
+    toggleCollapsed,
+    firstCollapsibleIdx,
+    showCollapseHint,
+    dismissCollapseHint,
+  };
+}
