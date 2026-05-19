@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef } from "react";
+import { useLayoutEffect, useRef, useState } from "react";
 import clsx from "clsx";
 import { ChevronDown, X } from "lucide-react";
 import {
@@ -110,7 +110,7 @@ export function DeadlineGroupHeader({
             size={16}
             strokeWidth={1.75}
             className={clsx(
-              "shrink-0 text-ink-3 transition-transform duration-200",
+              "shrink-0 text-ink-3 transition-transform duration-200 ease-out",
               collapsed && "-rotate-90"
             )}
           />
@@ -170,7 +170,20 @@ export function CollapsibleGroup({
   onToggle: (() => void) | undefined;
 }) {
   const sectionRef = useRef<HTMLElement>(null);
+  const innerRef = useRef<HTMLDivElement>(null);
+  const [contentHeight, setContentHeight] = useState<number | undefined>(
+    undefined
+  );
   const contentId = `group-content-${group.key.replace(/[^a-zA-Z0-9_-]/g, "-")}`;
+  useLayoutEffect(() => {
+    const el = innerRef.current;
+    if (!el) return;
+    const measure = () => setContentHeight(el.scrollHeight);
+    measure();
+    const ro = new ResizeObserver(measure);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
   const handleToggle = onToggle
     ? () => {
         const willCollapse = !collapsed;
@@ -201,11 +214,17 @@ export function CollapsibleGroup({
       />
       <div
         id={contentId}
-        className="grid transition-[grid-template-rows] duration-200 ease-out motion-reduce:transition-none"
-        style={{ gridTemplateRows: collapsed ? "0fr" : "1fr" }}
+        className="overflow-hidden transition-[height] duration-200 ease-out motion-reduce:transition-none"
+        style={{
+          height: collapsed ? 0 : contentHeight,
+          maskImage:
+            "linear-gradient(to bottom, black calc(100% - 22px), transparent)",
+          WebkitMaskImage:
+            "linear-gradient(to bottom, black calc(100% - 22px), transparent)",
+        }}
         aria-hidden={collapsed}
       >
-        <div className="overflow-hidden">
+        <div ref={innerRef}>
           {showHint && <CollapseHint onDismiss={onDismissHint} />}
           {group.events.map((e, i) => (
             <div
