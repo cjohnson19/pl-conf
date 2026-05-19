@@ -2,20 +2,51 @@
 
 import { useState } from "react";
 import * as Dialog from "@radix-ui/react-dialog";
-import {
-  Calendar,
-  Check,
-  Copy,
-  Download,
-  MoreHorizontal,
-  Rss,
-  Star,
-  X,
-} from "lucide-react";
+import { MoreHorizontal, Star, X } from "lucide-react";
 import clsx from "clsx";
 import type { ScheduledEvent } from "../lib/event";
 import { useCalendarExport } from "../lib/use-calendar-export";
 import { useFavorite } from "../lib/use-favorite";
+import {
+  type CopyItemProps,
+  type ExportItemProps,
+  ExportOptions,
+  ExportRowContent,
+} from "./export-options";
+
+const itemClass =
+  "flex items-center gap-3 rounded-md px-3 py-2.5 no-underline hover:bg-paper-2";
+
+function SheetItem({ href, download, icon, title, sub }: ExportItemProps) {
+  return (
+    <Dialog.Close asChild>
+      <a
+        href={href}
+        target={download ? undefined : "_blank"}
+        download={download}
+        className={itemClass}
+      >
+        <ExportRowContent variant="sheet" icon={icon} title={title} sub={sub} />
+      </a>
+    </Dialog.Close>
+  );
+}
+
+function SheetCopyItem({ onSelect, icon, title, sub }: CopyItemProps) {
+  return (
+    <button
+      type="button"
+      onClick={onSelect}
+      className={clsx("w-full text-left", itemClass)}
+    >
+      <ExportRowContent variant="sheet" icon={icon} title={title} sub={sub} />
+    </button>
+  );
+}
+
+function SheetSeparator() {
+  return <div className="my-1 h-px bg-rule" />;
+}
 
 export function RowActionSheet({
   event,
@@ -26,25 +57,14 @@ export function RowActionSheet({
 }) {
   const [open, setOpen] = useState(false);
   const { on: starred, toggle: toggleStar } = useFavorite(prefKey);
-  const {
-    datesTBD,
-    setHasOpened,
-    includeDeadlines,
-    setIncludeDeadlines,
-    copied,
-    copyFeedUrl,
-    icsUrl,
-    fileName,
-    gcalHref,
-    subscribeUrls,
-  } = useCalendarExport(event);
+  const data = useCalendarExport(event);
 
   return (
     <Dialog.Root
       open={open}
       onOpenChange={(o) => {
         setOpen(o);
-        if (o) setHasOpened(true);
+        if (o) data.setHasOpened(true);
       }}
     >
       <Dialog.Trigger
@@ -116,145 +136,17 @@ export function RowActionSheet({
 
           <div className="my-1 h-px bg-rule" />
 
-          {datesTBD ? (
-            <div className="px-3 py-3 text-[13px] text-ink-3">
-              Calendar export unavailable — dates TBD.
-            </div>
-          ) : (
-            <>
-              <label className="mx-2 mt-2 flex cursor-pointer items-center justify-between gap-3 rounded-md border border-rule px-3 py-2.5 text-[13px] text-ink-2 hover:bg-paper-2">
-                <span className="flex flex-col gap-0.5">
-                  <span>Include submission deadlines</span>
-                  <span className="font-mono text-[11px] text-ink-3">
-                    in exports & subscriptions
-                  </span>
-                </span>
-                <input
-                  type="checkbox"
-                  checked={includeDeadlines}
-                  onChange={(e) => setIncludeDeadlines(e.target.checked)}
-                  className="h-4 w-4 shrink-0 accent-ink"
-                />
-              </label>
-              <div className="px-3 pb-1 pt-3 font-mono text-[11px] uppercase tracking-[0.06em] text-ink-3">
-                Add to calendar
-              </div>
-              {gcalHref && (
-                <SheetLink
-                  href={gcalHref}
-                  icon={<Calendar size={18} strokeWidth={1.75} />}
-                  title="Google Calendar"
-                  sub="Prefilled event form"
-                />
-              )}
-              {icsUrl && (
-                <SheetLink
-                  href={icsUrl}
-                  download={fileName}
-                  icon={<Download size={18} strokeWidth={1.75} />}
-                  title="Download .ics"
-                  sub={fileName}
-                />
-              )}
-              {subscribeUrls && (
-                <>
-                  <div className="my-1 h-px bg-rule" />
-                  <div className="px-3 pb-1 pt-3 font-mono text-[11px] uppercase tracking-[0.06em] text-ink-3">
-                    Subscribe (auto-updates)
-                  </div>
-                  <SheetLink
-                    href={subscribeUrls.webcalUrl}
-                    icon={<Rss size={18} strokeWidth={1.75} />}
-                    title="Subscribe in default app"
-                    sub="Opens your calendar app"
-                  />
-                  <SheetLink
-                    href={subscribeUrls.googleSubscribeUrl}
-                    icon={<Calendar size={18} strokeWidth={1.75} />}
-                    title="Subscribe in Google Calendar"
-                    sub="Add by URL"
-                  />
-                  <button
-                    type="button"
-                    onClick={copyFeedUrl}
-                    className="flex w-full items-center gap-3 rounded-md px-3 py-2.5 text-left hover:bg-paper-2"
-                  >
-                    <SheetRowContent
-                      icon={
-                        copied ? (
-                          <Check size={18} strokeWidth={1.75} />
-                        ) : (
-                          <Copy size={18} strokeWidth={1.75} />
-                        )
-                      }
-                      title={copied ? "Copied" : "Copy feed URL"}
-                      sub={
-                        copied
-                          ? "URL on clipboard"
-                          : "Paste into Outlook, Notion, …"
-                      }
-                    />
-                  </button>
-                </>
-              )}
-            </>
-          )}
+          <ExportOptions
+            variant="sheet"
+            data={data}
+            slots={{
+              Item: SheetItem,
+              CopyItem: SheetCopyItem,
+              Separator: SheetSeparator,
+            }}
+          />
         </Dialog.Content>
       </Dialog.Portal>
     </Dialog.Root>
-  );
-}
-
-function SheetRowContent({
-  icon,
-  title,
-  sub,
-}: {
-  icon: React.ReactNode;
-  title: React.ReactNode;
-  sub: React.ReactNode;
-}) {
-  return (
-    <>
-      <span
-        className="grid h-9 w-9 shrink-0 place-items-center rounded-sm text-ink-3"
-        style={{ background: "var(--paper-2)" }}
-      >
-        {icon}
-      </span>
-      <span className="flex min-w-0 flex-1 flex-col gap-px">
-        <span className="text-[14px] font-medium text-ink">{title}</span>
-        <span className="font-mono text-[11px] tracking-[0.02em] text-ink-3">
-          {sub}
-        </span>
-      </span>
-    </>
-  );
-}
-
-function SheetLink({
-  href,
-  download,
-  icon,
-  title,
-  sub,
-}: {
-  href: string;
-  download?: string;
-  icon: React.ReactNode;
-  title: string;
-  sub: string;
-}) {
-  return (
-    <Dialog.Close asChild>
-      <a
-        href={href}
-        target={download ? undefined : "_blank"}
-        download={download}
-        className="flex items-center gap-3 rounded-md px-3 py-2.5 no-underline hover:bg-paper-2"
-      >
-        <SheetRowContent icon={icon} title={title} sub={sub} />
-      </a>
-    </Dialog.Close>
   );
 }
