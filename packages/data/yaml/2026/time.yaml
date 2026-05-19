@@ -1,0 +1,19 @@
+name: International Symposium on Temporal Representation and Reasoning
+abbreviation: TIME
+type: "symposium"
+tags:
+  - verification
+  - model-checking
+  - logic
+date:
+  start: 2026-09-01
+  end: 2026-09-03
+location: Cork, Ireland
+url: "https://time26.cnr.it/"
+submissionUrl: "https://easychair.org/conferences/?conf=time2026"
+importantDateUrl: "https://time26.cnr.it/important-dates/"
+importantDates:
+  abstract: 2026-05-18
+  paper: 2026-05-22
+  notification: 2026-06-22
+  camera-ready: 2026-07-24
