@@ -79,10 +79,16 @@ export function DeadlineGroupHeader({
           {cal.getDate()}
         </span>
         <span className="flex flex-col gap-1 leading-none">
-          <span className="font-mono text-[12px] font-medium uppercase tracking-[0.08em] text-ink sm:text-[13px]">
+          <span
+            className="font-mono text-[12px] font-medium uppercase tracking-[0.08em] text-ink sm:text-[13px]"
+            suppressHydrationWarning
+          >
             {monthLongFmt.format(cal)} {cal.getFullYear()}
           </span>
-          <span className="font-mono text-[10px] uppercase tracking-[0.06em] text-ink-3 sm:text-[11px]">
+          <span
+            className="font-mono text-[10px] uppercase tracking-[0.06em] text-ink-3 sm:text-[11px]"
+            suppressHydrationWarning
+          >
             {weekdayLongFmt.format(cal)}
           </span>
         </span>
@@ -135,6 +141,7 @@ export function DeadlineGroupHeader({
             "flex w-full items-end justify-between gap-4 px-5 pb-3 pt-4 text-left transition-colors md:px-8 hover:bg-paper-2",
             borderClasses
           )}
+          suppressHydrationWarning
         >
           {innerContent}
         </button>

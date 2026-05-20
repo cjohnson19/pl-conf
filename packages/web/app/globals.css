@@ -105,6 +105,11 @@
   }
 }
 
+html[data-hero="hidden"] [data-hero-slot],
+html[data-hero="deadline"] [data-hero-slot="intro"] {
+  display: none;
+}
+
 @layer components {
   .event-row-grid {
     grid-template-columns: 48px 1fr 44px;

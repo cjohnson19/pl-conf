@@ -32,11 +32,24 @@ export const hasYear: (year: number) => EventFilter = (year) => (e) =>
 export const hasFutureDeadline: EventFilter = (e) =>
   allDeadlines(e).some((d) => !isDeadlinePast(d));
 
+export const hasFutureDeadlineAt =
+  (now: Date): EventFilter =>
+  (e) =>
+    allDeadlines(e).some((d) => !isDeadlinePast(d, now));
+
 export const hasOpenSubmission: EventFilter = (e) => {
   const first = firstDeadline(e);
   if (first === undefined) return false;
   return !isDeadlinePast(first);
 };
+
+export const hasOpenSubmissionAt =
+  (now: Date): EventFilter =>
+  (e) => {
+    const first = firstDeadline(e);
+    if (first === undefined) return false;
+    return !isDeadlinePast(first, now);
+  };
 
 export const startsBetween: (range: { from?: Date; to?: Date }) => EventFilter =
   ({ from, to }) =>

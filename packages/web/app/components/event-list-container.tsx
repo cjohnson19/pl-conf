@@ -6,7 +6,6 @@ import { Github } from "lucide-react";
 import { type ScheduledEvent, eventKey } from "../lib/event";
 import { EventCard } from "./event-row";
 import { TagFilterProvider } from "./event-tags";
-import { Skeleton } from "./ui/skeleton";
 import { LastUpdated } from "./last-updated";
 import { useEventListState } from "./event-list/use-event-list-state";
 import { Hero } from "./event-list/heroes";
@@ -21,7 +20,6 @@ import {
 
 export function EventListContainer({ events }: { events: ScheduledEvent[] }) {
   const {
-    prefsLoaded,
     now,
     layout,
     setLayout,
@@ -60,14 +58,12 @@ export function EventListContainer({ events }: { events: ScheduledEvent[] }) {
 
   return (
     <TagFilterProvider value={tagFilter}>
-      {prefsLoaded && (
-        <Hero
-          events={visibleEvents}
-          starredKeys={starredKeys}
-          now={now}
-          totalActive={totalActive}
-        />
-      )}
+      <Hero
+        events={visibleEvents}
+        starredKeys={starredKeys}
+        now={now}
+        totalActive={totalActive}
+      />
 
       <div className="flex flex-col gap-2 px-5 pt-7 sm:flex-row sm:flex-wrap sm:items-center md:px-8">
         <SearchPill value={search} setValue={setSearch} />
@@ -109,72 +105,61 @@ export function EventListContainer({ events }: { events: ScheduledEvent[] }) {
             : undefined
         )}
       >
-        {prefsLoaded ? (
-          displayEvents.length > 0 ? (
-            layout === "grid" ? (
-              displayEvents.map((e) => (
-                <EventCard key={eventKey(e)} event={e} now={now} />
-              ))
-            ) : (
-              groups.map((g, gi) => (
-                <CollapsibleGroup
-                  key={g.key}
-                  group={g}
-                  isFirst={gi === 0}
-                  showHint={showCollapseHint && gi === firstCollapsibleIdx}
-                  onDismissHint={dismissCollapseHint}
-                  now={now}
-                  collapsed={g.date !== null && collapsedDates.has(g.date)}
-                  onToggle={
-                    g.date ? () => toggleCollapsed(g.date as string) : undefined
-                  }
-                />
-              ))
-            )
-          ) : view === "starred" ? null : (
-            <div className="px-5 py-8 text-[13px] text-ink-3 md:px-8">
-              No events match these filters.
-            </div>
+        {displayEvents.length > 0 ? (
+          layout === "grid" ? (
+            displayEvents.map((e) => (
+              <EventCard key={eventKey(e)} event={e} now={now} />
+            ))
+          ) : (
+            groups.map((g, gi) => (
+              <CollapsibleGroup
+                key={g.key}
+                group={g}
+                isFirst={gi === 0}
+                showHint={showCollapseHint && gi === firstCollapsibleIdx}
+                onDismissHint={dismissCollapseHint}
+                now={now}
+                collapsed={g.date !== null && collapsedDates.has(g.date)}
+                onToggle={
+                  g.date ? () => toggleCollapsed(g.date as string) : undefined
+                }
+              />
+            ))
           )
-        ) : (
-          <div className="space-y-4 px-5 py-4 md:px-8">
-            {Array.from({ length: 4 }).map((_, i) => (
-              // biome-ignore lint/suspicious/noArrayIndexKey: fixed-length static skeleton list, no reordering
-              <Skeleton key={i} className="h-20 rounded-xs" />
-            ))}
+        ) : view === "starred" ? null : (
+          <div className="px-5 py-8 text-[13px] text-ink-3 md:px-8">
+            No events match these filters.
           </div>
         )}
       </div>
 
-      {view === "starred" &&
-        prefsLoaded &&
-        (starredCount === 0 || hasOthers) && (
-          <div className="mx-5 mt-8 flex flex-col items-start gap-4 border border-dashed border-rule p-5 sm:p-7 md:mx-8 min-[480px]:flex-row min-[480px]:items-center min-[480px]:justify-between min-[480px]:gap-6">
-            <div className="text-[13px] text-ink-2">
-              {starredCount === 0 ? (
-                <>
-                  Nothing starred yet —{" "}
-                  <b className="font-semibold text-ink">{totalActive} events</b>{" "}
-                  tracked across conferences, workshops, and symposia. Tap the
-                  star icon on any row to follow it.
-                </>
-              ) : (
-                <>
-                  Looking for something else?{" "}
-                  <b className="font-semibold text-ink">{totalActive} events</b>{" "}
-                  tracked across conferences, workshops, and symposia.
-                </>
-              )}
-            </div>
-            <button
-              type="button"
-              onClick={() => setView("all")}
-              className="inline-flex h-[38px] flex-shrink-0 items-center gap-2 rounded-pill bg-ink px-4 text-[13px] font-medium text-paper transition-colors hover:bg-[color:var(--accent)]"
-            >
-              Browse all events →
-            </button>
+      {view === "starred" && (starredCount === 0 || hasOthers) && (
+        <div className="mx-5 mt-8 flex flex-col items-start gap-4 border border-dashed border-rule p-5 sm:p-7 md:mx-8 min-[480px]:flex-row min-[480px]:items-center min-[480px]:justify-between min-[480px]:gap-6">
+          <div className="text-[13px] text-ink-2">
+            {starredCount === 0 ? (
+              <>
+                Nothing starred yet —{" "}
+                <b className="font-semibold text-ink">{totalActive} events</b>{" "}
+                tracked across conferences, workshops, and symposia. Tap the
+                star icon on any row to follow it.
+              </>
+            ) : (
+              <>
+                Looking for something else?{" "}
+                <b className="font-semibold text-ink">{totalActive} events</b>{" "}
+                tracked across conferences, workshops, and symposia.
+              </>
+            )}
           </div>
-        )}
+          <button
+            type="button"
+            onClick={() => setView("all")}
+            className="inline-flex h-[38px] flex-shrink-0 items-center gap-2 rounded-pill bg-ink px-4 text-[13px] font-medium text-paper transition-colors hover:bg-[color:var(--accent)]"
+          >
+            Browse all events →
+          </button>
+        </div>
+      )}
 
       <footer className="mt-14 flex items-center justify-between gap-4 border-t border-rule px-5 py-6 text-[12px] text-ink-3 md:px-8">
         <a

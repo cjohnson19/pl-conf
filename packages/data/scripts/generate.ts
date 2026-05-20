@@ -180,6 +180,8 @@ async function main() {
 
 import type { ScheduledEvent } from "@pl-conf/core";
 
+export const BUILD_NOW_MS = ${Date.now()};
+
 export const events: Record<string, ScheduledEvent> = ${JSON.stringify(events, null, 2)};
 `;
 

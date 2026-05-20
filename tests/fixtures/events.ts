@@ -77,8 +77,24 @@ const rawEvents = [
     lastUpdated: "2026-01-01",
     sequence: 0,
   },
+  {
+    name: "Mock Today-Deadline Workshop",
+    abbreviation: "MOCKE",
+    type: "workshop",
+    date: { start: "2026-08-01", end: "2026-08-02" },
+    location: "Earth, EA",
+    importantDateUrl: "https://example.com/mocke/dates",
+    url: "https://example.com/mocke",
+    importantDates: {
+      paper: "2026-06-01",
+    },
+    lastUpdated: "2026-01-01",
+    sequence: 0,
+  },
 ];
 
 export const events: Record<string, ScheduledEvent> = Object.fromEntries(
   rawEvents.map((r) => ScheduledEvent.parse(r)).map((e) => [eventKey(e), e])
 );
+
+export const BUILD_NOW_MS = Date.UTC(2026, 4, 19);

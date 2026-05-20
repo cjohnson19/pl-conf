@@ -97,11 +97,13 @@ export function Hero({
     };
   }, [events, starredKeys, now]);
 
+  if (!prefsLoaded) return <IntroHero totalActive={totalActive} />;
+
   if (starredKeys.size === 0) {
     return <IntroHero totalActive={totalActive} />;
   }
 
-  if (!prefsLoaded || prefs.display.deadlineHeroDismissed) return null;
+  if (prefs.display.deadlineHeroDismissed) return null;
 
   if (upcomingDeadlines.length > 0) {
     const pick = upcomingDeadlines.reduce((a, b) => (a.time <= b.time ? a : b));
@@ -182,7 +184,7 @@ export function Hero({
 
 function IntroHero({ totalActive }: { totalActive: number }) {
   const { prefs, setPrefs, prefsLoaded } = usePreferences();
-  if (!prefsLoaded || prefs.display.introHeroDismissed) return null;
+  if (prefsLoaded && prefs.display.introHeroDismissed) return null;
   const dismiss = () =>
     setPrefs((p) => ({
       ...p,
@@ -190,6 +192,7 @@ function IntroHero({ totalActive }: { totalActive: number }) {
     }));
   return (
     <section
+      data-hero-slot="intro"
       className="relative mx-5 mt-8 border border-rule p-5 sm:p-7 md:mx-8"
       style={{ background: "var(--card)" }}
     >
@@ -332,6 +335,7 @@ function HeroShell({
         <div
           className="mt-4 font-mono text-[11px] uppercase tracking-[0.04em] text-ink-3"
           title={footerTitle}
+          suppressHydrationWarning
         >
           {footer}
         </div>

@@ -82,7 +82,10 @@ function EventRowImpl({
           >
             {dayNum(anchorDate)}
           </div>
-          <div className="font-mono text-[11px] font-medium uppercase leading-none tracking-[0.08em] text-ink-2">
+          <div
+            className="font-mono text-[11px] font-medium uppercase leading-none tracking-[0.08em] text-ink-2"
+            suppressHydrationWarning
+          >
             {monthShort(anchorDate)}
           </div>
           <div className="font-mono text-[10px] font-medium leading-none tracking-[0.06em] text-ink-3">
@@ -161,7 +164,11 @@ function RowMetadata({ event: e }: { event: ScheduledEvent }) {
     });
   if (e.date.start !== "TBD" && e.date.end !== "TBD")
     items.push({
-      node: <span>{formatDateRange(e.date.start, e.date.end, "short")}</span>,
+      node: (
+        <span suppressHydrationWarning>
+          {formatDateRange(e.date.start, e.date.end, "short")}
+        </span>
+      ),
       wideOnly: false,
     });
   if (e.partOf.length > 0)
@@ -281,7 +288,7 @@ function EventCardImpl({
       </div>
 
       <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1 text-[12px] text-ink-3">
-        {startStr && <span>{startStr}</span>}
+        {startStr && <span suppressHydrationWarning>{startStr}</span>}
         {startStr && e.location && (
           <span aria-hidden className="text-ink-3/60">
             ·

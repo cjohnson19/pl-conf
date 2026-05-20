@@ -142,6 +142,7 @@ describe.concurrent("event list", () => {
     await goToAllEvents();
     const keys = await renderedKeys();
     expect(keys).toEqual([
+      eventKey(findFixture("MOCKE")),
       eventKey(findFixture("MOCKB")),
       eventKey(findFixture("MOCKA")),
       eventKey(findFixture("MOCKC")),
@@ -267,6 +268,42 @@ describe.concurrent("hero", () => {
     const body = await page.evaluate(() => document.body.innerText);
     expect(body).toMatch(/MOCKB/);
     expect(body).not.toMatch(/small index of/i);
+  });
+
+  test("renders minute-grain countdown when a deadline is on today's calendar date", async ({
+    page,
+    starButton,
+    clickButtonStartingWith,
+    goToAllEvents,
+  }) => {
+    // MOCKE has paper: 2026-06-01, which is FROZEN_NOW's local calendar date.
+    // humanCountdown's `days <= 0` branch fires whenever the deadline's local
+    // calendar date is today or earlier — even if the AoE-clock-time-remaining
+    // is still over 24 hours (e.g. AoE-end-of-June-1 viewed from CDT is
+    // June 2 06:59 CDT, so at June 1 00:01 CDT we're 30h+ from AoE but the
+    // text is already minute-grain). Pinning the rendered shape here forces
+    // useNowTick to keep matching: if it ever falls back to a daily tick for
+    // this case, the displayed text would drift stale instead of decrementing.
+    await goToAllEvents();
+    const mocke = findFixture("MOCKE");
+    const key = eventKey(mocke);
+    const star = await starButton(key);
+    expect(star).not.toBeNull();
+    await star?.evaluate((b) => (b as HTMLButtonElement).click());
+    await page.waitForSelector(
+      `[data-event-key="${key}"] button[aria-pressed="true"]`,
+      { timeout: 5000 }
+    );
+
+    await clickButtonStartingWith("Starred");
+    await page.waitForFunction(() => /MOCKE/.test(document.body.innerText), {
+      timeout: 5000,
+    });
+    const body = await page.evaluate(() => document.body.innerText);
+    expect(body).toMatch(/MOCKE/);
+    expect(body).toMatch(/in \d+ hours? \d+ minutes?/);
+    expect(body).not.toMatch(/in \d+ days?/);
+    expect(body).not.toMatch(/tomorrow/i);
   });
 });
 
@@ -484,7 +521,9 @@ describe.concurrent("submissions open view", () => {
   }) => {
     await clickButtonStartingWith("Submissions open");
     const expectedKeys = new Set(
-      [findFixture("MOCKB"), findFixture("MOCKC")].map(eventKey)
+      [findFixture("MOCKB"), findFixture("MOCKC"), findFixture("MOCKE")].map(
+        eventKey
+      )
     );
     await page.waitForFunction(
       (n) => document.querySelectorAll("[data-event-key]").length === n,

@@ -54,6 +54,7 @@ function CardDeadlineRow({ row: r, now }: { row: RailRow; now: Date }) {
           "py-1 pr-2 align-baseline whitespace-nowrap font-mono",
           next ? "text-ink" : "text-ink-3"
         )}
+        suppressHydrationWarning
       >
         {r.date === "TBD" ? "TBD" : roundShortDate(r.date)}
       </td>

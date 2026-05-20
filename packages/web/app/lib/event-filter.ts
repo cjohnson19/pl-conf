@@ -4,6 +4,7 @@ import {
   isType as coreIsType,
   hasYear as coreHasYear,
   hasOpenSubmission,
+  hasOpenSubmissionAt,
   type EventFilter,
   hasDate,
   hasTag,
@@ -24,6 +25,7 @@ export {
   startsAfter,
   startsBefore,
   hasFutureDeadline,
+  hasOpenSubmissionAt,
   startsBetween,
   matchesText,
   applyFilters,
@@ -35,9 +37,11 @@ export const isCategory: (category: string) => EventFilter = (c) =>
 export const hasYear: (year: string) => EventFilter = (year) =>
   year === "" ? () => true : coreHasYear(parseInt(year, 10));
 
-export const openToNewSubmissions: (enabled: boolean) => EventFilter =
-  (on) => (e) =>
-    on ? hasOpenSubmission(e) : true;
+export const openToNewSubmissions: (
+  enabled: boolean,
+  now?: Date
+) => EventFilter = (on, now) => (e) =>
+  on ? (now ? hasOpenSubmissionAt(now)(e) : hasOpenSubmission(e)) : true;
 
 export const hiddenFilter: (
   prefs: PreferenceCollection["eventPrefs"]

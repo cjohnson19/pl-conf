@@ -1,11 +1,16 @@
 import { useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
+import { differenceInCalendarDays } from "date-fns";
+import { BUILD_NOW_MS } from "@pl-conf/data";
 import {
   type ScheduledEvent,
   type Tag,
   eventKey,
   tagValues,
+  toCalendarDate,
 } from "../../lib/event";
 import { findNextDeadline, isDueThisWeek } from "../../lib/deadline";
+
+const MIN_MS = 60_000;
 import {
   applyFilters,
   isActive,
@@ -33,23 +38,52 @@ export type Layout = "list" | "grid";
 const SESSION_VIEW_KEY = "view";
 const SESSION_COLLAPSED_KEY = "collapsedDateGroups";
 
-const hasOpenSubmission = openToNewSubmissions(true);
+function hasDeadlineWithinAoeToday(
+  events: ScheduledEvent[],
+  now: Date
+): boolean {
+  return events.some((e) => {
+    const next = findNextDeadline(e, now);
+    if (!next) return false;
+    const cal = toCalendarDate(next.date);
+    if (!cal) return false;
+    return differenceInCalendarDays(cal, now) <= 0;
+  });
+}
 
-function useNowTick(): Date {
-  const [now, setNow] = useState(() => new Date());
+function useNowTick(events: ScheduledEvent[]): {
+  now: Date;
+  hydrated: boolean;
+} {
+  const [now, setNow] = useState(() => new Date(BUILD_NOW_MS));
+  const [hydrated, setHydrated] = useState(false);
   useEffect(() => {
-    const msToNextMinute = 60_000 - (Date.now() % 60_000);
-    let intervalId: ReturnType<typeof setInterval> | undefined;
-    const timeoutId = setTimeout(() => {
-      setNow(new Date());
-      intervalId = setInterval(() => setNow(new Date()), 60_000);
-    }, msToNextMinute);
-    return () => {
-      clearTimeout(timeoutId);
-      if (intervalId) clearInterval(intervalId);
+    const realMs = Date.now();
+    if (realMs - BUILD_NOW_MS > 60_000) setNow(new Date(realMs));
+    setHydrated(true);
+    // Adaptive cadence: minute-grain refresh only when some upcoming deadline
+    // is already in today's (or earlier) local calendar date.
+    let timeoutId: ReturnType<typeof setTimeout> | undefined;
+    const schedule = () => {
+      const ms = Date.now();
+      const realNow = new Date(ms);
+      const midnight = new Date();
+      midnight.setHours(24, 0, 0, 0);
+      const minuteMode = hasDeadlineWithinAoeToday(events, realNow);
+      const delay = minuteMode
+        ? MIN_MS - (ms % MIN_MS)
+        : midnight.getTime() - ms;
+      timeoutId = setTimeout(() => {
+        setNow(new Date());
+        schedule();
+      }, delay);
     };
-  }, []);
-  return now;
+    schedule();
+    return () => {
+      if (timeoutId !== undefined) clearTimeout(timeoutId);
+    };
+  }, [events]);
+  return { now, hydrated };
 }
 
 export type EventListState = {
@@ -111,11 +145,15 @@ export function useEventListState(events: ScheduledEvent[]): EventListState {
   const clearTags = () => setActiveTags(new Set());
   const [view, setView, viewLoaded] = useSessionStorage<View>(
     SESSION_VIEW_KEY,
-    "starred",
+    "all",
     stringCodec as Codec<View>
   );
 
-  const now = useNowTick();
+  const { now, hydrated } = useNowTick(events);
+  const hasOpenSubmission = useMemo(
+    () => openToNewSubmissions(true, now),
+    [now]
+  );
 
   const starredKeys = useMemo(
     () =>
@@ -136,8 +174,8 @@ export function useEventListState(events: ScheduledEvent[]): EventListState {
   );
 
   const activeEvents = useMemo(
-    () => applyFilters(visibleEvents, [isActive]),
-    [visibleEvents]
+    () => (hydrated ? applyFilters(visibleEvents, [isActive]) : visibleEvents),
+    [visibleEvents, hydrated]
   );
 
   const categoryCounts = useMemo<Record<Category, number>>(() => {
@@ -205,7 +243,7 @@ export function useEventListState(events: ScheduledEvent[]): EventListState {
       all: baseFiltered.length,
       submissions: baseFiltered.filter(hasOpenSubmission).length,
     }),
-    [baseFiltered, starredKeys]
+    [baseFiltered, starredKeys, hasOpenSubmission]
   );
 
   const displayEvents = useMemo(() => {
@@ -225,7 +263,7 @@ export function useEventListState(events: ScheduledEvent[]): EventListState {
       return a.e.abbreviation.localeCompare(b.e.abbreviation);
     });
     return decorated.map((d) => d.e);
-  }, [baseFiltered, view, starredKeys, now]);
+  }, [baseFiltered, view, starredKeys, now, hasOpenSubmission]);
 
   const dueThisWeek = useMemo(
     () => displayEvents.filter((e) => isDueThisWeek(e, now)).length,
@@ -275,7 +313,7 @@ export function useEventListState(events: ScheduledEvent[]): EventListState {
     const hasStored =
       typeof window !== "undefined" &&
       window.sessionStorage.getItem(SESSION_VIEW_KEY) !== null;
-    if (!hasStored && starredCount === 0) setView("all");
+    if (!hasStored && starredCount > 0) setView("starred");
   }, [prefsLoaded, viewLoaded, starredCount, setView]);
 
   const lastUpdatedDate = useMemo(() => {

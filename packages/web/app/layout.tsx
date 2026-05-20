@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
+import Script from "next/script";
 import "./globals.css";
 import "./typography.css";
 import { Header } from "./components/header";
@@ -32,6 +33,19 @@ export const metadata: Metadata = {
   ],
 };
 
+const heroBootScript = `
+(function(){try{
+  var p=JSON.parse(localStorage.getItem('userPrefsV2')||'null');
+  if(!p||!p.display)return;
+  var d=p.display;
+  var hasStarred=p.eventPrefs&&Object.keys(p.eventPrefs).some(function(k){var v=p.eventPrefs[k];return v&&v.favorite});
+  var state;
+  if(hasStarred){state=d.deadlineHeroDismissed?'hidden':'deadline';}
+  else{state=d.introHeroDismissed?'hidden':'intro';}
+  document.documentElement.setAttribute('data-hero',state);
+}catch(e){}})();
+`;
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -39,7 +53,14 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={inter.variable} suppressHydrationWarning>
-      <head />
+      <head>
+        <Script
+          id="hero-boot"
+          strategy="beforeInteractive"
+          // biome-ignore lint/security/noDangerouslySetInnerHtml: hardcoded constant with no user input, runs before hydration to set data-hero on <html> from localStorage so returning users don't see a hero flash
+          dangerouslySetInnerHTML={{ __html: heroBootScript }}
+        />
+      </head>
       <body>
         <ThemeProvider>
           <PreferencesProvider>

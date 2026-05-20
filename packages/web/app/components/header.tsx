@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { ThemeToggle } from "./theme-toggle";
-import { SubmitEventPopover } from "./submit-event-popover";
-import { SettingsPopover } from "./settings-popover";
+import { HeaderActions } from "./header-actions";
 
 export function Header() {
   return (
@@ -33,12 +32,7 @@ export function Header() {
           About
         </Link>
         <ThemeToggle />
-        <SettingsPopover />
-        <span
-          className="mx-1 hidden h-[18px] w-px bg-rule sm:inline-block"
-          aria-hidden
-        />
-        <SubmitEventPopover />
+        <HeaderActions />
       </nav>
     </header>
   );

@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import clsx from "clsx";
 import type { DateName, ScheduledEvent } from "../../lib/event";
 import {
@@ -52,8 +53,11 @@ function SingleRoundRail({
   activeNext?: DateName;
 }) {
   const round = e.rounds[0];
+  const rows = useMemo(
+    () => (round ? buildRoundRows(round, now, activeNext) : []),
+    [round, now, activeNext]
+  );
   if (!round) return null;
-  const rows = buildRoundRows(round, now, activeNext);
   if (rows.length === 0) return null;
   return (
     <div className="mt-2 flex max-w-xs flex-col gap-1 border-l-2 border-rule pl-2.5">
@@ -82,6 +86,7 @@ function DateRow({ row: r }: { row: RailRow }) {
               : "text-[color:var(--accent)]"
             : "text-ink-3"
         )}
+        suppressHydrationWarning
       >
         {r.date === "TBD" ? "TBD" : roundShortDate(r.date)}
       </span>
@@ -101,27 +106,54 @@ function MultiRoundRail({
   activeNext?: DateName;
 }) {
   const { left, right } = pickMultiRoundSlots(e.rounds.length, activeRoundIdx);
-
-  const renderColumn = (slot: { idx: number; status: RoundSlotStatus }) => {
-    const round = e.rounds[slot.idx];
-    if (!round) return <div />;
-    const isActive = slot.status === "active";
-    const rows = buildRoundRows(round, now, isActive ? activeNext : undefined);
-    return (
-      <RoundColumn
-        idx={slot.idx}
-        status={slot.status}
-        rows={rows}
-        active={isActive}
-      />
-    );
-  };
-
   return (
     <div className="mt-2 grid grid-cols-2 gap-3">
-      {left ? renderColumn(left) : <div />}
-      {renderColumn(right)}
+      {left ? (
+        <RoundColumnContainer
+          event={e}
+          slot={left}
+          now={now}
+          activeNext={activeNext}
+        />
+      ) : (
+        <div />
+      )}
+      <RoundColumnContainer
+        event={e}
+        slot={right}
+        now={now}
+        activeNext={activeNext}
+      />
     </div>
+  );
+}
+
+function RoundColumnContainer({
+  event: e,
+  slot,
+  now,
+  activeNext,
+}: {
+  event: ScheduledEvent;
+  slot: { idx: number; status: RoundSlotStatus };
+  now: Date;
+  activeNext?: DateName;
+}) {
+  const round = e.rounds[slot.idx];
+  const isActive = slot.status === "active";
+  const effectiveActiveNext = isActive ? activeNext : undefined;
+  const rows = useMemo(
+    () => (round ? buildRoundRows(round, now, effectiveActiveNext) : []),
+    [round, now, effectiveActiveNext]
+  );
+  if (!round) return <div />;
+  return (
+    <RoundColumn
+      idx={slot.idx}
+      status={slot.status}
+      rows={rows}
+      active={isActive}
+    />
   );
 }
 

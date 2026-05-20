@@ -6,6 +6,7 @@ import {
   type ReactNode,
   type SetStateAction,
   useContext,
+  useMemo,
 } from "react";
 import {
   defaultPreferences,
@@ -27,8 +28,13 @@ export function PreferencesProvider({ children }: { children: ReactNode }) {
     defaultPreferences
   );
 
+  const value = useMemo(
+    () => ({ prefs, setPrefs, prefsLoaded }),
+    [prefs, setPrefs, prefsLoaded]
+  );
+
   return (
-    <PreferencesContext.Provider value={{ prefs, setPrefs, prefsLoaded }}>
+    <PreferencesContext.Provider value={value}>
       {children}
     </PreferencesContext.Provider>
   );
