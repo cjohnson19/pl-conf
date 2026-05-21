@@ -41,6 +41,11 @@ const findFixture = (abbrev: string): ScheduledEvent => {
   return e;
 };
 
+type StorageSeed = {
+  local?: Record<string, unknown>;
+  session?: Record<string, unknown>;
+};
+
 type Fixtures = {
   page: Page;
   renderedKeys: () => Promise<string[]>;
@@ -48,6 +53,8 @@ type Fixtures = {
   unstarButton: (key: string) => Promise<ElementHandle<Element> | null>;
   clickButtonStartingWith: (label: string) => Promise<void>;
   goToAllEvents: () => Promise<void>;
+  seedStorage: (seed: StorageSeed) => Promise<void>;
+  waitForSettled: () => Promise<void>;
 };
 
 const test = base.extend<Fixtures>({
@@ -114,6 +121,48 @@ const test = base.extend<Fixtures>({
         () => document.querySelectorAll("[data-event-key]").length > 0,
         { timeout: 5000 }
       );
+    });
+  },
+  seedStorage: async ({ page }, use) => {
+    await use(async (seed) => {
+      await page.evaluate((s: StorageSeed) => {
+        if (s.local) {
+          for (const [k, v] of Object.entries(s.local)) {
+            localStorage.setItem(
+              k,
+              typeof v === "string" ? v : JSON.stringify(v)
+            );
+          }
+        }
+        if (s.session) {
+          for (const [k, v] of Object.entries(s.session)) {
+            sessionStorage.setItem(
+              k,
+              typeof v === "string" ? v : JSON.stringify(v)
+            );
+          }
+        }
+      }, seed);
+      await page.reload({ waitUntil: "networkidle2" });
+    });
+  },
+  waitForSettled: async ({ page }, use) => {
+    await use(async () => {
+      // The ViewTabs row always renders post-hydration regardless of which
+      // view/layout/empty-state is active, so its "All events" button is a
+      // stable settled marker even when the list happens to be empty.
+      // Subsequent effects (prefs load, view load, hero pickHero) and the
+      // hero's opacity transition (300ms) complete soon after; a small
+      // post-hydration delay lets every settle effect commit before
+      // assertions run.
+      await page.waitForFunction(
+        () =>
+          Array.from(document.querySelectorAll("button")).some((b) =>
+            b.textContent?.trim().startsWith("All events")
+          ),
+        { timeout: 5000 }
+      );
+      await new Promise((resolve) => setTimeout(resolve, 350));
     });
   },
 });
@@ -760,5 +809,266 @@ describe.concurrent("mobile layout", () => {
       () => /Star this event/i.test(document.body.innerText),
       { timeout: 5000 }
     );
+  });
+});
+
+describe.concurrent("persistence settle", () => {
+  // Storage keys mirror what the app uses today. Any refactor that moves
+  // initial-load reads into a coalesced provider must preserve these keys
+  // and their on-the-wire shapes — otherwise returning users lose state.
+  const PREFS_KEY = "userPrefsV2";
+  const VIEW_KEY = "view";
+  const COLLAPSED_KEY = "collapsedDateGroups";
+
+  const prefs = (display: Record<string, unknown>, eventPrefs = {}) => ({
+    eventPrefs,
+    display: {
+      includeCalendarDeadlines: true,
+      introHeroDismissed: false,
+      deadlineHeroDismissed: false,
+      collapseHintDismissed: false,
+      permanentlyHiddenEventHeroes: [],
+      layout: "list",
+      ...display,
+    },
+  });
+
+  const starred = (key: string) => ({ [key]: { favorite: true } });
+
+  test("empty storage settles to defaults: intro hero, All events, list layout", async ({
+    page,
+    waitForSettled,
+    renderedKeys,
+  }) => {
+    await waitForSettled();
+    const body = await page.evaluate(() => document.body.innerText);
+    expect(body).toMatch(/small index of/i);
+
+    const keys = await renderedKeys();
+    expect(keys.length).toBe(activeEvents().length);
+
+    const listPressed = await page.$eval(
+      'button[aria-label="List view"]',
+      (el) => (el as HTMLButtonElement).getAttribute("aria-pressed")
+    );
+    expect(listPressed).toBe("true");
+  });
+
+  test("stored view=all is honored even when the user has starred events", async ({
+    seedStorage,
+    waitForSettled,
+    renderedKeys,
+  }) => {
+    const key = eventKey(findFixture("MOCKB"));
+    await seedStorage({
+      local: { [PREFS_KEY]: prefs({}, starred(key)) },
+      session: { [VIEW_KEY]: "all" },
+    });
+    await waitForSettled();
+    const keys = await renderedKeys();
+    expect(keys.length).toBe(activeEvents().length);
+    expect(keys).toContain(key);
+  });
+
+  test("stored view=starred is honored even when nothing is starred (empty state)", async ({
+    page,
+    seedStorage,
+    waitForSettled,
+    renderedKeys,
+  }) => {
+    await seedStorage({ session: { [VIEW_KEY]: "starred" } });
+    await waitForSettled();
+    const keys = await renderedKeys();
+    expect(keys.length).toBe(0);
+    const body = await page.evaluate(() => document.body.innerText);
+    expect(body).toMatch(/nothing starred yet/i);
+  });
+
+  test("auto-switches to Starred only when no view is stored and user has starred events", async ({
+    seedStorage,
+    waitForSettled,
+    renderedKeys,
+  }) => {
+    const key = eventKey(findFixture("MOCKB"));
+    await seedStorage({
+      local: { [PREFS_KEY]: prefs({}, starred(key)) },
+    });
+    await waitForSettled();
+    const keys = await renderedKeys();
+    expect(keys).toEqual([key]);
+  });
+
+  test("introHeroDismissed=true keeps the intro hero from rendering", async ({
+    page,
+    seedStorage,
+    waitForSettled,
+  }) => {
+    await seedStorage({
+      local: { [PREFS_KEY]: prefs({ introHeroDismissed: true }) },
+    });
+    await waitForSettled();
+    const body = await page.evaluate(() => document.body.innerText);
+    expect(body).not.toMatch(/small index of/i);
+    const heroSlot = await page.$('[data-hero-slot="intro"]');
+    expect(heroSlot).toBeNull();
+  });
+
+  test("deadlineHeroDismissed=true suppresses the next-deadline hero even with starred events", async ({
+    page,
+    seedStorage,
+    waitForSettled,
+  }) => {
+    const key = eventKey(findFixture("MOCKB"));
+    await seedStorage({
+      local: {
+        [PREFS_KEY]: prefs({ deadlineHeroDismissed: true }, starred(key)),
+      },
+    });
+    await waitForSettled();
+    const body = await page.evaluate(() => document.body.innerText);
+    expect(body).not.toMatch(/your next deadline/i);
+    expect(body).not.toMatch(/coming up/i);
+  });
+
+  test("permanentlyHiddenEventHeroes suppresses the hero for that event but keeps the row", async ({
+    page,
+    seedStorage,
+    waitForSettled,
+    renderedKeys,
+  }) => {
+    const key = eventKey(findFixture("MOCKB"));
+    await seedStorage({
+      local: {
+        [PREFS_KEY]: prefs(
+          { permanentlyHiddenEventHeroes: [key] },
+          starred(key)
+        ),
+      },
+    });
+    await waitForSettled();
+    const keys = await renderedKeys();
+    expect(keys).toContain(key);
+    const body = await page.evaluate(() => document.body.innerText);
+    expect(body).not.toMatch(/your next deadline/i);
+  });
+
+  test("layout=grid persists across reload", async ({
+    page,
+    seedStorage,
+    waitForSettled,
+  }) => {
+    await seedStorage({
+      local: { [PREFS_KEY]: prefs({ layout: "grid" }) },
+    });
+    await waitForSettled();
+    const gridPressed = await page.$eval(
+      'button[aria-label="Grid view"]',
+      (el) => (el as HTMLButtonElement).getAttribute("aria-pressed")
+    );
+    expect(gridPressed).toBe("true");
+  });
+
+  test("eventPrefs.hidden removes the event from the All-events list", async ({
+    seedStorage,
+    waitForSettled,
+    renderedKeys,
+  }) => {
+    const hiddenKey = eventKey(findFixture("MOCKB"));
+    await seedStorage({
+      local: {
+        [PREFS_KEY]: prefs({}, { [hiddenKey]: { hidden: true } }),
+      },
+    });
+    await waitForSettled();
+    const keys = await renderedKeys();
+    expect(keys).not.toContain(hiddenKey);
+    expect(keys.length).toBe(activeEvents().length - 1);
+  });
+
+  test("collapseHintDismissed suppresses the 'tap any date heading' tip", async ({
+    page,
+    seedStorage,
+    waitForSettled,
+  }) => {
+    await seedStorage({
+      local: { [PREFS_KEY]: prefs({ collapseHintDismissed: true }) },
+    });
+    await waitForSettled();
+    const body = await page.evaluate(() => document.body.innerText);
+    expect(body).not.toMatch(/tap any date heading/i);
+  });
+
+  test("collapsedDateGroups session entry restores collapsed groups on load", async ({
+    page,
+    seedStorage,
+    waitForSettled,
+  }) => {
+    // MOCKE has paper deadline 2026-06-01 in YAML, but the Zod parse rewrites
+    // `-` to `/` (the date-fns AOE handling note in CLAUDE.md). The string
+    // round-tripped through sessionStorage by toggleCollapsed uses the slash
+    // form, so the seed must match.
+    const collapseDate = "2026/06/01";
+    await seedStorage({
+      session: { [COLLAPSED_KEY]: [collapseDate] },
+    });
+    await waitForSettled();
+    // The MOCKE date group's header button should report aria-expanded=false
+    // and its content wrapper (the overflow:hidden ancestor of the row, which
+    // CollapsibleGroup marks with aria-hidden when collapsed) should have
+    // zero rendered height.
+    const mockeKey = eventKey(findFixture("MOCKE"));
+    const groupState = await page.$eval(
+      `[data-event-key="${mockeKey}"]`,
+      (el) => {
+        const wrapper = (el as HTMLElement).closest('[aria-hidden="true"]');
+        return wrapper === null
+          ? { aria: null, height: null }
+          : {
+              aria: wrapper.getAttribute("aria-hidden"),
+              height: (wrapper as HTMLElement).getBoundingClientRect().height,
+            };
+      }
+    );
+    expect(groupState.aria).toBe("true");
+    expect(groupState.height).toBe(0);
+  });
+
+  test("partial prefs object merges with defaults without crashing", async ({
+    page,
+    seedStorage,
+    waitForSettled,
+    renderedKeys,
+  }) => {
+    // Old localStorage snapshots may lack newer fields. The settle path must
+    // fill in defaults for missing keys rather than throwing or rendering
+    // an undefined-driven UI.
+    await seedStorage({
+      local: { [PREFS_KEY]: { display: { layout: "grid" } } },
+    });
+    await waitForSettled();
+    const keys = await renderedKeys();
+    expect(keys.length).toBe(activeEvents().length);
+    const gridPressed = await page.$eval(
+      'button[aria-label="Grid view"]',
+      (el) => (el as HTMLButtonElement).getAttribute("aria-pressed")
+    );
+    expect(gridPressed).toBe("true");
+    // Intro hero still shows since introHeroDismissed defaults to false.
+    const body = await page.evaluate(() => document.body.innerText);
+    expect(body).toMatch(/small index of/i);
+  });
+
+  test("invalid JSON in localStorage falls back to defaults", async ({
+    page,
+    seedStorage,
+    waitForSettled,
+    renderedKeys,
+  }) => {
+    await seedStorage({ local: { [PREFS_KEY]: "{not json" } });
+    await waitForSettled();
+    const keys = await renderedKeys();
+    expect(keys.length).toBe(activeEvents().length);
+    const body = await page.evaluate(() => document.body.innerText);
+    expect(body).toMatch(/small index of/i);
   });
 });

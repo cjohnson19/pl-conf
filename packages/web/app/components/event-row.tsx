@@ -251,6 +251,7 @@ function EventCardImpl({
 
   return (
     <div
+      data-event-key={eventKey(e)}
       className="flex h-full flex-col gap-2 border border-rule p-4"
       style={{ background: "var(--card)" }}
     >
