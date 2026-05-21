@@ -1,5 +1,6 @@
-import { useDeferredValue, useEffect, useMemo, useState } from "react";
+import { useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
 import { differenceInCalendarDays } from "date-fns";
+import { BUILD_NOW_MS } from "@pl-conf/data";
 import {
   type ScheduledEvent,
   type Tag,
@@ -16,15 +17,12 @@ import {
   openToNewSubmissions,
 } from "../../lib/event-filter";
 import {
-  type Layout,
-  type View,
-  useCollapsedDates,
-  useHydrated,
-  useNow,
-  usePreferences,
-  useSetNow,
-  useView,
-} from "../preferences-provider";
+  type Codec,
+  stringCodec,
+  stringSetCodec,
+  useSessionStorage,
+} from "../../hooks/use-session-storage";
+import { usePreferences } from "../preferences-provider";
 import { type Group, buildGroups } from "./grouping";
 
 export type Category =
@@ -33,7 +31,12 @@ export type Category =
   | "workshop"
   | "symposium"
   | "school";
-export type { Layout, View };
+export type View = "starred" | "all" | "submissions";
+
+export type Layout = "list" | "grid";
+
+const SESSION_VIEW_KEY = "view";
+const SESSION_COLLAPSED_KEY = "collapsedDateGroups";
 
 function hasDeadlineWithinAoeToday(
   events: ScheduledEvent[],
@@ -48,12 +51,18 @@ function hasDeadlineWithinAoeToday(
   });
 }
 
-function useTickScheduler(events: ScheduledEvent[]): void {
-  const setNow = useSetNow();
+function useNowTick(events: ScheduledEvent[]): {
+  now: Date;
+  hydrated: boolean;
+} {
+  const [now, setNow] = useState(() => new Date(BUILD_NOW_MS));
+  const [hydrated, setHydrated] = useState(false);
   useEffect(() => {
+    const realMs = Date.now();
+    if (realMs - BUILD_NOW_MS > 60_000) setNow(new Date(realMs));
+    setHydrated(true);
     // Adaptive cadence: minute-grain refresh only when some upcoming deadline
-    // is already in today's (or earlier) local calendar date; otherwise wait
-    // until next midnight.
+    // is already in today's (or earlier) local calendar date.
     let timeoutId: ReturnType<typeof setTimeout> | undefined;
     const schedule = () => {
       const ms = Date.now();
@@ -73,7 +82,8 @@ function useTickScheduler(events: ScheduledEvent[]): void {
     return () => {
       if (timeoutId !== undefined) clearTimeout(timeoutId);
     };
-  }, [events, setNow]);
+  }, [events]);
+  return { now, hydrated };
 }
 
 export type EventListState = {
@@ -133,11 +143,13 @@ export function useEventListState(events: ScheduledEvent[]): EventListState {
       return next;
     });
   const clearTags = () => setActiveTags(new Set());
-  const [view, setView] = useView();
+  const [view, setView, viewLoaded] = useSessionStorage<View>(
+    SESSION_VIEW_KEY,
+    "all",
+    stringCodec as Codec<View>
+  );
 
-  const now = useNow();
-  const hydrated = useHydrated();
-  useTickScheduler(events);
+  const { now, hydrated } = useNowTick(events);
   const hasOpenSubmission = useMemo(
     () => openToNewSubmissions(true, now),
     [now]
@@ -150,7 +162,9 @@ export function useEventListState(events: ScheduledEvent[]): EventListState {
           .filter(([, v]) => v?.favorite)
           .map(([k]) => k)
       ),
-    [prefs.eventPrefs]
+    // useLocalStorage's mergeDeep mutates prefs.eventPrefs in place during
+    // hydration, so depend on the outer prefs object to catch new keys.
+    [prefs]
   );
 
   const visibleEvents = useMemo(
@@ -260,7 +274,18 @@ export function useEventListState(events: ScheduledEvent[]): EventListState {
     [displayEvents, now]
   );
 
-  const { collapsedDates, toggleCollapsed } = useCollapsedDates();
+  const [collapsedDates, setCollapsedDates] = useSessionStorage(
+    SESSION_COLLAPSED_KEY,
+    new Set<string>(),
+    stringSetCodec
+  );
+  const toggleCollapsed = (date: string) =>
+    setCollapsedDates((prev) => {
+      const next = new Set(prev);
+      if (next.has(date)) next.delete(date);
+      else next.add(date);
+      return next;
+    });
 
   const firstCollapsibleIdx = useMemo(
     () => groups.findIndex((g) => g.date !== null),
@@ -280,6 +305,16 @@ export function useEventListState(events: ScheduledEvent[]): EventListState {
   const totalActive = activeEvents.length;
   const starredCount = starredKeys.size;
   const hasOthers = view === "starred" && totalActive > starredCount;
+
+  const didInitView = useRef(false);
+  useEffect(() => {
+    if (!prefsLoaded || !viewLoaded || didInitView.current) return;
+    didInitView.current = true;
+    const hasStored =
+      typeof window !== "undefined" &&
+      window.sessionStorage.getItem(SESSION_VIEW_KEY) !== null;
+    if (!hasStored && starredCount > 0) setView("starred");
+  }, [prefsLoaded, viewLoaded, starredCount, setView]);
 
   const lastUpdatedDate = useMemo(() => {
     const dates = events

@@ -29,11 +29,16 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "../ui/dropdown-menu";
-import { useDismissedHeroKeys, usePreferences } from "../preferences-provider";
+import { usePreferences } from "../preferences-provider";
+import {
+  stringSetCodec,
+  useSessionStorage,
+} from "../../hooks/use-session-storage";
 
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
 const HERO_CUTOFF_DAYS = 14;
 const HERO_TRANSITION_MS = 300;
+const SESSION_DISMISSED_KEY = "dismissedHeroKeys";
 
 export function Hero({
   events,
@@ -47,10 +52,13 @@ export function Hero({
   totalActive: number;
 }) {
   const { prefs, setPrefs, prefsLoaded } = usePreferences();
-  const {
-    dismissedHeroKeys: sessionDismissed,
-    dismissHero: dismissThisSession,
-  } = useDismissedHeroKeys();
+  const [sessionDismissed, setSessionDismissed] = useSessionStorage(
+    SESSION_DISMISSED_KEY,
+    new Set<string>(),
+    stringSetCodec
+  );
+  const dismissThisSession = (key: string) =>
+    setSessionDismissed((prev) => new Set(prev).add(key));
   const hideEventForever = (key: string) =>
     setPrefs((p) => ({
       ...p,
