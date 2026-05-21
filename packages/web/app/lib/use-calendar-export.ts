@@ -6,7 +6,6 @@ import {
   icalFeedPath,
   icalFileName,
   toGoogleCalendarLink,
-  toICal,
   type ScheduledEvent,
 } from "./event";
 import { usePreferences } from "@/components/preferences-provider";
@@ -43,17 +42,30 @@ export function useCalendarExport(event: ScheduledEvent): CalendarExport {
   const [copied, setCopied] = useState(false);
   const datesTBD = !hasConcreteDates(event);
 
-  const icsUrl = useMemo(() => {
-    if (!hasOpened || datesTBD) return null;
-    const ics = toICal(event, includeDeadlines);
-    if (!ics) return null;
-    return URL.createObjectURL(new Blob([ics], { type: "text/calendar" }));
-  }, [hasOpened, event, includeDeadlines, datesTBD]);
+  const [icsUrl, setIcsUrl] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!icsUrl) return;
-    return () => URL.revokeObjectURL(icsUrl);
-  }, [icsUrl]);
+    if (!hasOpened || datesTBD) {
+      setIcsUrl(null);
+      return;
+    }
+    let cancelled = false;
+    let createdUrl: string | null = null;
+    (async () => {
+      const { toICal } = await import("@pl-conf/core/ical");
+      if (cancelled) return;
+      const ics = toICal(event, includeDeadlines);
+      if (!ics) return;
+      createdUrl = URL.createObjectURL(
+        new Blob([ics], { type: "text/calendar" })
+      );
+      setIcsUrl(createdUrl);
+    })();
+    return () => {
+      cancelled = true;
+      if (createdUrl) URL.revokeObjectURL(createdUrl);
+    };
+  }, [hasOpened, event, includeDeadlines, datesTBD]);
 
   useEffect(() => {
     if (!copied) return;

@@ -1,4 +1,5 @@
-import { hasConcreteDates, icalFileName, toICal } from "@pl-conf/core";
+import { hasConcreteDates, icalFileName } from "@pl-conf/core";
+import { toICal } from "@pl-conf/core/ical";
 import { events } from "@pl-conf/data";
 import { mkdir, rm, writeFile } from "node:fs/promises";
 import { dirname, join } from "node:path";

@@ -23,7 +23,6 @@ export {
   isDeadlinePast,
   isDeadlineUrgent,
   toGoogleCalendarLink,
-  toICal,
   icalFileName,
   icalFeedPath,
 } from "@pl-conf/core";

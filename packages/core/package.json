@@ -17,6 +17,7 @@
   },
   "exports": {
     ".": "./src/index.ts",
+    "./ical": "./src/ical.ts",
     "./schemas": "./src/schemas.ts"
   }
 }
