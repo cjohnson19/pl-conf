@@ -1,6 +1,13 @@
 "use client";
 
-import { useMemo } from "react";
+import {
+  type ReactNode,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { Calendar, MoreHorizontal, Star, X } from "lucide-react";
 import {
   type ScheduledEvent,
@@ -30,6 +37,7 @@ import {
 
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
 const HERO_CUTOFF_DAYS = 14;
+const HERO_TRANSITION_MS = 300;
 const SESSION_DISMISSED_KEY = "dismissedHeroKeys";
 
 export function Hero({
@@ -66,6 +74,11 @@ export function Hero({
       ...p,
       display: { ...p.display, deadlineHeroDismissed: true },
     }));
+  const dismissIntro = () =>
+    setPrefs((p) => ({
+      ...p,
+      display: { ...p.display, introHeroDismissed: true },
+    }));
   const alertMenuItems = (event: ScheduledEvent, evKey: string) => [
     {
       label: `Hide alerts for ${event.abbreviation}`,
@@ -97,38 +110,81 @@ export function Hero({
     };
   }, [events, starredKeys, now]);
 
-  if (!prefsLoaded) return <IntroHero totalActive={totalActive} />;
+  const content = pickHero();
 
-  if (starredKeys.size === 0) {
-    return <IntroHero totalActive={totalActive} />;
-  }
+  return <HeroSlot>{content}</HeroSlot>;
 
-  if (prefs.display.deadlineHeroDismissed) return null;
+  function pickHero(): ReactNode {
+    if (!prefsLoaded) return null;
 
-  if (upcomingDeadlines.length > 0) {
-    const pick = upcomingDeadlines.reduce((a, b) => (a.time <= b.time ? a : b));
+    if (starredKeys.size === 0) {
+      if (prefs.display.introHeroDismissed) return null;
+      return <IntroHero totalActive={totalActive} onDismiss={dismissIntro} />;
+    }
+
+    if (prefs.display.deadlineHeroDismissed) return null;
+
+    if (upcomingDeadlines.length > 0) {
+      const pick = upcomingDeadlines.reduce((a, b) =>
+        a.time <= b.time ? a : b
+      );
+      const evKey = eventKey(pick.event);
+      const pickKey = `deadline:${evKey}:${pick.name}:${pick.date}`;
+      if (sessionDismissed.has(pickKey)) return null;
+      if (prefs.display.permanentlyHiddenEventHeroes?.includes(evKey))
+        return null;
+      const deadline = isDeadline(pick.name);
+      const urgent = isDeadlineUrgent(pick.date, now);
+      return (
+        <HeroShell
+          label={deadline ? "Your next deadline" : "Coming up"}
+          onDismissOnce={() => dismissThisSession(pickKey)}
+          menuItems={alertMenuItems(pick.event, evKey)}
+          headline={
+            <>
+              <span className="font-semibold">
+                {pick.event.abbreviation} {deadlineKindWord(pick.name)}
+              </span>{" "}
+              {deadline ? "is due " : ""}
+              <em
+                style={{
+                  fontStyle: "normal",
+                  color: urgent ? "var(--hot)" : "var(--accent)",
+                  fontWeight: 600,
+                }}
+              >
+                {humanCountdown(pick.date, now)}
+              </em>
+              .
+            </>
+          }
+          footer={localDeadlineString(pick.date)}
+          footerTitle={`${pick.date} · 23:59 AoE`}
+        />
+      );
+    }
+
+    if (upcomingStarts.length === 0) return null;
+    const pick = upcomingStarts.reduce((a, b) => (a.time <= b.time ? a : b));
     const evKey = eventKey(pick.event);
-    const pickKey = `deadline:${evKey}:${pick.name}:${pick.date}`;
+    const pickKey = `start:${evKey}:${pick.date}`;
     if (sessionDismissed.has(pickKey)) return null;
     if (prefs.display.permanentlyHiddenEventHeroes?.includes(evKey))
       return null;
-    const deadline = isDeadline(pick.name);
-    const urgent = isDeadlineUrgent(pick.date, now);
+    const startCal = toCalendarDate(pick.date);
     return (
       <HeroShell
-        label={deadline ? "Your next deadline" : "Coming up"}
+        label="Up next"
         onDismissOnce={() => dismissThisSession(pickKey)}
         menuItems={alertMenuItems(pick.event, evKey)}
         headline={
           <>
-            <span className="font-semibold">
-              {pick.event.abbreviation} {deadlineKindWord(pick.name)}
-            </span>{" "}
-            {deadline ? "is due " : ""}
+            <span className="font-semibold">{pick.event.abbreviation}</span>{" "}
+            {pick.event.type} starts{" "}
             <em
               style={{
                 fontStyle: "normal",
-                color: urgent ? "var(--hot)" : "var(--accent)",
+                color: "var(--accent)",
                 fontWeight: 600,
               }}
             >
@@ -137,68 +193,84 @@ export function Hero({
             .
           </>
         }
-        footer={localDeadlineString(pick.date)}
-        footerTitle={`${pick.date} · 23:59 AoE`}
+        footer={
+          startCal
+            ? `${monDayYearFmt.format(startCal)}${
+                pick.event.location ? ` · ${pick.event.location}` : ""
+              }`
+            : undefined
+        }
       />
     );
   }
+}
 
-  if (upcomingStarts.length === 0) return null;
-  const pick = upcomingStarts.reduce((a, b) => (a.time <= b.time ? a : b));
-  const evKey = eventKey(pick.event);
-  const pickKey = `start:${evKey}:${pick.date}`;
-  if (sessionDismissed.has(pickKey)) return null;
-  if (prefs.display.permanentlyHiddenEventHeroes?.includes(evKey)) return null;
-  const startCal = toCalendarDate(pick.date);
+function HeroSlot({ children }: { children: ReactNode }) {
+  const innerRef = useRef<HTMLDivElement>(null);
+  const [rendered, setRendered] = useState<ReactNode>(null);
+  const [open, setOpen] = useState(false);
+  const [contentHeight, setContentHeight] = useState(0);
+
+  useEffect(() => {
+    if (children) {
+      setRendered(children);
+      const id = requestAnimationFrame(() => setOpen(true));
+      return () => cancelAnimationFrame(id);
+    }
+    setOpen(false);
+    const t = setTimeout(() => setRendered(null), HERO_TRANSITION_MS);
+    return () => clearTimeout(t);
+  }, [children]);
+
+  // biome-ignore lint/correctness/useExhaustiveDependencies: re-run after `rendered` flips from null to non-null so the ref is populated
+  useLayoutEffect(() => {
+    const el = innerRef.current;
+    if (!el) return;
+    const measure = () => setContentHeight(el.scrollHeight);
+    measure();
+    const ro = new ResizeObserver(measure);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [rendered]);
+
+  if (!rendered) return null;
+
   return (
-    <HeroShell
-      label="Up next"
-      onDismissOnce={() => dismissThisSession(pickKey)}
-      menuItems={alertMenuItems(pick.event, evKey)}
-      headline={
-        <>
-          <span className="font-semibold">{pick.event.abbreviation}</span>{" "}
-          {pick.event.type} starts{" "}
-          <em
-            style={{
-              fontStyle: "normal",
-              color: "var(--accent)",
-              fontWeight: 600,
-            }}
-          >
-            {humanCountdown(pick.date, now)}
-          </em>
-          .
-        </>
-      }
-      footer={
-        startCal
-          ? `${monDayYearFmt.format(startCal)}${
-              pick.event.location ? ` · ${pick.event.location}` : ""
-            }`
-          : undefined
-      }
-    />
+    <div
+      className="overflow-hidden transition-[height] duration-300 ease-out motion-reduce:transition-none"
+      style={{ height: open ? contentHeight : 0 }}
+      aria-hidden={!open}
+    >
+      <div
+        ref={innerRef}
+        className="pt-8 transition-[opacity,transform] duration-300 ease-out motion-reduce:transition-none"
+        style={{
+          opacity: open ? 1 : 0,
+          transform: open ? "translateY(0)" : "translateY(-8px)",
+        }}
+      >
+        {rendered}
+      </div>
+    </div>
   );
 }
 
-function IntroHero({ totalActive }: { totalActive: number }) {
-  const { prefs, setPrefs, prefsLoaded } = usePreferences();
-  if (prefsLoaded && prefs.display.introHeroDismissed) return null;
-  const dismiss = () =>
-    setPrefs((p) => ({
-      ...p,
-      display: { ...p.display, introHeroDismissed: true },
-    }));
+function IntroHero({
+  totalActive,
+  onDismiss,
+}: {
+  totalActive: number;
+  onDismiss: () => void;
+}) {
   return (
     <section
       data-hero-slot="intro"
-      className="relative mx-5 mt-8 border border-rule p-5 sm:p-7 md:mx-8"
+      className="relative mx-5 border border-rule p-5 sm:p-7 md:mx-8"
       style={{ background: "var(--card)" }}
     >
       <button
         type="button"
-        onClick={dismiss}
+        onClick={onDismiss}
         aria-label="Hide introduction"
         title="Hide"
         className="absolute right-3 top-3 grid h-8 w-8 place-items-center rounded-full text-ink-3 transition-colors hover:bg-paper-2 hover:text-ink"
@@ -279,7 +351,7 @@ function HeroShell({
 }) {
   return (
     <section
-      className="relative mx-5 mt-8 border border-rule p-5 sm:p-7 md:mx-8"
+      className="relative mx-5 border border-rule p-5 sm:p-7 md:mx-8"
       style={{ background: "var(--card)" }}
     >
       {(onDismissOnce || (menuItems && menuItems.length > 0)) && (
