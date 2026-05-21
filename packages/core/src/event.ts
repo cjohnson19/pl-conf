@@ -227,6 +227,22 @@ export function isDeadlineUrgent(
   return ms > 0 && ms <= URGENT_WINDOW_MS;
 }
 
+const formatterCache = new Map<string, Intl.DateTimeFormat>();
+
+function getFormatter(
+  style: DateFormatStyle,
+  locale: LocaleArg
+): Intl.DateTimeFormat {
+  const localeKey = Array.isArray(locale) ? locale.join(",") : (locale ?? "");
+  const key = `${style}|${localeKey}`;
+  let fmt = formatterCache.get(key);
+  if (fmt === undefined) {
+    fmt = new Intl.DateTimeFormat(locale, dateFormatStyles[style]);
+    formatterCache.set(key, fmt);
+  }
+  return fmt;
+}
+
 export function formatDate(
   date: MaybeDate,
   style: DateFormatStyle,
@@ -236,9 +252,7 @@ export function formatDate(
   const instant = timeBearingStyles.has(style)
     ? toAoeInstant(date)!
     : new Date(date);
-  return new Intl.DateTimeFormat(locale, dateFormatStyles[style]).format(
-    instant
-  );
+  return getFormatter(style, locale).format(instant);
 }
 
 export function formatDateRange(
@@ -248,7 +262,7 @@ export function formatDateRange(
   locale?: LocaleArg
 ): string {
   if (start === "TBD" || end === "TBD") return "TBD";
-  return new Intl.DateTimeFormat(locale, dateFormatStyles[style]).formatRange(
+  return getFormatter(style, locale).formatRange(
     new Date(start),
     new Date(end)
   );
