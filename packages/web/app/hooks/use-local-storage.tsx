@@ -6,26 +6,20 @@ function isObject(item: unknown): item is Record<string, unknown> {
 
 function mergeDeep<T extends Record<string, unknown>>(
   target: T,
-  ...sources: Record<string, unknown>[]
+  source: Record<string, unknown>
 ): T {
-  if (!sources.length) return target;
-  const source = sources.shift();
-
-  if (isObject(target) && isObject(source)) {
-    for (const key in source) {
-      if (isObject(source[key])) {
-        if (!target[key]) Object.assign(target, { [key]: {} });
-        mergeDeep(
-          target[key] as Record<string, unknown>,
-          source[key] as Record<string, unknown>
-        );
-      } else {
-        Object.assign(target, { [key]: source[key] });
-      }
+  if (!isObject(target) || !isObject(source)) return target;
+  const out: Record<string, unknown> = { ...target };
+  for (const key in source) {
+    const sourceVal = source[key];
+    const targetVal = out[key];
+    if (isObject(sourceVal) && isObject(targetVal)) {
+      out[key] = mergeDeep(targetVal, sourceVal);
+    } else if (sourceVal !== undefined) {
+      out[key] = sourceVal;
     }
   }
-
-  return mergeDeep(target, ...sources);
+  return out as T;
 }
 
 export function useLocalStorage<T extends Record<string, unknown>>(
@@ -41,11 +35,7 @@ export function useLocalStorage<T extends Record<string, unknown>>(
       const item = window?.localStorage.getItem(key);
       if (item) {
         const loadedValue = JSON.parse(item);
-        const mergedValue = mergeDeep(
-          { ...initialValueRef.current },
-          loadedValue
-        ) as T;
-        setStoredValue(mergedValue);
+        setStoredValue(mergeDeep(initialValueRef.current, loadedValue));
       }
     } catch (error) {
       console.error(`Error reading localStorage key "${key}":`, error);
