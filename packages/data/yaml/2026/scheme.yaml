@@ -8,10 +8,10 @@ date:
   end: 2026-08-29
 location: Indianapolis, United States
 url: "https://icfp26.sigplan.org/home/scheme-2026"
-submissionUrl: "https://scheme2026.hotcrp.com/"
+submissionUrl: "https://scheme26.hotcrp.com/"
 importantDateUrl: "https://icfp26.sigplan.org/home/scheme-2026"
 importantDates:
-  paper: 2026-05-22
-  notification: 2026-06-26
+  paper: 2026-06-05
+  notification: 2026-07-01
   camera-ready: 2026-07-07
 partOf: ICFP
