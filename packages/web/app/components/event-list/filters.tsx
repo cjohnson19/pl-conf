@@ -97,7 +97,7 @@ export function FilterChips({
             )}
           >
             {label}
-            <span className="font-mono text-[10px] opacity-65">{count}</span>
+            <span className="font-mono text-[10px] opacity-90">{count}</span>
           </button>
         );
       })}
