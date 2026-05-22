@@ -5,7 +5,6 @@ export type EventPreferences = {
 
 export type DisplayPreferences = {
   includeCalendarDeadlines: boolean;
-  introHeroDismissed: boolean;
   deadlineHeroDismissed: boolean;
   collapseHintDismissed: boolean;
   permanentlyHiddenEventHeroes: string[];
@@ -21,7 +20,6 @@ export const defaultPreferences: PreferenceCollection = {
   eventPrefs: {},
   display: {
     includeCalendarDeadlines: true,
-    introHeroDismissed: false,
     deadlineHeroDismissed: false,
     collapseHintDismissed: false,
     permanentlyHiddenEventHeroes: [],

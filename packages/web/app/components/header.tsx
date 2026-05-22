@@ -24,7 +24,7 @@ export function Header() {
 
       <span aria-hidden />
 
-      <nav className="flex items-center gap-1.5 justify-self-end sm:gap-2">
+      <nav className="flex items-center justify-self-end gap-0 sm:gap-2">
         <Link
           href="/about"
           className="hidden -my-3 px-2 py-3 text-[13px] text-ink-2 no-underline transition-colors hover:text-ink sm:inline"

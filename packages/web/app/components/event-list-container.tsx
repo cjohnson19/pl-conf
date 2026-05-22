@@ -58,12 +58,7 @@ export function EventListContainer({ events }: { events: ScheduledEvent[] }) {
 
   return (
     <TagFilterProvider value={tagFilter}>
-      <Hero
-        events={visibleEvents}
-        starredKeys={starredKeys}
-        now={now}
-        totalActive={totalActive}
-      />
+      <Hero events={visibleEvents} starredKeys={starredKeys} now={now} />
 
       <div className="flex flex-col gap-2 px-5 pt-7 sm:flex-row sm:flex-wrap sm:items-center md:px-8">
         <SearchPill value={search} setValue={setSearch} />

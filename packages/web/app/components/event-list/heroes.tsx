@@ -8,12 +8,11 @@ import {
   useRef,
   useState,
 } from "react";
-import { Calendar, MoreHorizontal, Star, X } from "lucide-react";
+import { MoreHorizontal, X } from "lucide-react";
 import {
   type ScheduledEvent,
   eventKey,
   isDeadline,
-  isDeadlineUrgent,
   toCalendarDate,
 } from "../../lib/event";
 import { humanCountdown } from "../../lib/countdown";
@@ -44,12 +43,10 @@ export function Hero({
   events,
   starredKeys,
   now,
-  totalActive,
 }: {
   events: ScheduledEvent[];
   starredKeys: Set<string>;
   now: Date;
-  totalActive: number;
 }) {
   const { prefs, setPrefs, prefsLoaded } = usePreferences();
   const [sessionDismissed, setSessionDismissed] = useSessionStorage(
@@ -73,11 +70,6 @@ export function Hero({
     setPrefs((p) => ({
       ...p,
       display: { ...p.display, deadlineHeroDismissed: true },
-    }));
-  const dismissIntro = () =>
-    setPrefs((p) => ({
-      ...p,
-      display: { ...p.display, introHeroDismissed: true },
     }));
   const alertMenuItems = (event: ScheduledEvent, evKey: string) => [
     {
@@ -116,12 +108,7 @@ export function Hero({
 
   function pickHero(): ReactNode {
     if (!prefsLoaded) return null;
-
-    if (starredKeys.size === 0) {
-      if (prefs.display.introHeroDismissed) return null;
-      return <IntroHero totalActive={totalActive} onDismiss={dismissIntro} />;
-    }
-
+    if (starredKeys.size === 0) return null;
     if (prefs.display.deadlineHeroDismissed) return null;
 
     if (upcomingDeadlines.length > 0) {
@@ -134,7 +121,6 @@ export function Hero({
       if (prefs.display.permanentlyHiddenEventHeroes?.includes(evKey))
         return null;
       const deadline = isDeadline(pick.name);
-      const urgent = isDeadlineUrgent(pick.date, now);
       return (
         <HeroShell
           label={deadline ? "Your next deadline" : "Coming up"}
@@ -146,13 +132,7 @@ export function Hero({
                 {pick.event.abbreviation} {deadlineKindWord(pick.name)}
               </span>{" "}
               {deadline ? "is due " : ""}
-              <em
-                style={{
-                  fontStyle: "normal",
-                  color: urgent ? "var(--hot)" : "var(--accent)",
-                  fontWeight: 600,
-                }}
-              >
+              <em style={{ fontStyle: "normal" }}>
                 {humanCountdown(pick.date, now)}
               </em>
               .
@@ -247,81 +227,6 @@ function HeroSlot({ children }: { children: ReactNode }) {
         style={{ opacity: open ? 1 : 0 }}
       >
         {rendered}
-      </div>
-    </div>
-  );
-}
-
-function IntroHero({
-  totalActive,
-  onDismiss,
-}: {
-  totalActive: number;
-  onDismiss: () => void;
-}) {
-  return (
-    <section
-      data-hero-slot="intro"
-      className="relative mx-5 border border-rule p-5 sm:p-7 md:mx-8"
-      style={{ background: "var(--card)" }}
-    >
-      <button
-        type="button"
-        onClick={onDismiss}
-        aria-label="Hide introduction"
-        title="Hide"
-        className="absolute right-3 top-3 grid h-8 w-8 place-items-center rounded-full text-ink-3 transition-colors hover:bg-paper-2 hover:text-ink"
-      >
-        <X size={16} strokeWidth={1.75} />
-      </button>
-      <p className="pr-10 font-display text-[15px] leading-[1.45] text-ink-2 sm:text-[16px]">
-        A small index of{" "}
-        <span className="not-italic font-medium text-ink">{totalActive}</span>{" "}
-        programming-language conferences, workshops, and symposia.
-      </p>
-
-      <div className="mt-5 space-y-4 border-t border-rule pt-5 sm:space-y-5 sm:pt-6">
-        <IntroStep
-          icon={<Star size={20} strokeWidth={1.75} fill="currentColor" />}
-          title="Star events to keep track of their deadlines."
-          sub="Tap the star on any row to follow it — your list stays in this browser."
-        />
-        <IntroStep
-          icon={<Calendar size={20} strokeWidth={1.75} />}
-          title="Subscribe to keep their dates in your calendar."
-          sub="Use the calendar icon for a Google Calendar link, an .ics download, or a live feed."
-        />
-      </div>
-    </section>
-  );
-}
-
-function IntroStep({
-  icon,
-  title,
-  sub,
-}: {
-  icon: React.ReactNode;
-  title: string;
-  sub: string;
-}) {
-  return (
-    <div className="flex items-start gap-4 sm:gap-5">
-      <div
-        aria-hidden
-        className="grid h-11 w-11 shrink-0 place-items-center rounded-pill sm:h-12 sm:w-12"
-        style={{
-          background: "color-mix(in srgb, var(--accent) 14%, var(--card))",
-          color: "var(--accent)",
-        }}
-      >
-        {icon}
-      </div>
-      <div className="min-w-0">
-        <p className="text-[17px] font-medium leading-[1.3] text-ink sm:text-[19px]">
-          {title}
-        </p>
-        <p className="mt-1.5 text-[13px] leading-[1.55] text-ink-2">{sub}</p>
       </div>
     </div>
   );

@@ -286,9 +286,22 @@ describe.concurrent("starring", () => {
 });
 
 describe.concurrent("hero", () => {
-  test("shows the intro hero when nothing is starred", async ({ page }) => {
-    const introText = await page.evaluate(() => document.body.innerText);
-    expect(introText).toMatch(/small index of/i);
+  test("renders no hero when nothing is starred", async ({ page }) => {
+    const body = await page.evaluate(() => document.body.innerText);
+    expect(body).not.toMatch(/your next deadline/i);
+    expect(body).not.toMatch(/coming up/i);
+  });
+
+  test("opens the help popover with the site explainer", async ({ page }) => {
+    const trigger = await page.waitForSelector(
+      'button[aria-label="How this site works"]',
+      { timeout: 5000 }
+    );
+    await trigger?.evaluate((b) => (b as HTMLButtonElement).click());
+    await page.waitForFunction(
+      () => /small index of/i.test(document.body.innerText),
+      { timeout: 5000 }
+    );
   });
 
   test("swaps to the next-deadline hero once an event is starred", async ({
@@ -316,7 +329,6 @@ describe.concurrent("hero", () => {
     );
     const body = await page.evaluate(() => document.body.innerText);
     expect(body).toMatch(/MOCKB/);
-    expect(body).not.toMatch(/small index of/i);
   });
 
   test("renders minute-grain countdown when a deadline is on today's calendar date", async ({
@@ -824,7 +836,6 @@ describe.concurrent("persistence settle", () => {
     eventPrefs,
     display: {
       includeCalendarDeadlines: true,
-      introHeroDismissed: false,
       deadlineHeroDismissed: false,
       collapseHintDismissed: false,
       permanentlyHiddenEventHeroes: [],
@@ -835,14 +846,14 @@ describe.concurrent("persistence settle", () => {
 
   const starred = (key: string) => ({ [key]: { favorite: true } });
 
-  test("empty storage settles to defaults: intro hero, All events, list layout", async ({
+  test("empty storage settles to defaults: All events, list layout, no hero", async ({
     page,
     waitForSettled,
     renderedKeys,
   }) => {
     await waitForSettled();
     const body = await page.evaluate(() => document.body.innerText);
-    expect(body).toMatch(/small index of/i);
+    expect(body).not.toMatch(/your next deadline/i);
 
     const keys = await renderedKeys();
     expect(keys.length).toBe(activeEvents().length);
@@ -896,21 +907,6 @@ describe.concurrent("persistence settle", () => {
     await waitForSettled();
     const keys = await renderedKeys();
     expect(keys).toEqual([key]);
-  });
-
-  test("introHeroDismissed=true keeps the intro hero from rendering", async ({
-    page,
-    seedStorage,
-    waitForSettled,
-  }) => {
-    await seedStorage({
-      local: { [PREFS_KEY]: prefs({ introHeroDismissed: true }) },
-    });
-    await waitForSettled();
-    const body = await page.evaluate(() => document.body.innerText);
-    expect(body).not.toMatch(/small index of/i);
-    const heroSlot = await page.$('[data-hero-slot="intro"]');
-    expect(heroSlot).toBeNull();
   });
 
   test("deadlineHeroDismissed=true suppresses the next-deadline hero even with starred events", async ({
@@ -1053,13 +1049,9 @@ describe.concurrent("persistence settle", () => {
       (el) => (el as HTMLButtonElement).getAttribute("aria-pressed")
     );
     expect(gridPressed).toBe("true");
-    // Intro hero still shows since introHeroDismissed defaults to false.
-    const body = await page.evaluate(() => document.body.innerText);
-    expect(body).toMatch(/small index of/i);
   });
 
   test("invalid JSON in localStorage falls back to defaults", async ({
-    page,
     seedStorage,
     waitForSettled,
     renderedKeys,
@@ -1068,7 +1060,5 @@ describe.concurrent("persistence settle", () => {
     await waitForSettled();
     const keys = await renderedKeys();
     expect(keys.length).toBe(activeEvents().length);
-    const body = await page.evaluate(() => document.body.innerText);
-    expect(body).toMatch(/small index of/i);
   });
 });
