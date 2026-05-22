@@ -237,17 +237,14 @@ function HeroSlot({ children }: { children: ReactNode }) {
 
   return (
     <div
-      className="overflow-hidden transition-[height] duration-300 ease-out motion-reduce:transition-none"
+      className="flex items-center overflow-hidden transition-[height] duration-300 ease-out motion-reduce:transition-none"
       style={{ height: open ? contentHeight : 0 }}
       aria-hidden={!open}
     >
       <div
         ref={innerRef}
-        className="pt-8 transition-[opacity,transform] duration-300 ease-out motion-reduce:transition-none"
-        style={{
-          opacity: open ? 1 : 0,
-          transform: open ? "translateY(0)" : "translateY(-8px)",
-        }}
+        className="w-full pt-8 transition-opacity duration-300 ease-out motion-reduce:transition-none"
+        style={{ opacity: open ? 1 : 0 }}
       >
         {rendered}
       </div>
