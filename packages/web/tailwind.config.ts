@@ -12,8 +12,13 @@ const maxContainerQueries = plugin(({ matchVariant }) => {
   );
 });
 
+const osVariant = plugin(({ addVariant }) => {
+  addVariant("os-mac", '[data-os="mac"] &');
+});
+
 export default {
   content: ["./app/**/*.{js,ts,jsx,tsx,mdx}"],
+  darkMode: "class",
   theme: {
     extend: {
       colors: {
@@ -107,5 +112,10 @@ export default {
       },
     },
   },
-  plugins: [tailwindcssAnimate, containerQueries, maxContainerQueries],
+  plugins: [
+    tailwindcssAnimate,
+    containerQueries,
+    maxContainerQueries,
+    osVariant,
+  ],
 } satisfies Config;

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import clsx from "clsx";
 import {
   Command,
@@ -30,13 +30,6 @@ export function SearchPill({
   setValue: (next: string) => void;
 }) {
   const inputRef = useRef<HTMLInputElement>(null);
-  const [isMac, setIsMac] = useState(false);
-  useEffect(() => {
-    setIsMac(
-      typeof navigator !== "undefined" &&
-        /Mac|iPhone|iPad|iPod/.test(navigator.platform)
-    );
-  }, []);
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
@@ -62,13 +55,14 @@ export function SearchPill({
         onChange={(e) => setValue(e.target.value)}
         placeholder="Search events…"
         className="h-[38px] w-full rounded-pill border border-rule bg-[color:var(--card)] pl-[38px] pr-12 text-[14px] text-ink outline-none transition-colors placeholder:text-ink-3 focus:border-ink"
-        aria-keyshortcuts={isMac ? "Meta+K" : "Control+K"}
+        aria-keyshortcuts="Meta+K Control+K"
       />
       <kbd
         aria-hidden
         className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 hidden select-none items-center gap-0.5 rounded-pill bg-paper-2 px-1.5 py-[3px] font-mono text-[10px] font-medium text-ink-2 sm:inline-flex"
       >
-        {isMac ? <Command size={10} /> : <span>Ctrl</span>}
+        <Command size={10} className="hidden os-mac:inline" />
+        <span className="os-mac:hidden">Ctrl</span>
         <span>K</span>
       </kbd>
     </div>
