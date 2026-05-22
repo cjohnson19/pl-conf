@@ -88,6 +88,7 @@ function useNowTick(events: ScheduledEvent[]): {
 
 export type EventListState = {
   prefsLoaded: boolean;
+  hydrated: boolean;
   now: Date;
 
   layout: Layout;
@@ -316,6 +317,7 @@ export function useEventListState(events: ScheduledEvent[]): EventListState {
 
   return {
     prefsLoaded,
+    hydrated,
     now,
     layout,
     setLayout,

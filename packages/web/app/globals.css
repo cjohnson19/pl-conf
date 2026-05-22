@@ -152,6 +152,36 @@
     }
   }
 
+  .pl-conf-skeleton {
+    display: none;
+  }
+  html.pl-conf-loading .pl-conf-real {
+    display: none;
+  }
+  html.pl-conf-loading .pl-conf-skeleton {
+    display: block;
+  }
+
+  @keyframes pl-conf-skeleton-pulse {
+    0%,
+    100% {
+      opacity: 0.55;
+    }
+    50% {
+      opacity: 0.85;
+    }
+  }
+  .pl-conf-skeleton-bar {
+    background: var(--paper-2);
+    border-radius: var(--r-xs);
+    animation: pl-conf-skeleton-pulse 1.4s ease-in-out infinite;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .pl-conf-skeleton-bar {
+      animation: none;
+    }
+  }
+
   .pill {
     font:
       500 11px var(--font-mono),

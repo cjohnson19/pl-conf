@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import clsx from "clsx";
 import { Github } from "lucide-react";
 import { type ScheduledEvent, eventKey } from "../lib/event";
@@ -10,6 +10,7 @@ import { LastUpdated } from "./last-updated";
 import { useEventListState } from "./event-list/use-event-list-state";
 import { Hero } from "./event-list/heroes";
 import { CollapsibleGroup } from "./event-list/group-display";
+import { EventListSkeleton } from "./event-list/skeleton";
 import {
   FilterChips,
   LayoutToggle,
@@ -20,6 +21,8 @@ import {
 
 export function EventListContainer({ events }: { events: ScheduledEvent[] }) {
   const {
+    prefsLoaded,
+    hydrated,
     now,
     layout,
     setLayout,
@@ -50,6 +53,11 @@ export function EventListContainer({ events }: { events: ScheduledEvent[] }) {
     showCollapseHint,
     dismissCollapseHint,
   } = useEventListState(events);
+
+  const ready = prefsLoaded && hydrated;
+  useEffect(() => {
+    if (ready) document.documentElement.classList.remove("pl-conf-loading");
+  }, [ready]);
 
   const tagFilter = useMemo(
     () => ({ activeTags, onToggle: toggleTag }),
@@ -93,39 +101,44 @@ export function EventListContainer({ events }: { events: ScheduledEvent[] }) {
         }
       />
 
-      <div
-        className={clsx(
-          layout === "grid"
-            ? "mt-4 grid grid-cols-1 gap-3 px-5 md:grid-cols-2 md:px-8 xl:grid-cols-3"
-            : undefined
-        )}
-      >
-        {displayEvents.length > 0 ? (
-          layout === "grid" ? (
-            displayEvents.map((e) => (
-              <EventCard key={eventKey(e)} event={e} now={now} />
-            ))
-          ) : (
-            groups.map((g, gi) => (
-              <CollapsibleGroup
-                key={g.key}
-                group={g}
-                isFirst={gi === 0}
-                showHint={showCollapseHint && gi === firstCollapsibleIdx}
-                onDismissHint={dismissCollapseHint}
-                now={now}
-                collapsed={g.date !== null && collapsedDates.has(g.date)}
-                onToggle={
-                  g.date ? () => toggleCollapsed(g.date as string) : undefined
-                }
-              />
-            ))
-          )
-        ) : view === "starred" ? null : (
-          <div className="px-5 py-8 text-[13px] text-ink-3 md:px-8">
-            No events match these filters.
-          </div>
-        )}
+      <div className="pl-conf-real">
+        <div
+          className={clsx(
+            layout === "grid"
+              ? "mt-4 grid grid-cols-1 gap-3 px-5 md:grid-cols-2 md:px-8 xl:grid-cols-3"
+              : undefined
+          )}
+        >
+          {displayEvents.length > 0 ? (
+            layout === "grid" ? (
+              displayEvents.map((e) => (
+                <EventCard key={eventKey(e)} event={e} now={now} />
+              ))
+            ) : (
+              groups.map((g, gi) => (
+                <CollapsibleGroup
+                  key={g.key}
+                  group={g}
+                  isFirst={gi === 0}
+                  showHint={showCollapseHint && gi === firstCollapsibleIdx}
+                  onDismissHint={dismissCollapseHint}
+                  now={now}
+                  collapsed={g.date !== null && collapsedDates.has(g.date)}
+                  onToggle={
+                    g.date ? () => toggleCollapsed(g.date as string) : undefined
+                  }
+                />
+              ))
+            )
+          ) : view === "starred" ? null : (
+            <div className="px-5 py-8 text-[13px] text-ink-3 md:px-8">
+              No events match these filters.
+            </div>
+          )}
+        </div>
+      </div>
+      <div className="pl-conf-skeleton">
+        <EventListSkeleton />
       </div>
 
       {view === "starred" && (starredCount === 0 || hasOthers) && (
