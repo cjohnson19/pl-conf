@@ -1,4 +1,4 @@
-import { useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
+import { useDeferredValue, useEffect, useMemo, useState } from "react";
 import { differenceInCalendarDays } from "date-fns";
 import { BUILD_NOW_MS } from "@pl-conf/data";
 import {
@@ -143,7 +143,7 @@ export function useEventListState(events: ScheduledEvent[]): EventListState {
       return next;
     });
   const clearTags = () => setActiveTags(new Set());
-  const [view, setView, viewLoaded] = useSessionStorage<View>(
+  const [view, setView] = useSessionStorage<View>(
     SESSION_VIEW_KEY,
     "all",
     stringCodec as Codec<View>
@@ -305,16 +305,6 @@ export function useEventListState(events: ScheduledEvent[]): EventListState {
   const totalActive = activeEvents.length;
   const starredCount = starredKeys.size;
   const hasOthers = view === "starred" && totalActive > starredCount;
-
-  const didInitView = useRef(false);
-  useEffect(() => {
-    if (!prefsLoaded || !viewLoaded || didInitView.current) return;
-    didInitView.current = true;
-    const hasStored =
-      typeof window !== "undefined" &&
-      window.sessionStorage.getItem(SESSION_VIEW_KEY) !== null;
-    if (!hasStored && starredCount > 0) setView("starred");
-  }, [prefsLoaded, viewLoaded, starredCount, setView]);
 
   const lastUpdatedDate = useMemo(() => {
     const dates = events

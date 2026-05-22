@@ -895,20 +895,6 @@ describe.concurrent("persistence settle", () => {
     expect(body).toMatch(/nothing starred yet/i);
   });
 
-  test("auto-switches to Starred only when no view is stored and user has starred events", async ({
-    seedStorage,
-    waitForSettled,
-    renderedKeys,
-  }) => {
-    const key = eventKey(findFixture("MOCKB"));
-    await seedStorage({
-      local: { [PREFS_KEY]: prefs({}, starred(key)) },
-    });
-    await waitForSettled();
-    const keys = await renderedKeys();
-    expect(keys).toEqual([key]);
-  });
-
   test("deadlineHeroDismissed=true suppresses the next-deadline hero even with starred events", async ({
     page,
     seedStorage,
