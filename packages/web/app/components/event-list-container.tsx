@@ -92,9 +92,20 @@ export function EventListContainer({ events }: { events: ScheduledEvent[] }) {
         trailing={
           <>
             <span className="hidden text-[13px] text-ink-3 lg:inline">
-              sorted by next deadline ·{" "}
-              <b className="font-medium text-ink-2">{dueThisWeek}</b> deadline
-              {dueThisWeek === 1 ? "" : "s"} this week
+              {ready ? (
+                <>
+                  sorted by next deadline ·{" "}
+                  <b className="font-medium text-ink-2">{dueThisWeek}</b>{" "}
+                  deadline
+                  {dueThisWeek === 1 ? "" : "s"} this week
+                </>
+              ) : (
+                <span
+                  aria-hidden
+                  className="pl-conf-skeleton-bar inline-block align-middle"
+                  style={{ width: 240, height: 13 }}
+                />
+              )}
             </span>
             <LayoutToggle layout={layout} setLayout={setLayout} />
           </>
