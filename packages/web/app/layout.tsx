@@ -10,7 +10,26 @@ const prePaintScript = `try {
 var ua = navigator.userAgentData;
 var uaStr = (navigator.userAgent || "") + " " + (navigator.platform || "");
 if ((ua && ua.platform === "macOS") || /Mac|iPhone|iPad|iPod/i.test(uaStr)) document.documentElement.dataset.os = "mac";
-document.documentElement.classList.add("pl-conf-loading");
+var raw = localStorage.getItem("userPrefsV2");
+if (raw) {
+  var prefs = JSON.parse(raw);
+  var entries = Object.entries(prefs.eventPrefs || {});
+  var hidden = entries.filter(function(kv){return kv[1] && kv[1].hidden;}).map(function(kv){return kv[0];});
+  var starred = entries.filter(function(kv){return kv[1] && kv[1].favorite;}).map(function(kv){return kv[0];});
+  var view = sessionStorage.getItem("view");
+  var esc = function(s){return s.replace(/[\\\\"]/g, "\\\\$&");};
+  var rules = "";
+  hidden.forEach(function(k){rules += '[data-event-key="' + esc(k) + '"]{display:none}';});
+  if (view === "starred") {
+    rules += "[data-event-key]{display:none}";
+    starred.forEach(function(k){rules += '[data-event-key="' + esc(k) + '"]{display:revert}';});
+  }
+  if (rules) {
+    var style = document.createElement("style");
+    style.textContent = rules;
+    document.head.appendChild(style);
+  }
+}
 } catch (e) {}`;
 
 const inter = Inter({
@@ -48,7 +67,7 @@ export default function RootLayout({
     <html lang="en" className={inter.variable} suppressHydrationWarning>
       <head>
         <script
-          // biome-ignore lint/security/noDangerouslySetInnerHtml: pre-hydration detection so CSS can pick the right cmd/ctrl glyph and gate the loading skeleton on first paint
+          // biome-ignore lint/security/noDangerouslySetInnerHtml: pre-hydration script reads localStorage prefs and emits CSS so hidden/starred events match the user's saved state before React boots
           dangerouslySetInnerHTML={{ __html: prePaintScript }}
         />
       </head>

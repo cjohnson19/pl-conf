@@ -1,6 +1,5 @@
 import { useDeferredValue, useEffect, useMemo, useState } from "react";
 import { differenceInCalendarDays } from "date-fns";
-import { BUILD_NOW_MS } from "@pl-conf/data";
 import {
   type ScheduledEvent,
   type Tag,
@@ -51,15 +50,18 @@ function hasDeadlineWithinAoeToday(
   });
 }
 
-function useNowTick(events: ScheduledEvent[]): {
+function useNowTick(
+  events: ScheduledEvent[],
+  initialNowMs: number
+): {
   now: Date;
   hydrated: boolean;
 } {
-  const [now, setNow] = useState(() => new Date(BUILD_NOW_MS));
+  const [now, setNow] = useState(() => new Date(initialNowMs));
   const [hydrated, setHydrated] = useState(false);
   useEffect(() => {
     const realMs = Date.now();
-    if (realMs - BUILD_NOW_MS > 60_000) setNow(new Date(realMs));
+    if (realMs - initialNowMs > 60_000) setNow(new Date(realMs));
     setHydrated(true);
     // Adaptive cadence: minute-grain refresh only when some upcoming deadline
     // is already in today's (or earlier) local calendar date.
@@ -82,7 +84,7 @@ function useNowTick(events: ScheduledEvent[]): {
     return () => {
       if (timeoutId !== undefined) clearTimeout(timeoutId);
     };
-  }, [events]);
+  }, [events, initialNowMs]);
   return { now, hydrated };
 }
 
@@ -126,7 +128,10 @@ export type EventListState = {
   dismissCollapseHint: () => void;
 };
 
-export function useEventListState(events: ScheduledEvent[]): EventListState {
+export function useEventListState(
+  events: ScheduledEvent[],
+  initialNowMs: number
+): EventListState {
   const { prefs, setPrefs, prefsLoaded } = usePreferences();
   const layout: Layout = prefs.display.layout ?? "list";
   const setLayout = (next: Layout) =>
@@ -150,7 +155,7 @@ export function useEventListState(events: ScheduledEvent[]): EventListState {
     stringCodec as Codec<View>
   );
 
-  const { now, hydrated } = useNowTick(events);
+  const { now, hydrated } = useNowTick(events, initialNowMs);
   const hasOpenSubmission = useMemo(
     () => openToNewSubmissions(true, now),
     [now]
@@ -175,8 +180,8 @@ export function useEventListState(events: ScheduledEvent[]): EventListState {
   );
 
   const activeEvents = useMemo(
-    () => (hydrated ? applyFilters(visibleEvents, [isActive]) : visibleEvents),
-    [visibleEvents, hydrated]
+    () => applyFilters(visibleEvents, [isActive]),
+    [visibleEvents]
   );
 
   const categoryCounts = useMemo<Record<Category, number>>(() => {
