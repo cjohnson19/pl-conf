@@ -6,6 +6,7 @@
       "!**/node_modules",
       "!**/dist",
       "!**/.next",
+      "!**/.next-test",
       "!**/out",
       "!**/out-test",
       "!**/cdk.out",

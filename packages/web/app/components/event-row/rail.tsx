@@ -1,4 +1,3 @@
-import { useMemo } from "react";
 import clsx from "clsx";
 import type { DateName, ScheduledEvent } from "../../lib/event";
 import {
@@ -53,10 +52,7 @@ function SingleRoundRail({
   activeNext?: DateName;
 }) {
   const round = e.rounds[0];
-  const rows = useMemo(
-    () => (round ? buildRoundRows(round, now, activeNext) : []),
-    [round, now, activeNext]
-  );
+  const rows = round ? buildRoundRows(round, now, activeNext) : [];
   if (!round) return null;
   if (rows.length === 0) return null;
   return (
@@ -142,10 +138,7 @@ function RoundColumnContainer({
   const round = e.rounds[slot.idx];
   const isActive = slot.status === "active";
   const effectiveActiveNext = isActive ? activeNext : undefined;
-  const rows = useMemo(
-    () => (round ? buildRoundRows(round, now, effectiveActiveNext) : []),
-    [round, now, effectiveActiveNext]
-  );
+  const rows = round ? buildRoundRows(round, now, effectiveActiveNext) : [];
   if (!round) return <div />;
   return (
     <RoundColumn
