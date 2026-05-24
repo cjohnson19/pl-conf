@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import { DomUtils, parseDocument } from "htmlparser2";
 import {
   GetObjectCommand,
@@ -9,11 +10,6 @@ import { eventKey, isActive } from "@pl-conf/core";
 import diff from "fast-diff";
 import { events } from "@pl-conf/data";
 
-interface EventWebInfo {
-  main?: string;
-  importantDates?: string;
-}
-
 interface DiffResult {
   diffs: diff.Diff[];
   addedCount: number;
@@ -21,13 +17,104 @@ interface DiffResult {
   hasChanges: boolean;
 }
 
+function groupBy<T, K>(f: (x: T) => K, l: T[]): Map<K, T[]> {
+  const map = new Map<K, T[]>();
+  for (const item of l) {
+    const key = f(item);
+    const entry = map.get(key);
+    if (entry !== undefined) {
+      entry.push(item);
+    } else {
+      map.set(key, [item]);
+    }
+  }
+  return map;
+}
+
 function bind<T, U>(v: T | undefined | null, f: (x: T) => U): U | undefined {
   return v === undefined || v === null ? undefined : f(v);
 }
 
-function zip<T, U>(a: T[], b: U[]): [T, U][] {
-  return a.map((_, i) => [a[i], b[i]]);
+type SourceType = "main" | "importantDates";
+
+interface UrlRef {
+  key: string;
+  sourceType: SourceType;
 }
+
+interface UrlTask {
+  normalizedUrl: string;
+  displayUrl: string;
+  storageKey: string;
+  refs: UrlRef[];
+}
+
+interface UrlGroup extends UrlTask {
+  current?: string;
+  stored?: string;
+  diff: DiffResult;
+}
+
+function normalizeUrl(url: string): string {
+  try {
+    const u = new URL(url);
+    u.hash = "";
+    u.username = "";
+    u.password = "";
+    u.host = u.host.toLowerCase();
+    if (u.pathname.length > 1) {
+      u.pathname = u.pathname.replace(/\/+$/, "");
+    }
+    return u.toString();
+  } catch {
+    return url;
+  }
+}
+
+function urlStorageKey(normalizedUrl: string): string {
+  const hash = createHash("sha256")
+    .update(normalizedUrl)
+    .digest("hex")
+    .slice(0, 16);
+  return `url-${hash}.html`;
+}
+
+function collectUrlTasks(): UrlTask[] {
+  const active = Object.values(events).filter(isActive);
+  const entries = active.flatMap((e) => {
+    const key = eventKey(e);
+    const fromMain =
+      e.url !== undefined
+        ? [
+            {
+              normalized: normalizeUrl(e.url),
+              original: e.url,
+              ref: { key, sourceType: "main" as const },
+            },
+          ]
+        : [];
+    const fromDates =
+      e.importantDateUrl !== undefined
+        ? [
+            {
+              normalized: normalizeUrl(e.importantDateUrl),
+              original: e.importantDateUrl,
+              ref: { key, sourceType: "importantDates" as const },
+            },
+          ]
+        : [];
+    return [...fromMain, ...fromDates];
+  });
+
+  const grouped = groupBy((e) => e.normalized, entries);
+  return Array.from(grouped.entries()).map(([normalizedUrl, group]) => ({
+    normalizedUrl,
+    displayUrl: group[0].original,
+    storageKey: urlStorageKey(normalizedUrl),
+    refs: group.map((g) => g.ref),
+  }));
+}
+
 const s3Client = new S3Client();
 
 function diffContent(
@@ -149,115 +236,90 @@ function formatDiffSummary(addedCount: number, removedCount: number): string {
     : '<span style="color: #666;">No changes</span>';
 }
 
-const WEBPAGE_BUCKET_NAME = process.env.WEBPAGE_BUCKET_NAME!;
+const DRIFT_SNAPSHOTS_BUCKET_NAME = process.env.DRIFT_SNAPSHOTS_BUCKET_NAME!;
 const NOTIFICATION_EMAIL = process.env.NOTIFICATION_EMAIL!;
 const DRIFT_EMAIL_SENDER =
   process.env.DRIFT_EMAIL_SENDER || "drift-production@pl-conferences.com";
 
-async function getStoredEventInfo(): Promise<Record<string, EventWebInfo>> {
-  const eventKeys = Object.keys(events);
-  const importantDatePages: PromiseSettledResult<
-    Pick<EventWebInfo, "importantDates">
-  >[] = await Promise.allSettled(
-    eventKeys.map(async (key) => {
-      const getImportantDatesCommand = new GetObjectCommand({
-        Bucket: WEBPAGE_BUCKET_NAME,
-        Key: `${key}-dates.html`,
-      });
-      const res = await s3Client.send(getImportantDatesCommand);
-      return {
-        importantDates: await res.Body?.transformToString(),
-      };
-    })
-  );
-  const mainPages: PromiseSettledResult<Pick<EventWebInfo, "main">>[] =
-    await Promise.allSettled(
-      eventKeys.map(async (key) => {
-        const getMainCommand = new GetObjectCommand({
-          Bucket: WEBPAGE_BUCKET_NAME,
-          Key: `${key}-main.html`,
-        });
-        const res = await s3Client.send(getMainCommand);
-        return {
-          main: await res.Body?.transformToString(),
-        };
+async function fetchStored(storageKey: string): Promise<string | undefined> {
+  try {
+    const res = await s3Client.send(
+      new GetObjectCommand({
+        Bucket: DRIFT_SNAPSHOTS_BUCKET_NAME,
+        Key: storageKey,
       })
     );
-
-  return Object.fromEntries(
-    zip(mainPages, importantDatePages).map(([r1, r2], i) => [
-      eventKeys[i],
-      {
-        ...(r1.status === "fulfilled" ? r1.value : {}),
-        ...(r2.status === "fulfilled" ? r2.value : {}),
-      },
-    ])
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  ) as any;
+    return await res.Body?.transformToString();
+  } catch {
+    return undefined;
+  }
 }
 
-async function getCurrentEventInfo(): Promise<Record<string, EventWebInfo>> {
-  const es = Object.values(events).filter(isActive);
-  const mainPages: PromiseSettledResult<Pick<EventWebInfo, "main">>[] =
-    await Promise.allSettled(
-      es.map(async (e) => {
-        if (e.url === undefined) {
-          return {};
-        }
-        const mainPage = await fetch(e.url, {
-          headers: {
-            "Accept-Language": "en-US,en;q=0.9,de;q=0.8",
-          },
-        });
-        return {
-          main: await mainPage.text(),
-        };
-      })
-    );
-  const cachedDatePages: PromiseSettledResult<
-    Pick<EventWebInfo, "importantDates">
-  >[] = await Promise.allSettled(
-    es.map(async (e) => {
-      if (e.importantDateUrl === undefined) {
-        return {};
-      }
-      const datePage = await fetch(e.importantDateUrl);
-      return {
-        importantDates: await datePage.text(),
-      };
-    })
-  );
-
-  return Object.fromEntries(
-    zip(mainPages, cachedDatePages).map(([r1, r2], i) => [
-      eventKey(es[i]),
-      {
-        ...(r1.status === "fulfilled" ? r1.value : {}),
-        ...(r2.status === "fulfilled" ? r2.value : {}),
+async function fetchCurrent(url: string): Promise<string | undefined> {
+  try {
+    const res = await fetch(url, {
+      headers: {
+        "Accept-Language": "en-US,en;q=0.9,de;q=0.8",
       },
-    ])
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  ) as any;
+    });
+    return await res.text();
+  } catch {
+    return undefined;
+  }
 }
 
-function toTable(
-  drifts: [string, { main: DiffResult; importantDates: DiffResult }][]
-) {
-  const getUrl = (prop: string, key: string): string => {
-    const event = events[key];
-    if (!event) return "Url not available";
-    return prop in event
-      ? // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        ((event as any)[prop] as string)
-      : "Url not available";
+async function processUrl(task: UrlTask): Promise<UrlGroup> {
+  const [storedRes, currentRes] = await Promise.allSettled([
+    fetchStored(task.storageKey),
+    fetchCurrent(task.displayUrl),
+  ]);
+  const stored = storedRes.status === "fulfilled" ? storedRes.value : undefined;
+  const current =
+    currentRes.status === "fulfilled" ? currentRes.value : undefined;
+  return {
+    ...task,
+    stored,
+    current,
+    diff: diffContent(stored, current),
   };
+}
 
-  // Filter to only show events with changes
-  const eventsWithChanges = drifts.filter(
-    ([, drift]) => drift.main.hasChanges || drift.importantDates.hasChanges
-  );
+function renderUrlGroup(group: UrlGroup): string {
+  const refList = group.refs
+    .map((ref) => {
+      const event = events[ref.key];
+      const abbrev = (event?.abbreviation || ref.key).toUpperCase();
+      const eventName = event?.name || ref.key;
+      const sourceLabel =
+        ref.sourceType === "main" ? "main" : "important dates";
+      return `<span class="ref-chip" title="${escapeHtml(eventName)}">
+        <span class="ref-abbrev">${escapeHtml(abbrev)}</span>
+        <span class="ref-source">${sourceLabel}</span>
+      </span>`;
+    })
+    .join("");
 
-  if (eventsWithChanges.length === 0) {
+  return `
+    <div class="url-block">
+      <div class="url-header">
+        <a href="${escapeHtml(
+          group.displayUrl
+        )}" class="url-link" target="_blank">${escapeHtml(group.displayUrl)}</a>
+        <div class="change-summary">${formatDiffSummary(
+          group.diff.addedCount,
+          group.diff.removedCount
+        )}</div>
+      </div>
+      <div class="ref-list">${refList}</div>
+      <div class="diff-section">${formatDiffSection(group.diff.diffs)}</div>
+    </div>
+  `;
+}
+
+function toTable(groups: UrlGroup[]) {
+  const withChanges = groups.filter((g) => g.diff.hasChanges);
+
+  if (withChanges.length === 0) {
     return `
       <div style="font-family: Arial, sans-serif; padding: 20px; text-align: center; color: #666;">
         <h2>No changes detected in any monitored events</h2>
@@ -268,180 +330,107 @@ function toTable(
 
   return `
     <style>
-      .drift-table {
+      .drift-groups {
         font-family: Arial, sans-serif;
-        border-collapse: collapse;
-        width: 100%;
         max-width: 1200px;
         margin: 20px auto;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
       }
-      .drift-table th {
-        background-color: #f8f9fa;
-        color: #333;
-        font-weight: bold;
-        padding: 12px;
-        text-align: left;
-        border-bottom: 2px solid #dee2e6;
+      .url-block {
+        background: white;
+        border: 1px solid #dee2e6;
+        border-radius: 8px;
+        padding: 16px;
+        margin-bottom: 16px;
+        box-shadow: 0 1px 2px rgba(0,0,0,0.05);
       }
-      .drift-table td {
-        padding: 12px;
-        vertical-align: top;
-        border-bottom: 1px solid #dee2e6;
+      .url-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        gap: 12px;
+        flex-wrap: wrap;
+        border-bottom: 1px solid #eee;
+        padding-bottom: 8px;
+        margin-bottom: 8px;
       }
-      .drift-table tr:hover {
-        background-color: #f8f9fa;
-      }
-      .event-name {
-        font-weight: bold;
+      .url-link {
         color: #0066cc;
-        font-size: 16px;
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 14px;
+        word-break: break-all;
+      }
+      .url-link:hover {
+        text-decoration: underline;
       }
       .change-summary {
         font-size: 12px;
         color: #666;
-        margin-top: 4px;
+        white-space: nowrap;
+      }
+      .ref-list {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        margin-bottom: 10px;
+      }
+      .ref-chip {
+        display: inline-flex;
+        align-items: baseline;
+        gap: 4px;
+        background: #eef3fb;
+        color: #0b3d91;
+        padding: 3px 8px;
+        border-radius: 12px;
+        font-size: 12px;
+      }
+      .ref-abbrev {
+        font-weight: 600;
+      }
+      .ref-source {
+        color: #555;
+        font-size: 11px;
       }
       .diff-section {
-        margin-top: 8px;
-      }
-      .section-header {
-        font-weight: bold;
-        color: #333;
-        margin-bottom: 4px;
-        display: flex;
-        align-items: center;
-        gap: 8px;
-      }
-      .view-link {
-        font-size: 12px;
-        color: #0066cc;
-        text-decoration: none;
-      }
-      .view-link:hover {
-        text-decoration: underline;
-      }
-      .no-changes {
-        color: #666;
-        font-style: italic;
-        font-size: 14px;
+        margin-top: 4px;
       }
     </style>
 
-    <table class="drift-table">
-      <thead>
-        <tr>
-          <th style="width: 15%;">Conference</th>
-          <th style="width: 42.5%;">Main Page Changes</th>
-          <th style="width: 42.5%;">Important Dates Changes</th>
-        </tr>
-      </thead>
-      <tbody>
-        ${eventsWithChanges
-          .map(([key, drift]) => {
-            const event = events[key];
-            const displayAbbrev = event?.abbreviation || key;
-            const eventName = event?.name || key;
-
-            return `
-              <tr>
-                <td>
-                  <div class="event-name">${displayAbbrev.toUpperCase()}</div>
-                  <div style="font-size: 12px; color: #666; margin-top: 2px;">${eventName}</div>
-                </td>
-                <td>
-                  ${
-                    drift.main.hasChanges
-                      ? `
-                    <div class="section-header">
-                      <span>Main Page</span>
-                      <a href="${getUrl(
-                        "url",
-                        key
-                      )}" class="view-link" target="_blank">View Page →</a>
-                    </div>
-                    <div class="change-summary">${formatDiffSummary(
-                      drift.main.addedCount,
-                      drift.main.removedCount
-                    )}</div>
-                    <div class="diff-section">
-                      ${formatDiffSection(drift.main.diffs)}
-                    </div>
-                  `
-                      : '<div class="no-changes">No changes detected</div>'
-                  }
-                </td>
-                <td>
-                  ${
-                    drift.importantDates.hasChanges
-                      ? `
-                    <div class="section-header">
-                      <span>Important Dates</span>
-                      <a href="${getUrl(
-                        "importantDateUrl",
-                        key
-                      )}" class="view-link" target="_blank">View Page →</a>
-                    </div>
-                    <div class="change-summary">${formatDiffSummary(
-                      drift.importantDates.addedCount,
-                      drift.importantDates.removedCount
-                    )}</div>
-                    <div class="diff-section">
-                      ${formatDiffSection(drift.importantDates.diffs)}
-                    </div>
-                  `
-                      : '<div class="no-changes">No changes detected</div>'
-                  }
-                </td>
-              </tr>
-            `;
-          })
-          .join("")}
-      </tbody>
-    </table>
+    <div class="drift-groups">
+      ${withChanges.map(renderUrlGroup).join("")}
+    </div>
   `;
 }
 
-function generateSummarySection(
-  drifts: [string, { main: DiffResult; importantDates: DiffResult }][]
-): string {
-  const totalEvents = drifts.length;
-  const eventsWithChanges = drifts.filter(
-    ([, drift]) => drift.main.hasChanges || drift.importantDates.hasChanges
+function generateSummarySection(groups: UrlGroup[]): string {
+  const totalEvents = new Set(groups.flatMap((g) => g.refs.map((r) => r.key)))
+    .size;
+  const totalUrls = groups.length;
+  const urlsWithChanges = groups.filter((g) => g.diff.hasChanges);
+  const affectedKeys = new Set(
+    urlsWithChanges.flatMap((g) => g.refs.map((r) => r.key))
   );
-  const mainPageChanges = drifts.filter(
-    ([, drift]) => drift.main.hasChanges
-  ).length;
-  const datePageChanges = drifts.filter(
-    ([, drift]) => drift.importantDates.hasChanges
-  ).length;
 
   return `
     <div style="font-family: Arial, sans-serif; background: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px auto; max-width: 800px;">
       <h2 style="color: #333; margin-top: 0;">Summary</h2>
       <ul style="color: #666; line-height: 1.8;">
         <li><strong>${totalEvents}</strong> conferences monitored</li>
-        <li><strong>${
-          eventsWithChanges.length
-        }</strong> conferences with changes detected</li>
-        <li><strong>${mainPageChanges}</strong> main page changes</li>
-        <li><strong>${datePageChanges}</strong> important dates page changes</li>
+        <li><strong>${totalUrls}</strong> unique pages tracked</li>
+        <li><strong>${urlsWithChanges.length}</strong> pages with changes</li>
+        <li><strong>${affectedKeys.size}</strong> conferences affected</li>
       </ul>
       ${
-        eventsWithChanges.length > 0
+        affectedKeys.size > 0
           ? `
         <div style="margin-top: 16px; padding-top: 16px; border-top: 1px solid #dee2e6;">
-          <strong style="color: #333;">Conferences with changes:</strong>
+          <strong style="color: #333;">Affected conferences:</strong>
           <div style="margin-top: 8px;">
-            ${eventsWithChanges
-              .map(([key, drift]) => {
-                const changes = [];
-                if (drift.main.hasChanges) changes.push("main page");
-                if (drift.importantDates.hasChanges)
-                  changes.push("important dates");
+            ${Array.from(affectedKeys)
+              .map((key) => {
                 const displayAbbrev = events[key]?.abbreviation || key;
                 return `<span style="display: inline-block; background: #e9ecef; padding: 4px 8px; margin: 4px; border-radius: 4px; font-size: 14px;">
-                ${displayAbbrev.toUpperCase()} (${changes.join(", ")})
+                ${escapeHtml(displayAbbrev.toUpperCase())}
               </span>`;
               })
               .join("")}
@@ -455,27 +444,13 @@ function generateSummarySection(
 }
 
 export const handler = async () => {
-  const storedEventInfo = await getStoredEventInfo();
-  const currentEventInfo = await getCurrentEventInfo();
-
-  const drifts: [
-    string,
-    {
-      main: DiffResult;
-      importantDates: DiffResult;
-    },
-  ][] = Object.entries(currentEventInfo).map(([key, currentInfo]) => {
-    const storedInfo = storedEventInfo[key];
-    return [
-      key,
-      {
-        main: diffContent(storedInfo.main, currentInfo.main),
-        importantDates: diffContent(
-          storedInfo.importantDates,
-          currentInfo.importantDates
-        ),
-      },
-    ];
+  const tasks = collectUrlTasks();
+  const results = await Promise.all(tasks.map(processUrl));
+  const urlGroups = results.slice().sort((a, b) => {
+    const aChanges = a.diff.addedCount + a.diff.removedCount;
+    const bChanges = b.diff.addedCount + b.diff.removedCount;
+    if (aChanges !== bChanges) return bChanges - aChanges;
+    return a.normalizedUrl.localeCompare(b.normalizedUrl);
   });
 
   const sesClient = new SESv2Client();
@@ -516,8 +491,8 @@ export const handler = async () => {
                       timeZoneName: "short",
                     })}
                   </p>
-                  ${generateSummarySection(drifts)}
-                  ${toTable(drifts)}
+                  ${generateSummarySection(urlGroups)}
+                  ${toTable(urlGroups)}
                   <div style="font-family: Arial, sans-serif; color: #999; text-align: center; margin-top: 40px; padding-top: 20px; border-top: 1px solid #eee; font-size: 12px;">
                     <p>This is an automated report from the PL Conferences drift detection system.</p>
                     <p>Changes are detected by comparing the current website content with previously stored versions.</p>
@@ -535,31 +510,19 @@ export const handler = async () => {
 
   await sesClient.send(sendCommand);
 
-  // Store the current event info for the next run
-  const putPromises = Object.entries(currentEventInfo).map(
-    async ([key, info]) => {
-      if (info.main !== undefined) {
-        const putMainCommand = new PutObjectCommand({
-          Bucket: WEBPAGE_BUCKET_NAME,
-          Key: `${key}-main.html`,
-          Body: info.main,
-        });
-        await s3Client.send(putMainCommand);
-      } else {
-        console.warn("No main page for ", key);
+  await Promise.all(
+    urlGroups.map(async (group) => {
+      if (group.current === undefined) {
+        console.warn("No current content for ", group.displayUrl);
+        return;
       }
-      if (info.importantDates !== undefined) {
-        const putDatesCommand = new PutObjectCommand({
-          Bucket: WEBPAGE_BUCKET_NAME,
-          Key: `${key}-dates.html`,
-          Body: info.importantDates,
-        });
-        await s3Client.send(putDatesCommand);
-      } else {
-        console.warn("No important date url for ", key);
-      }
-    }
+      await s3Client.send(
+        new PutObjectCommand({
+          Bucket: DRIFT_SNAPSHOTS_BUCKET_NAME,
+          Key: group.storageKey,
+          Body: group.current,
+        })
+      );
+    })
   );
-
-  await Promise.all(putPromises);
 };

@@ -49,7 +49,7 @@ export class PlConfStack extends cdk.Stack {
       domainNames = [domainName, `www.${domainName}`];
     }
 
-    const webpageBucket = new s3.Bucket(this, "WebpageBucket", {
+    const driftSnapshotsBucket = new s3.Bucket(this, "DriftSnapshots", {
       versioned: true,
       removalPolicy: isProduction
         ? cdk.RemovalPolicy.RETAIN
@@ -97,13 +97,13 @@ export class PlConfStack extends cdk.Stack {
       timeout: cdk.Duration.minutes(5),
       memorySize: 512,
       environment: {
-        WEBPAGE_BUCKET_NAME: webpageBucket.bucketName,
+        DRIFT_SNAPSHOTS_BUCKET_NAME: driftSnapshotsBucket.bucketName,
         NOTIFICATION_EMAIL: notificationEmail,
         DRIFT_EMAIL_SENDER: `drift-${stage}@pl-conferences.com`,
       },
     });
 
-    webpageBucket.grantReadWrite(driftFunction);
+    driftSnapshotsBucket.grantReadWrite(driftFunction);
     driftFunction.addToRolePolicy(
       new iam.PolicyStatement({
         actions: ["ses:SendEmail", "ses:SendRawEmail"],
@@ -236,9 +236,9 @@ export class PlConfStack extends cdk.Stack {
       description: "Submission API endpoint",
     });
 
-    new cdk.CfnOutput(this, "WebpageBucketName", {
-      value: webpageBucket.bucketName,
-      description: "S3 bucket for webpage snapshots",
+    new cdk.CfnOutput(this, "DriftSnapshotsBucketName", {
+      value: driftSnapshotsBucket.bucketName,
+      description: "S3 bucket for drift snapshots",
     });
   }
 }
