@@ -1,9 +1,10 @@
 "use client";
 
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import clsx from "clsx";
 import { Github } from "lucide-react";
 import { type ScheduledEvent, eventKey } from "../lib/event";
+import type { FilterParams } from "../lib/filter-params";
 import { EventCard } from "./event-row";
 import { TagFilterProvider } from "./event-tags";
 import { LastUpdated } from "./last-updated";
@@ -21,10 +22,15 @@ import {
 export function EventListContainer({
   events,
   initialNowMs,
+  initialFilters,
 }: {
   events: ScheduledEvent[];
   initialNowMs: number;
+  initialFilters: FilterParams;
 }) {
+  useEffect(() => {
+    document.documentElement.dataset.plConfHydrated = "1";
+  }, []);
   const {
     now,
     layout,
@@ -55,7 +61,7 @@ export function EventListContainer({
     firstCollapsibleIdx,
     showCollapseHint,
     dismissCollapseHint,
-  } = useEventListState(events, initialNowMs);
+  } = useEventListState(events, initialNowMs, initialFilters);
 
   const tagFilter = useMemo(
     () => ({ activeTags, onToggle: toggleTag }),

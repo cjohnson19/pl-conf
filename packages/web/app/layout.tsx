@@ -15,15 +15,9 @@ if (raw) {
   var prefs = JSON.parse(raw);
   var entries = Object.entries(prefs.eventPrefs || {});
   var hidden = entries.filter(function(kv){return kv[1] && kv[1].hidden;}).map(function(kv){return kv[0];});
-  var starred = entries.filter(function(kv){return kv[1] && kv[1].favorite;}).map(function(kv){return kv[0];});
-  var view = sessionStorage.getItem("view");
   var esc = function(s){return s.replace(/[\\\\"]/g, "\\\\$&");};
   var rules = "";
   hidden.forEach(function(k){rules += '[data-event-key="' + esc(k) + '"]{display:none}';});
-  if (view === "starred") {
-    rules += "[data-event-key]{display:none}";
-    starred.forEach(function(k){rules += '[data-event-key="' + esc(k) + '"]{display:revert}';});
-  }
   if (rules) {
     var style = document.createElement("style");
     style.textContent = rules;

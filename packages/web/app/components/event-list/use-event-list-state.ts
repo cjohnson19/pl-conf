@@ -16,25 +16,22 @@ import {
   openToNewSubmissions,
 } from "../../lib/event-filter";
 import {
-  type Codec,
-  stringCodec,
   stringSetCodec,
   useSessionStorage,
 } from "../../hooks/use-session-storage";
+import {
+  type Category,
+  type FilterParams,
+  type View,
+  serializeFilterParams,
+} from "../../lib/filter-params";
 import { usePreferences } from "../preferences-provider";
 import { type Group, buildGroups } from "./grouping";
 
-export type Category =
-  | "all"
-  | "conference"
-  | "workshop"
-  | "symposium"
-  | "school";
-export type View = "starred" | "all" | "submissions";
+export type { Category, View };
 
 export type Layout = "list" | "grid";
 
-const SESSION_VIEW_KEY = "view";
 const SESSION_COLLAPSED_KEY = "collapsedDateGroups";
 
 function hasDeadlineWithinAoeToday(
@@ -130,17 +127,18 @@ export type EventListState = {
 
 export function useEventListState(
   events: ScheduledEvent[],
-  initialNowMs: number
+  initialNowMs: number,
+  initialFilters: FilterParams
 ): EventListState {
   const { prefs, setPrefs, prefsLoaded } = usePreferences();
   const layout: Layout = prefs.display.layout ?? "list";
   const setLayout = (next: Layout) =>
     setPrefs((p) => ({ ...p, display: { ...p.display, layout: next } }));
 
-  const [search, setSearch] = useState("");
+  const [search, setSearch] = useState(initialFilters.q);
   const deferredSearch = useDeferredValue(search);
-  const [category, setCategory] = useState<Category>("all");
-  const [activeTags, setActiveTags] = useState<Set<Tag>>(() => new Set());
+  const [category, setCategory] = useState<Category>(initialFilters.category);
+  const [activeTags, setActiveTags] = useState<Set<Tag>>(initialFilters.tags);
   const toggleTag = (tag: Tag) =>
     setActiveTags((prev) => {
       const next = new Set(prev);
@@ -149,11 +147,24 @@ export function useEventListState(
       return next;
     });
   const clearTags = () => setActiveTags(new Set());
-  const [view, setView] = useSessionStorage<View>(
-    SESSION_VIEW_KEY,
-    "all",
-    stringCodec as Codec<View>
-  );
+  const [view, setView] = useState<View>(initialFilters.view);
+
+  useEffect(() => {
+    const sp = serializeFilterParams({
+      q: search,
+      category,
+      view,
+      tags: activeTags,
+    });
+    const qs = sp.toString();
+    const target = qs
+      ? `${window.location.pathname}?${qs}`
+      : window.location.pathname;
+    const current = window.location.pathname + window.location.search;
+    if (target !== current) {
+      window.history.replaceState({}, "", target);
+    }
+  }, [search, category, view, activeTags]);
 
   const { now, hydrated } = useNowTick(events, initialNowMs);
   const hasOpenSubmission = useMemo(
