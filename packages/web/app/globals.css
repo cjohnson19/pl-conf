@@ -106,6 +106,13 @@
 }
 
 @layer components {
+  .event-row-grid,
+  .event-row-grid--no-date,
+  .event-card {
+    content-visibility: auto;
+    contain-intrinsic-size: auto 200px;
+  }
+
   .event-row-grid {
     grid-template-columns: 48px 1fr 44px;
     gap: 0.625rem;
@@ -149,36 +156,6 @@
     .event-row-grid--no-date {
       grid-template-columns: minmax(0, 1.6fr) minmax(0, 2fr) 104px;
       gap: 1.75rem;
-    }
-  }
-
-  .pl-conf-skeleton {
-    display: none;
-  }
-  html.pl-conf-loading .pl-conf-real {
-    display: none;
-  }
-  html.pl-conf-loading .pl-conf-skeleton {
-    display: block;
-  }
-
-  @keyframes pl-conf-skeleton-pulse {
-    0%,
-    100% {
-      opacity: 0.55;
-    }
-    50% {
-      opacity: 0.85;
-    }
-  }
-  .pl-conf-skeleton-bar {
-    background: var(--paper-2);
-    border-radius: var(--r-xs);
-    animation: pl-conf-skeleton-pulse 1.4s ease-in-out infinite;
-  }
-  @media (prefers-reduced-motion: reduce) {
-    .pl-conf-skeleton-bar {
-      animation: none;
     }
   }
 

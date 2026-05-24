@@ -33,6 +33,7 @@ import {
   stringSetCodec,
   useSessionStorage,
 } from "../../hooks/use-session-storage";
+import { useNowTick } from "../../hooks/use-now-tick";
 
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
 const HERO_CUTOFF_DAYS = 14;
@@ -41,14 +42,22 @@ const SESSION_DISMISSED_KEY = "dismissedHeroKeys";
 
 export function Hero({
   events,
-  starredKeys,
-  now,
+  initialNowMs,
 }: {
   events: ScheduledEvent[];
-  starredKeys: Set<string>;
-  now: Date;
+  initialNowMs: number;
 }) {
+  const now = useNowTick(initialNowMs);
   const { prefs, setPrefs, prefsLoaded } = usePreferences();
+  const starredKeys = useMemo(
+    () =>
+      new Set(
+        Object.entries(prefs.eventPrefs)
+          .filter(([, v]) => v?.favorite)
+          .map(([k]) => k)
+      ),
+    [prefs]
+  );
   const [sessionDismissed, setSessionDismissed] = useSessionStorage(
     SESSION_DISMISSED_KEY,
     new Set<string>(),

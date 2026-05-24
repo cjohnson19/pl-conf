@@ -8,9 +8,14 @@ const PORT =
   3000;
 const ROOT = path.resolve(import.meta.dirname, "..");
 const WEB_DIR = path.join(ROOT, "packages", "web");
-const OUT_DIR = path.join(WEB_DIR, "out");
-const OUT_TEST_DIR = path.join(WEB_DIR, "out-test");
-const OUT_BACKUP_DIR = path.join(WEB_DIR, "out-real-backup");
+const NEXT_TEST_DIR = path.join(WEB_DIR, ".next-test");
+const STANDALONE_WEB_DIR = path.join(
+  NEXT_TEST_DIR,
+  "standalone",
+  "packages",
+  "web"
+);
+const SERVER_ENTRY = path.join(STANDALONE_WEB_DIR, "server.js");
 const GENERATED_FILE = path.join(
   ROOT,
   "packages",
@@ -62,12 +67,7 @@ function buildFixtureSite() {
     if (gen.status !== 0) throw new Error("pnpm run generate failed");
   }
 
-  const hadRealOut = fs.existsSync(OUT_DIR);
-  if (hadRealOut) {
-    fs.rmSync(OUT_BACKUP_DIR, { recursive: true, force: true });
-    fs.renameSync(OUT_DIR, OUT_BACKUP_DIR);
-  }
-  fs.rmSync(OUT_TEST_DIR, { recursive: true, force: true });
+  fs.rmSync(NEXT_TEST_DIR, { recursive: true, force: true });
 
   // Swap the data package's generated file for the fixture so the build
   // sees the mock events through the same import path as production.
@@ -78,27 +78,35 @@ function buildFixtureSite() {
   let build: ReturnType<typeof spawnSync> | undefined;
   try {
     // Run web's full build (prebuild generates ical files from the swapped
-    // fixture events, then next build emits the static site).
+    // fixture events, then next build emits the standalone server bundle
+    // into .next-test/standalone/).
     build = spawnSync("pnpm", ["--filter", "@pl-conf/web", "run", "build"], {
       cwd: ROOT,
       stdio: "inherit",
       env: { ...process.env, PL_CONF_TEST_FIXTURE: "1" },
     });
-
-    if (fs.existsSync(OUT_DIR)) {
-      fs.renameSync(OUT_DIR, OUT_TEST_DIR);
-    }
   } finally {
     fs.renameSync(GENERATED_BACKUP, GENERATED_FILE);
-    if (hadRealOut && fs.existsSync(OUT_BACKUP_DIR)) {
-      fs.rmSync(OUT_DIR, { recursive: true, force: true });
-      fs.renameSync(OUT_BACKUP_DIR, OUT_DIR);
-    }
   }
 
   if (!build || build.status !== 0) {
     throw new Error("Fixture build failed");
   }
+
+  // The standalone bundle ships server.js + a minimal distDir, but Next
+  // expects us to copy static assets and public/ next to the server.
+  // The distDir is .next-test (next.config.ts isTestFixture branch), so the
+  // server resolves /_next/static/* against .next-test/static/, not .next/static/.
+  fs.cpSync(
+    path.join(NEXT_TEST_DIR, "static"),
+    path.join(STANDALONE_WEB_DIR, ".next-test", "static"),
+    { recursive: true }
+  );
+  fs.cpSync(
+    path.join(WEB_DIR, "public"),
+    path.join(STANDALONE_WEB_DIR, "public"),
+    { recursive: true }
+  );
 }
 
 export async function setup() {
@@ -111,22 +119,23 @@ export async function setup() {
     buildFixtureSite();
   }
 
-  const indexHtml = path.join(OUT_TEST_DIR, "index.html");
-  if (!fs.existsSync(indexHtml)) {
+  if (!fs.existsSync(SERVER_ENTRY)) {
     throw new Error(
-      `Fixture build output missing at ${OUT_TEST_DIR}. Unset SKIP_TEST_BUILD to rebuild.`
+      `Standalone server bundle missing at ${SERVER_ENTRY}. Unset SKIP_TEST_BUILD to rebuild.`
     );
   }
 
-  console.log(`Serving fixture build from out-test/ on port ${PORT}`);
-  serverProcess = spawn(
-    "npx",
-    ["serve", OUT_TEST_DIR, "-l", String(PORT), "--no-clipboard"],
-    {
-      cwd: ROOT,
-      stdio: "pipe",
-    }
-  );
+  console.log(`Starting standalone Next server on port ${PORT}`);
+  serverProcess = spawn("node", [SERVER_ENTRY], {
+    cwd: ROOT,
+    stdio: "pipe",
+    env: {
+      ...process.env,
+      PORT: String(PORT),
+      HOSTNAME: "127.0.0.1",
+      NODE_ENV: "production",
+    },
+  });
 
   serverProcess.stderr?.on("data", (data: Buffer) => {
     const msg = data.toString();

@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import clsx from "clsx";
 import {
   Command,
@@ -12,7 +13,11 @@ import {
 } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 import { type Tag, tagDisplayName, tagValues } from "../../lib/event";
-import type { Category, Layout, View } from "./use-event-list-state";
+import type { Category, View } from "../../lib/filter-params";
+import type { ViewCounts } from "../../lib/event-list-view";
+import { usePreferences } from "../preferences-provider";
+
+export type Layout = "list" | "grid";
 
 const CATEGORY_CHIPS: { key: Category; label: string }[] = [
   { key: "all", label: "All" },
@@ -22,14 +27,29 @@ const CATEGORY_CHIPS: { key: Category; label: string }[] = [
   { key: "school", label: "Schools" },
 ];
 
-export function SearchPill({
-  value,
-  setValue,
-}: {
-  value: string;
-  setValue: (next: string) => void;
-}) {
+const CATEGORY_KEYS: Category[] = CATEGORY_CHIPS.map((c) => c.key);
+const VIEW_KEYS: View[] = ["starred", "all", "submissions"];
+const KNOWN_TAGS = new Set<string>(tagValues);
+
+function replaceSearchParam(
+  searchParams: URLSearchParams,
+  key: string,
+  value: string | null
+): string {
+  const sp = new URLSearchParams(searchParams.toString());
+  if (value === null || value === "") sp.delete(key);
+  else sp.set(key, value);
+  const qs = sp.toString();
+  return qs ? `?${qs}` : "?";
+}
+
+export function SearchPill({ defaultValue }: { defaultValue: string }) {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const [value, setValue] = useState(defaultValue);
   const inputRef = useRef<HTMLInputElement>(null);
+  const timerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
@@ -41,6 +61,21 @@ export function SearchPill({
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
   }, []);
+
+  useEffect(() => {
+    if (timerRef.current) clearTimeout(timerRef.current);
+    const current = searchParams.get("q") ?? "";
+    if (value === current) return;
+    timerRef.current = setTimeout(() => {
+      router.replace(replaceSearchParam(searchParams, "q", value || null), {
+        scroll: false,
+      });
+    }, 300);
+    return () => {
+      if (timerRef.current) clearTimeout(timerRef.current);
+    };
+  }, [value, searchParams, router]);
+
   return (
     <div className="relative w-full min-w-[200px] flex-1 sm:max-w-[360px]">
       <Search
@@ -69,15 +104,23 @@ export function SearchPill({
   );
 }
 
-export function FilterChips({
-  active,
-  counts,
-  onSelect,
-}: {
-  active: Category;
-  counts: Record<Category, number>;
-  onSelect: (c: Category) => void;
-}) {
+export function FilterChips({ counts }: { counts: Record<Category, number> }) {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const rawActive = searchParams.get("c");
+  const active: Category =
+    rawActive && (CATEGORY_KEYS as string[]).includes(rawActive)
+      ? (rawActive as Category)
+      : "all";
+  const select = useCallback(
+    (key: Category) => {
+      router.replace(
+        replaceSearchParam(searchParams, "c", key === "all" ? null : key),
+        { scroll: false }
+      );
+    },
+    [router, searchParams]
+  );
   return (
     <>
       {CATEGORY_CHIPS.map(({ key, label }) => {
@@ -88,7 +131,7 @@ export function FilterChips({
           <button
             key={key}
             type="button"
-            onClick={() => onSelect(key)}
+            onClick={() => select(key)}
             className={clsx(
               "inline-flex h-8 items-center gap-1.5 rounded-pill border px-3.5 text-[13px] transition-colors",
               on
@@ -105,18 +148,33 @@ export function FilterChips({
   );
 }
 
-export function TagsFilter({
-  activeTags,
-  tagCounts,
-  onToggle,
-  onClear,
-}: {
-  activeTags: Set<Tag>;
-  tagCounts: Record<Tag, number>;
-  onToggle: (tag: Tag) => void;
-  onClear: () => void;
-}) {
+export function TagsFilter({ tagCounts }: { tagCounts: Record<Tag, number> }) {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const rawTags = searchParams.get("tags") ?? "";
+  const activeTags = new Set<Tag>(
+    rawTags
+      .split(",")
+      .map((t) => t.trim())
+      .filter((t): t is Tag => KNOWN_TAGS.has(t))
+  );
   const activeCount = activeTags.size;
+  const writeTags = useCallback(
+    (next: Set<Tag>) => {
+      const value = next.size === 0 ? null : Array.from(next).sort().join(",");
+      router.replace(replaceSearchParam(searchParams, "tags", value), {
+        scroll: false,
+      });
+    },
+    [router, searchParams]
+  );
+  const onToggle = (tag: Tag) => {
+    const next = new Set(activeTags);
+    if (next.has(tag)) next.delete(tag);
+    else next.add(tag);
+    writeTags(next);
+  };
+  const onClear = () => writeTags(new Set());
   return (
     <Popover>
       <PopoverTrigger asChild>
@@ -222,16 +280,27 @@ export function TagsFilter({
 }
 
 export function ViewTabs({
-  active,
   counts,
-  onSelect,
+  starredCountSlot,
   trailing,
 }: {
-  active: View;
-  counts: Record<View, number>;
-  onSelect: (v: View) => void;
+  counts: ViewCounts;
+  starredCountSlot?: React.ReactNode;
   trailing?: React.ReactNode;
 }) {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const rawActive = searchParams.get("view");
+  const active: View =
+    rawActive && (VIEW_KEYS as string[]).includes(rawActive)
+      ? (rawActive as View)
+      : "all";
+  const select = (next: View) => {
+    router.replace(
+      replaceSearchParam(searchParams, "view", next === "all" ? null : next),
+      { scroll: false }
+    );
+  };
   const tabs: {
     key: View;
     label: string;
@@ -258,11 +327,15 @@ export function ViewTabs({
       <div className="-mx-5 flex flex-1 gap-0.5 overflow-x-auto overflow-y-hidden px-5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:gap-1 md:mx-0 md:overflow-visible md:px-0">
         {tabs.map((t) => {
           const on = t.key === active;
+          const countNode =
+            t.key === "starred"
+              ? starredCountSlot
+              : counts[t.key as Exclude<View, "starred">];
           return (
             <button
               key={t.key}
               type="button"
-              onClick={() => onSelect(t.key)}
+              onClick={() => select(t.key)}
               className={clsx(
                 "-mb-px inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap border-b-2 border-transparent bg-transparent px-2 py-2.5 text-[13px] font-medium transition-colors sm:gap-2 sm:px-3.5",
                 on ? "border-ink text-ink" : "text-ink-3 hover:text-ink-2"
@@ -277,14 +350,16 @@ export function ViewTabs({
               ) : (
                 t.label
               )}
-              <span
-                className={clsx(
-                  "hidden font-mono text-[11px] sm:inline",
-                  on ? "text-ink-2" : "text-ink-3"
-                )}
-              >
-                {counts[t.key]}
-              </span>
+              {countNode !== undefined && countNode !== null && (
+                <span
+                  className={clsx(
+                    "hidden font-mono text-[11px] sm:inline",
+                    on ? "text-ink-2" : "text-ink-3"
+                  )}
+                >
+                  {countNode}
+                </span>
+              )}
             </button>
           );
         })}
@@ -296,13 +371,11 @@ export function ViewTabs({
   );
 }
 
-export function LayoutToggle({
-  layout,
-  setLayout,
-}: {
-  layout: Layout;
-  setLayout: (next: Layout) => void;
-}) {
+export function LayoutToggle() {
+  const { prefs, setPrefs } = usePreferences();
+  const layout: Layout = prefs.display.layout ?? "list";
+  const setLayout = (next: Layout) =>
+    setPrefs((p) => ({ ...p, display: { ...p.display, layout: next } }));
   const options: {
     key: Layout;
     icon: React.ReactNode;

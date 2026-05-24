@@ -44,6 +44,7 @@ const findFixture = (abbrev: string): ScheduledEvent => {
 type StorageSeed = {
   local?: Record<string, unknown>;
   session?: Record<string, unknown>;
+  params?: Record<string, string>;
 };
 
 type Fixtures = {
@@ -90,7 +91,9 @@ const test = base.extend<Fixtures>({
   renderedKeys: async ({ page }, use) => {
     await use(() =>
       page.$$eval("[data-event-key]", (nodes) =>
-        nodes.map((n) => n.getAttribute("data-event-key") ?? "")
+        nodes
+          .filter((n) => (n as HTMLElement).offsetParent !== null)
+          .map((n) => n.getAttribute("data-event-key") ?? "")
       )
     );
   },
@@ -143,23 +146,25 @@ const test = base.extend<Fixtures>({
           }
         }
       }, seed);
-      await page.reload({ waitUntil: "networkidle2" });
+      if (seed.params) {
+        const qs = new URLSearchParams(seed.params).toString();
+        await page.goto(`${URL}${qs ? `?${qs}` : ""}`, {
+          waitUntil: "networkidle2",
+        });
+      } else {
+        await page.reload({ waitUntil: "networkidle2" });
+      }
     });
   },
   waitForSettled: async ({ page }, use) => {
     await use(async () => {
-      // The ViewTabs row always renders post-hydration regardless of which
-      // view/layout/empty-state is active, so its "All events" button is a
-      // stable settled marker even when the list happens to be empty.
-      // Subsequent effects (prefs load, view load, hero pickHero) and the
-      // hero's opacity transition (300ms) complete soon after; a small
-      // post-hydration delay lets every settle effect commit before
-      // assertions run.
+      // EventListContainer sets data-pl-conf-hydrated on the html element
+      // in a mount-time effect, so this attribute appears exactly once
+      // React has hydrated. A small post-hydration delay lets follow-up
+      // effects (localStorage prefs load, hero pickHero, hero transition)
+      // commit before assertions run.
       await page.waitForFunction(
-        () =>
-          Array.from(document.querySelectorAll("button")).some((b) =>
-            b.textContent?.trim().startsWith("All events")
-          ),
+        () => document.documentElement.dataset.plConfHydrated === "1",
         { timeout: 5000 }
       );
       await new Promise((resolve) => setTimeout(resolve, 350));
@@ -200,7 +205,7 @@ describe.concurrent("event list", () => {
   });
 });
 
-describe.concurrent("starring", () => {
+describe("starring", () => {
   test("clicking the star button toggles aria-pressed and persists to localStorage", async ({
     page,
     starButton,
@@ -276,7 +281,12 @@ describe.concurrent("starring", () => {
     await unstar?.evaluate((b) => (b as HTMLButtonElement).click());
 
     await page.waitForFunction(
-      (k) => !document.querySelector(`[data-event-key="${k}"]`),
+      (k) => {
+        const el = document.querySelector(
+          `[data-event-key="${k}"]`
+        ) as HTMLElement | null;
+        return !el || el.offsetParent === null;
+      },
       { timeout: 5000 },
       key
     );
@@ -368,7 +378,7 @@ describe.concurrent("hero", () => {
   });
 });
 
-describe.concurrent("search", () => {
+describe("search", () => {
   test("typing into the search pill filters the list", async ({
     page,
     renderedKeys,
@@ -383,19 +393,23 @@ describe.concurrent("search", () => {
     await input?.click({ clickCount: 3 });
     await input?.type(term);
 
+    const fullCount = activeEvents().length;
     await page.waitForFunction(
-      (k) => !!document.querySelector(`[data-event-key="${k}"]`),
+      (n) =>
+        Array.from(document.querySelectorAll("[data-event-key]")).filter(
+          (el) => (el as HTMLElement).offsetParent !== null
+        ).length < n,
       { timeout: 5000 },
-      eventKey(sample)
+      fullCount
     );
 
     const keys = await renderedKeys();
     expect(keys).toContain(eventKey(sample));
-    expect(keys.length).toBeLessThan(activeEvents().length);
+    expect(keys.length).toBeLessThan(fullCount);
   });
 });
 
-describe.concurrent("category chips", () => {
+describe("category chips", () => {
   test("selecting Workshops only shows workshop-type events", async ({
     page,
     renderedKeys,
@@ -574,7 +588,7 @@ describe.concurrent("tags", () => {
   });
 });
 
-describe.concurrent("submissions open view", () => {
+describe("submissions open view", () => {
   test("only shows events whose first deadline is still in the future", async ({
     page,
     renderedKeys,
@@ -614,7 +628,7 @@ describe.concurrent("multi-round badge", () => {
   });
 });
 
-describe.concurrent("calendar menu", () => {
+describe("calendar menu", () => {
   test("toggling 'Include submission deadlines' regenerates the .ics with extra VEVENTs", async ({
     page,
     goToAllEvents,
@@ -783,7 +797,7 @@ describe.concurrent("calendar menu", () => {
   });
 });
 
-describe.concurrent("mobile layout", () => {
+describe("mobile layout", () => {
   test("at 375px the row exposes only the action sheet trigger", async ({
     page,
     goToAllEvents,
@@ -829,7 +843,6 @@ describe.concurrent("persistence settle", () => {
   // initial-load reads into a coalesced provider must preserve these keys
   // and their on-the-wire shapes — otherwise returning users lose state.
   const PREFS_KEY = "userPrefsV2";
-  const VIEW_KEY = "view";
   const COLLAPSED_KEY = "collapsedDateGroups";
 
   const prefs = (display: Record<string, unknown>, eventPrefs = {}) => ({
@@ -865,7 +878,7 @@ describe.concurrent("persistence settle", () => {
     expect(listPressed).toBe("true");
   });
 
-  test("stored view=all is honored even when the user has starred events", async ({
+  test("view=all (default) is honored even when the user has starred events", async ({
     seedStorage,
     waitForSettled,
     renderedKeys,
@@ -873,7 +886,6 @@ describe.concurrent("persistence settle", () => {
     const key = eventKey(findFixture("MOCKB"));
     await seedStorage({
       local: { [PREFS_KEY]: prefs({}, starred(key)) },
-      session: { [VIEW_KEY]: "all" },
     });
     await waitForSettled();
     const keys = await renderedKeys();
@@ -881,13 +893,13 @@ describe.concurrent("persistence settle", () => {
     expect(keys).toContain(key);
   });
 
-  test("stored view=starred is honored even when nothing is starred (empty state)", async ({
+  test("?view=starred is honored even when nothing is starred (empty state)", async ({
     page,
     seedStorage,
     waitForSettled,
     renderedKeys,
   }) => {
-    await seedStorage({ session: { [VIEW_KEY]: "starred" } });
+    await seedStorage({ params: { view: "starred" } });
     await waitForSettled();
     const keys = await renderedKeys();
     expect(keys.length).toBe(0);
