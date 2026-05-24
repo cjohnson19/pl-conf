@@ -92,6 +92,38 @@ export class PlConfExperimentStack extends cdk.Stack {
     });
     service.node.addDependency(cluster, executionRole, infrastructureRole);
 
+    const filterQueryParams = ["q", "c", "view", "tags"];
+
+    const htmlCachePolicy = new cloudfront.CachePolicy(
+      this,
+      "HtmlCachePolicy",
+      {
+        defaultTtl: cdk.Duration.seconds(60),
+        minTtl: cdk.Duration.seconds(0),
+        maxTtl: cdk.Duration.seconds(3600),
+        enableAcceptEncodingGzip: true,
+        enableAcceptEncodingBrotli: true,
+        cookieBehavior: cloudfront.CacheCookieBehavior.none(),
+        queryStringBehavior: cloudfront.CacheQueryStringBehavior.allowList(
+          ...filterQueryParams
+        ),
+        headerBehavior: cloudfront.CacheHeaderBehavior.none(),
+      }
+    );
+
+    const htmlOriginRequestPolicy = new cloudfront.OriginRequestPolicy(
+      this,
+      "HtmlOriginRequestPolicy",
+      {
+        cookieBehavior: cloudfront.OriginRequestCookieBehavior.none(),
+        queryStringBehavior:
+          cloudfront.OriginRequestQueryStringBehavior.allowList(
+            ...filterQueryParams
+          ),
+        headerBehavior: cloudfront.OriginRequestHeaderBehavior.none(),
+      }
+    );
+
     const distribution = new cloudfront.Distribution(this, "Distribution", {
       defaultBehavior: {
         origin: new origins.HttpOrigin(service.attrEndpoint, {
@@ -100,9 +132,8 @@ export class PlConfExperimentStack extends cdk.Stack {
         }),
         viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
         allowedMethods: cloudfront.AllowedMethods.ALLOW_ALL,
-        cachePolicy: cloudfront.CachePolicy.CACHING_DISABLED,
-        originRequestPolicy:
-          cloudfront.OriginRequestPolicy.ALL_VIEWER_EXCEPT_HOST_HEADER,
+        cachePolicy: htmlCachePolicy,
+        originRequestPolicy: htmlOriginRequestPolicy,
         compress: true,
       },
       additionalBehaviors: {

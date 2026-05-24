@@ -10,19 +10,33 @@ const prePaintScript = `try {
 var ua = navigator.userAgentData;
 var uaStr = (navigator.userAgent || "") + " " + (navigator.platform || "");
 if ((ua && ua.platform === "macOS") || /Mac|iPhone|iPad|iPod/i.test(uaStr)) document.documentElement.dataset.os = "mac";
+var view = new URLSearchParams(window.location.search).get("view");
 var raw = localStorage.getItem("userPrefsV2");
+var rules = "";
+var esc = function(s){return s.replace(/[\\\\"]/g, "\\\\$&");};
 if (raw) {
   var prefs = JSON.parse(raw);
   var entries = Object.entries(prefs.eventPrefs || {});
   var hidden = entries.filter(function(kv){return kv[1] && kv[1].hidden;}).map(function(kv){return kv[0];});
-  var esc = function(s){return s.replace(/[\\\\"]/g, "\\\\$&");};
-  var rules = "";
   hidden.forEach(function(k){rules += '[data-event-key="' + esc(k) + '"]{display:none}';});
-  if (rules) {
-    var style = document.createElement("style");
-    style.textContent = rules;
-    document.head.appendChild(style);
+  if (view === "starred") {
+    var starred = entries.filter(function(kv){return kv[1] && kv[1].favorite;}).map(function(kv){return kv[0];});
+    if (starred.length === 0) {
+      rules += '[data-event-key]{display:none}[data-group-keys]{display:none}';
+    } else {
+      var sel = starred.map(function(k){return '[data-event-key="' + esc(k) + '"]';}).join(',');
+      rules += '[data-event-key]:not(' + sel + '){display:none}';
+      rules += '[data-group-keys]:not(:has(' + sel + ')){display:none}';
+    }
   }
+} else if (view === "starred") {
+  rules += '[data-event-key]{display:none}[data-group-keys]{display:none}';
+}
+if (rules) {
+  var style = document.createElement("style");
+  style.id = "pl-prepaint-visibility";
+  style.textContent = rules;
+  document.head.appendChild(style);
 }
 } catch (e) {}`;
 

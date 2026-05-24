@@ -93,11 +93,13 @@ function buildFixtureSite() {
     throw new Error("Fixture build failed");
   }
 
-  // The standalone bundle ships server.js + a minimal .next/, but Next
+  // The standalone bundle ships server.js + a minimal distDir, but Next
   // expects us to copy static assets and public/ next to the server.
+  // The distDir is .next-test (next.config.ts isTestFixture branch), so the
+  // server resolves /_next/static/* against .next-test/static/, not .next/static/.
   fs.cpSync(
     path.join(NEXT_TEST_DIR, "static"),
-    path.join(STANDALONE_WEB_DIR, ".next", "static"),
+    path.join(STANDALONE_WEB_DIR, ".next-test", "static"),
     { recursive: true }
   );
   fs.cpSync(

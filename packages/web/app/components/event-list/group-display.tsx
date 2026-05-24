@@ -4,7 +4,6 @@ import { useLayoutEffect, useRef, useState } from "react";
 import clsx from "clsx";
 import { ChevronDown, X } from "lucide-react";
 import {
-  eventKey,
   isDeadlineUrgent,
   toAoeInstant,
   toCalendarDate,
@@ -15,10 +14,16 @@ import {
   monthLongFmt,
   weekdayLongFmt,
 } from "../../lib/date-formatters";
-import { EventRow } from "../event-row";
-import type { Group } from "./grouping";
+import {
+  stringSetCodec,
+  useSessionStorage,
+} from "../../hooks/use-session-storage";
+import { useNowTick } from "../../hooks/use-now-tick";
+import { usePreferences } from "../preferences-provider";
 
-export function DeadlineGroupHeader({
+const SESSION_COLLAPSED_KEY = "collapsedDateGroups";
+
+function DeadlineGroupHeader({
   date,
   count,
   now,
@@ -160,28 +165,56 @@ export function DeadlineGroupHeader({
 }
 
 export function CollapsibleGroup({
-  group,
+  groupKey,
+  groupDate,
+  groupKeys,
+  count,
   isFirst,
-  showHint,
-  onDismissHint,
-  now,
-  collapsed,
-  onToggle,
+  isFirstCollapsible,
+  nowMs,
+  children,
 }: {
-  group: Group;
+  groupKey: string;
+  groupDate: string | null;
+  groupKeys: string[];
+  count: number;
   isFirst: boolean;
-  showHint: boolean;
-  onDismissHint: () => void;
-  now: Date;
-  collapsed: boolean;
-  onToggle: (() => void) | undefined;
+  isFirstCollapsible: boolean;
+  nowMs: number;
+  children: React.ReactNode;
 }) {
+  const now = useNowTick(nowMs);
+  const [collapsedDates, setCollapsedDates] = useSessionStorage(
+    SESSION_COLLAPSED_KEY,
+    new Set<string>(),
+    stringSetCodec
+  );
+  const collapsed = groupDate !== null && collapsedDates.has(groupDate);
+  const toggleCollapsed = () =>
+    setCollapsedDates((prev) => {
+      if (groupDate === null) return prev;
+      const next = new Set(prev);
+      if (next.has(groupDate)) next.delete(groupDate);
+      else next.add(groupDate);
+      return next;
+    });
+
+  const { prefs, setPrefs, prefsLoaded } = usePreferences();
+  const showHint =
+    isFirstCollapsible && prefsLoaded && !prefs.display.collapseHintDismissed;
+  const onDismissHint = () =>
+    setPrefs((p) => ({
+      ...p,
+      display: { ...p.display, collapseHintDismissed: true },
+    }));
+
   const sectionRef = useRef<HTMLElement>(null);
   const innerRef = useRef<HTMLDivElement>(null);
   const [contentHeight, setContentHeight] = useState<number | undefined>(
     undefined
   );
-  const contentId = `group-content-${group.key.replace(/[^a-zA-Z0-9_-]/g, "-")}`;
+  const contentId = `group-content-${groupKey.replace(/[^a-zA-Z0-9_-]/g, "-")}`;
+
   useLayoutEffect(() => {
     const el = innerRef.current;
     if (!el) return;
@@ -191,28 +224,32 @@ export function CollapsibleGroup({
     ro.observe(el);
     return () => ro.disconnect();
   }, []);
-  const handleToggle = onToggle
-    ? () => {
-        const willCollapse = !collapsed;
-        const el = sectionRef.current;
-        const shouldRestoreScroll =
-          willCollapse && el !== null && el.getBoundingClientRect().top < 0;
-        onToggle();
-        if (shouldRestoreScroll) {
-          requestAnimationFrame(() => {
-            sectionRef.current?.scrollIntoView({ block: "start" });
-          });
+
+  const handleToggle =
+    groupDate !== null
+      ? () => {
+          const willCollapse = !collapsed;
+          const el = sectionRef.current;
+          const shouldRestoreScroll =
+            willCollapse && el !== null && el.getBoundingClientRect().top < 0;
+          toggleCollapsed();
+          if (shouldRestoreScroll) {
+            requestAnimationFrame(() => {
+              sectionRef.current?.scrollIntoView({ block: "start" });
+            });
+          }
         }
-      }
-    : undefined;
+      : undefined;
+
   return (
     <section
       ref={sectionRef}
+      data-group-keys={groupKeys.join(",")}
       className={clsx("relative", !isFirst && "-mt-[2px]")}
     >
       <DeadlineGroupHeader
-        date={group.date}
-        count={group.events.length}
+        date={groupDate}
+        count={count}
         now={now}
         isFirst={isFirst}
         collapsed={collapsed}
@@ -233,14 +270,7 @@ export function CollapsibleGroup({
       >
         <div ref={innerRef}>
           {showHint && <CollapseHint onDismiss={onDismissHint} />}
-          {group.events.map((e, i) => (
-            <div
-              key={eventKey(e)}
-              className={clsx("@container/row", i === 0 && "[&>*]:border-t-0")}
-            >
-              <EventRow event={e} now={now} hideDate={group.date !== null} />
-            </div>
-          ))}
+          {children}
         </div>
       </div>
     </section>
