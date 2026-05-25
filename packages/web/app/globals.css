@@ -108,6 +108,9 @@
 @layer components {
   .event-row-grid {
     grid-template-columns: 48px 1fr 44px;
+    grid-template-areas:
+      "date title actions"
+      ".    rail  .";
     gap: 0.625rem;
   }
   @container row (min-width: 420px) {
@@ -119,6 +122,7 @@
   @container row (min-width: 680px) {
     .event-row-grid {
       grid-template-columns: 80px minmax(0, 1.4fr) minmax(0, 1.5fr) 104px;
+      grid-template-areas: "date title rail actions";
       gap: 1.25rem;
     }
   }
@@ -131,6 +135,9 @@
 
   .event-row-grid--no-date {
     grid-template-columns: 1fr 44px;
+    grid-template-areas:
+      "title actions"
+      "rail  .";
     gap: 0.625rem;
   }
   @container row (min-width: 420px) {
@@ -142,6 +149,7 @@
   @container row (min-width: 680px) {
     .event-row-grid--no-date {
       grid-template-columns: minmax(0, 1.4fr) minmax(0, 1.5fr) 104px;
+      grid-template-areas: "title rail actions";
       gap: 1.25rem;
     }
   }

@@ -64,7 +64,10 @@ export function EventRow({
       )}
     >
       {!hideDate && (
-        <div className="flex flex-col items-start gap-1.5 self-start @[680px]/row:self-auto">
+        <div
+          className="flex flex-col items-start gap-1.5 self-start @[680px]/row:self-auto"
+          style={{ gridArea: "date" }}
+        >
           <div
             className={clsx(
               "font-ui font-semibold leading-none tracking-[-0.025em] tabular-nums",
@@ -86,7 +89,10 @@ export function EventRow({
         </div>
       )}
 
-      <div className="flex min-w-0 flex-col gap-1.5">
+      <div
+        className="flex min-w-0 flex-col gap-1.5"
+        style={{ gridArea: "title" }}
+      >
         <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1 font-ui text-[22px] font-bold leading-none tracking-[-0.015em]">
           <span>{e.abbreviation}</span>
           <span className="font-mono text-[14px] font-medium text-ink-3">
@@ -104,26 +110,13 @@ export function EventRow({
         </div>
         <EventNameLink event={e} />
         <RowMetadata event={e} />
-        {e.importantDateUrl && (
-          <div className="@[680px]/row:hidden">
-            <DatesDeadlinesLink href={e.importantDateUrl} />
-          </div>
-        )}
-        <div className="block pt-1 @[680px]/row:hidden">
-          <RoundRail
-            event={e}
-            now={now}
-            lead={lead}
-            passed={passed}
-            showMultiRound={showMultiRound}
-            totalRounds={totalRounds}
-          />
-        </div>
       </div>
 
-      <div className="hidden min-w-0 flex-col gap-1 text-[13px] @[680px]/row:flex">
+      <div
+        className="flex min-w-0 flex-col gap-1 text-[13px]"
+        style={{ gridArea: "rail" }}
+      >
         {e.importantDateUrl && <DatesDeadlinesLink href={e.importantDateUrl} />}
-
         <RoundRail
           event={e}
           now={now}
@@ -134,7 +127,10 @@ export function EventRow({
         />
       </div>
 
-      <div className="flex items-center justify-end gap-1 self-start @[680px]/row:self-auto">
+      <div
+        className="flex items-center justify-end gap-1 self-start @[680px]/row:self-auto"
+        style={{ gridArea: "actions" }}
+      >
         <div className="hidden @[680px]/row:contents">
           <FavoriteButton prefKey={eventKey(e)} />
           <CalendarMenu event={e} />
