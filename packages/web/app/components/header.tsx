@@ -12,6 +12,7 @@ export function Header() {
     >
       <Link
         href="/"
+        prefetch={false}
         className="flex min-w-0 items-baseline gap-1.5 text-ink no-underline"
       >
         <span className="font-display text-[20px] font-medium tracking-[-0.06em] text-[color:var(--accent)] sm:text-[22px]">
