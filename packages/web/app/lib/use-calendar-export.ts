@@ -6,8 +6,8 @@ import {
   icalFeedPath,
   icalFileName,
   toGoogleCalendarLink,
-  type ScheduledEvent,
 } from "./event";
+import type { DisplayEvent } from "./event-list-view";
 import { usePreferences } from "@/components/preferences-provider";
 
 export type SubscribeUrls = {
@@ -30,7 +30,7 @@ export type CalendarExport = {
   subscribeUrls: SubscribeUrls | null;
 };
 
-export function useCalendarExport(event: ScheduledEvent): CalendarExport {
+export function useCalendarExport(event: DisplayEvent): CalendarExport {
   const { prefs, setPrefs } = usePreferences();
   const includeDeadlines = prefs.display.includeCalendarDeadlines;
   const setIncludeDeadlines = (v: boolean) =>

@@ -1,7 +1,6 @@
 import clsx from "clsx";
 import {
   type MaybeDate,
-  type ScheduledEvent,
   allDeadlines,
   eventKey,
   formatDate,
@@ -9,6 +8,7 @@ import {
   isDeadlinePast,
   isDeadlineUrgent,
 } from "../lib/event";
+import type { DisplayEvent } from "../lib/event-list-view";
 import { findNextDeadline } from "../lib/deadline";
 import { dayNum, monthShort, yearNum } from "../lib/date-formatters";
 import { FavoriteButton } from "./favorite-button";
@@ -23,7 +23,7 @@ export function EventRow({
   now,
   hideDate = false,
 }: {
-  event: ScheduledEvent;
+  event: DisplayEvent;
   now: Date;
   hideDate?: boolean;
 }) {
@@ -147,7 +147,7 @@ export function EventRow({
   );
 }
 
-function RowMetadata({ event: e }: { event: ScheduledEvent }) {
+function RowMetadata({ event: e }: { event: DisplayEvent }) {
   const items: { node: React.ReactNode; wideOnly: boolean }[] = [];
   if (e.location)
     items.push({

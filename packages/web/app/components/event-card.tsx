@@ -2,25 +2,15 @@
 
 import { memo } from "react";
 import { ArrowUpRight } from "lucide-react";
-import {
-  type ScheduledEvent,
-  eventKey,
-  formatDate,
-  formatDateRange,
-} from "../lib/event";
+import { eventKey, formatDate, formatDateRange } from "../lib/event";
+import type { DisplayEvent } from "../lib/event-list-view";
 import { FavoriteButton } from "./favorite-button";
 import { CalendarMenu } from "./calendar-menu";
 import { ConnectedEventTags } from "./event-tags";
 import { DatesDeadlinesLink, useEventLead } from "./event-row/shared";
 import { CardDeadlineTable } from "./event-row/card-deadlines";
 
-function EventCardImpl({
-  event: e,
-  now,
-}: {
-  event: ScheduledEvent;
-  now: Date;
-}) {
+function EventCardImpl({ event: e, now }: { event: DisplayEvent; now: Date }) {
   const lead = useEventLead(e, now);
   const year2 = formatDate(e.date.start, "year2", "en-US");
   const startStr =

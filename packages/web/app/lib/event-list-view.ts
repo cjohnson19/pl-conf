@@ -1,5 +1,11 @@
-import { type ScheduledEvent, type Tag, eventKey, tagValues } from "./event";
-import { findNextDeadline, isDueThisWeek } from "./deadline";
+import {
+  type DateName,
+  type ScheduledEvent,
+  type Tag,
+  eventKey,
+  tagValues,
+} from "./event";
+import { findNextDeadline, findNextStart, isDueThisWeek } from "./deadline";
 import { applyFilters, isActive, openToNewSubmissions } from "./event-filter";
 import type { Category, FilterParams } from "./filter-params";
 import { type Group, buildGroups } from "../components/event-list/grouping";
@@ -10,9 +16,45 @@ export type ViewCounts = {
   submissions: number;
 };
 
+export type HeroEvent = {
+  key: string;
+  abbreviation: string;
+  type: ScheduledEvent["type"];
+  location?: string;
+  upcomingDeadline?: { name: DateName; date: string; time: number };
+  upcomingStart?: { date: string; time: number };
+};
+
+// Projection of ScheduledEvent shipped to client components via RSC. Drops
+// fields no client consumer reads (submissionUrl, notes), fields used only
+// for server aggregation (lastUpdated), and fields only needed by the
+// server-rendered .ics path (sequence).
+export type DisplayEvent = Omit<
+  ScheduledEvent,
+  "submissionUrl" | "notes" | "lastUpdated" | "sequence"
+>;
+
+export function toDisplayEvent(e: ScheduledEvent): DisplayEvent {
+  return {
+    name: e.name,
+    abbreviation: e.abbreviation,
+    type: e.type,
+    date: e.date,
+    location: e.location,
+    importantDateUrl: e.importantDateUrl,
+    format: e.format,
+    url: e.url,
+    rounds: e.rounds,
+    tags: e.tags,
+    partOf: e.partOf,
+    colocatedWith: e.colocatedWith,
+  };
+}
+
 export type EventListView = {
   activeEvents: ScheduledEvent[];
-  displayEvents: ScheduledEvent[];
+  displayEvents: DisplayEvent[];
+  heroEvents: HeroEvent[];
   groups: Group[];
   categoryCounts: Record<Category, number>;
   tagCounts: Record<Tag, number>;
@@ -21,6 +63,29 @@ export type EventListView = {
   totalActive: number;
   lastUpdatedDate: string | undefined;
 };
+
+export function buildHeroEvents(
+  events: ScheduledEvent[],
+  now: Date
+): HeroEvent[] {
+  return events.flatMap((e) => {
+    const deadline = findNextDeadline(e, now);
+    const start = findNextStart(e, now);
+    if (!deadline && !start) return [];
+    return [
+      {
+        key: eventKey(e),
+        abbreviation: e.abbreviation,
+        type: e.type,
+        location: e.location,
+        upcomingDeadline: deadline
+          ? { name: deadline.name, date: deadline.date, time: deadline.time }
+          : undefined,
+        upcomingStart: start ?? undefined,
+      },
+    ];
+  });
+}
 
 type ComputeOptions = {
   starredKeys?: Set<string>;
@@ -114,7 +179,7 @@ export function computeEventListView(
     if (b.time !== undefined) return 1;
     return a.e.abbreviation.localeCompare(b.e.abbreviation);
   });
-  const displayEvents = decorated.map((d) => d.e);
+  const displayEvents = decorated.map((d) => toDisplayEvent(d.e));
 
   const groups = buildGroups(displayEvents, now);
   const dueThisWeek = displayEvents.filter((e) => isDueThisWeek(e, now)).length;
@@ -130,6 +195,7 @@ export function computeEventListView(
   return {
     activeEvents,
     displayEvents,
+    heroEvents: buildHeroEvents(activeEvents, now),
     groups,
     categoryCounts,
     tagCounts,

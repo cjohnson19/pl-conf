@@ -4,7 +4,7 @@ import { useState } from "react";
 import * as Dialog from "@radix-ui/react-dialog";
 import { MoreHorizontal, Star, X } from "lucide-react";
 import clsx from "clsx";
-import type { ScheduledEvent } from "../lib/event";
+import type { DisplayEvent } from "../lib/event-list-view";
 import { useCalendarExport } from "../lib/use-calendar-export";
 import { useFavorite } from "../lib/use-favorite";
 import {
@@ -52,7 +52,7 @@ export function RowActionSheet({
   event,
   prefKey,
 }: {
-  event: ScheduledEvent;
+  event: DisplayEvent;
   prefKey: string;
 }) {
   const [open, setOpen] = useState(false);

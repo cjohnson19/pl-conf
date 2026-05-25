@@ -65,40 +65,44 @@ export function tagDisplayName(tag: Tag): string {
   return tagDisplayNames[tag];
 }
 
-export function eventKey(e: ScheduledEvent): string {
+export function eventKey(
+  e: Pick<ScheduledEvent, "abbreviation" | "date">
+): string {
   return `${e.abbreviation}-${getYear(e.date.start)}`;
 }
 
-export function hasConcreteDates(e: ScheduledEvent): boolean {
+export function hasConcreteDates(e: Pick<ScheduledEvent, "date">): boolean {
   return e.date.start !== "TBD" && e.date.end !== "TBD";
 }
 
 export function icalFileName(
-  e: ScheduledEvent,
+  e: Pick<ScheduledEvent, "abbreviation" | "date">,
   withDeadlines: boolean
 ): string {
   return `${eventKey(e)}${withDeadlines ? ".dates" : ""}.ics`;
 }
 
 export function icalFeedPath(
-  e: ScheduledEvent,
+  e: Pick<ScheduledEvent, "abbreviation" | "date">,
   withDeadlines: boolean
 ): string {
   return `/ical/${icalFileName(e, withDeadlines)}`;
 }
 
-export function allDeadlines(e: ScheduledEvent): MaybeDate[] {
+export function allDeadlines(e: Pick<ScheduledEvent, "rounds">): MaybeDate[] {
   return e.rounds.flatMap((r) => Object.values(r.importantDates));
 }
 
-export function firstDeadline(e: ScheduledEvent): MaybeDate | undefined {
+export function firstDeadline(
+  e: Pick<ScheduledEvent, "rounds">
+): MaybeDate | undefined {
   const dates = allDeadlines(e);
   return dates.length === 0
     ? undefined
     : dates.reduce((min, d) => (d < min ? d : min));
 }
 
-export function hasMultipleRounds(e: ScheduledEvent): boolean {
+export function hasMultipleRounds(e: Pick<ScheduledEvent, "rounds">): boolean {
   return e.rounds.length > 1 || e.rounds.some((r) => r.name !== undefined);
 }
 
@@ -268,7 +272,9 @@ export function formatDateRange(
   );
 }
 
-export function toGoogleCalendarLink(e: ScheduledEvent): string {
+export function toGoogleCalendarLink(
+  e: Pick<ScheduledEvent, "abbreviation" | "date" | "name" | "location">
+): string {
   if (!hasConcreteDates(e)) {
     return "";
   }

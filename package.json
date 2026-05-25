@@ -10,6 +10,7 @@
     "generate": "pnpm --filter @pl-conf/data run generate",
     "dev": "pnpm run generate && pnpm --filter @pl-conf/web run dev",
     "build": "pnpm run generate && pnpm --filter @pl-conf/web run build",
+    "start": "tsx scripts/start.ts",
     "build:lambdas": "pnpm run generate && pnpm --filter @pl-conf/functions run build",
     "build:all": "pnpm run generate && pnpm --filter @pl-conf/web run build && pnpm --filter @pl-conf/functions run build",
     "deploy": "tsx scripts/deploy.ts",

@@ -16,7 +16,7 @@ import {
   ExportRowContent,
 } from "./export-options";
 import { useCalendarExport } from "../lib/use-calendar-export";
-import type { ScheduledEvent } from "../lib/event";
+import type { DisplayEvent } from "../lib/event-list-view";
 
 const itemClass =
   "cursor-pointer rounded-md px-3 py-2.5 text-[13px] text-ink focus:bg-paper-2 focus:text-ink";
@@ -56,7 +56,7 @@ function MenuSeparator() {
   return <DropdownMenuSeparator className="mx-1.5 bg-rule" />;
 }
 
-export function CalendarMenu({ event }: { event: ScheduledEvent }) {
+export function CalendarMenu({ event }: { event: DisplayEvent }) {
   const data = useCalendarExport(event);
 
   if (data.datesTBD) {

@@ -1,5 +1,6 @@
 import clsx from "clsx";
-import type { DateName, ScheduledEvent } from "../../lib/event";
+import type { DateName } from "../../lib/event";
+import type { DisplayEvent } from "../../lib/event-list-view";
 import {
   type NextDeadline,
   type RoundSlotStatus,
@@ -16,7 +17,7 @@ export function RoundRail({
   showMultiRound,
   totalRounds,
 }: {
-  event: ScheduledEvent;
+  event: DisplayEvent;
   now: Date;
   lead: NextDeadline | null;
   passed: boolean;
@@ -47,7 +48,7 @@ function SingleRoundRail({
   now,
   activeNext,
 }: {
-  event: ScheduledEvent;
+  event: DisplayEvent;
   now: Date;
   activeNext?: DateName;
 }) {
@@ -96,7 +97,7 @@ function MultiRoundRail({
   activeRoundIdx,
   activeNext,
 }: {
-  event: ScheduledEvent;
+  event: DisplayEvent;
   now: Date;
   activeRoundIdx: number;
   activeNext?: DateName;
@@ -130,7 +131,7 @@ function RoundColumnContainer({
   now,
   activeNext,
 }: {
-  event: ScheduledEvent;
+  event: DisplayEvent;
   slot: { idx: number; status: RoundSlotStatus };
   now: Date;
   activeNext?: DateName;

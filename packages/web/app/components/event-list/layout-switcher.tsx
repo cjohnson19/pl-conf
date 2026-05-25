@@ -1,7 +1,8 @@
 "use client";
 
 import clsx from "clsx";
-import { type ScheduledEvent, eventKey } from "../../lib/event";
+import { eventKey } from "../../lib/event";
+import type { DisplayEvent } from "../../lib/event-list-view";
 import { EventCard } from "../event-card";
 import { usePreferences } from "../preferences-provider";
 
@@ -10,7 +11,7 @@ export function LayoutSwitcher({
   serverNowMs,
   listChildren,
 }: {
-  events: ScheduledEvent[];
+  events: DisplayEvent[];
   serverNowMs: number;
   listChildren: React.ReactNode;
 }) {

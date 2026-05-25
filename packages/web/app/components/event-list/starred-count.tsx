@@ -1,13 +1,14 @@
 "use client";
 
 import { useMemo } from "react";
-import { type ScheduledEvent, eventKey } from "../../lib/event";
+import { eventKey } from "../../lib/event";
+import type { DisplayEvent } from "../../lib/event-list-view";
 import { usePreferences } from "../preferences-provider";
 
 export function StarredCount({
   displayEvents,
 }: {
-  displayEvents: ScheduledEvent[];
+  displayEvents: DisplayEvent[];
 }) {
   const { prefs, prefsLoaded } = usePreferences();
   const count = useMemo(() => {
