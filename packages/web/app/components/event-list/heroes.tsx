@@ -9,14 +9,9 @@ import {
   useState,
 } from "react";
 import { MoreHorizontal, X } from "lucide-react";
-import {
-  type ScheduledEvent,
-  eventKey,
-  isDeadline,
-  toCalendarDate,
-} from "../../lib/event";
+import { isDeadline, toCalendarDate } from "../../lib/event";
 import { humanCountdown } from "../../lib/countdown";
-import { findNextDeadline, findNextStart } from "../../lib/deadline";
+import type { HeroEvent } from "../../lib/event-list-view";
 import {
   deadlineKindWord,
   localDeadlineString,
@@ -28,35 +23,41 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "../ui/dropdown-menu";
-import { usePreferences } from "../preferences-provider";
+import {
+  setPrefs,
+  useDisplayPref,
+  useEventPrefs,
+  usePrefsLoaded,
+} from "../preferences-provider";
 import {
   stringSetCodec,
   useSessionStorage,
 } from "../../hooks/use-session-storage";
-import { useNowTick } from "../../hooks/use-now-tick";
+import { useNow } from "./now-provider";
 
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
 const HERO_CUTOFF_DAYS = 14;
 const HERO_TRANSITION_MS = 300;
 const SESSION_DISMISSED_KEY = "dismissedHeroKeys";
 
-export function Hero({
-  events,
-  initialNowMs,
-}: {
-  events: ScheduledEvent[];
-  initialNowMs: number;
-}) {
-  const now = useNowTick(initialNowMs);
-  const { prefs, setPrefs, prefsLoaded } = usePreferences();
+export function Hero({ events }: { events: HeroEvent[] }) {
+  const now = useNow();
+  const eventPrefs = useEventPrefs();
+  const prefsLoaded = usePrefsLoaded();
+  const deadlineHeroDismissed = useDisplayPref("deadlineHeroDismissed");
+  const permanentlyHiddenEventHeroes = useDisplayPref(
+    "permanentlyHiddenEventHeroes"
+  );
   const starredKeys = useMemo(
     () =>
       new Set(
-        Object.entries(prefs.eventPrefs)
-          .filter(([, v]) => v?.favorite)
+        Object.entries(eventPrefs)
+          // Exclude `hidden` events even if starred — VisibilityStyle hides
+          // them from the grid, so popping them up in the Hero is jarring.
+          .filter(([, v]) => v?.favorite && !v?.hidden)
           .map(([k]) => k)
       ),
-    [prefs]
+    [eventPrefs]
   );
   const [sessionDismissed, setSessionDismissed] = useSessionStorage(
     SESSION_DISMISSED_KEY,
@@ -80,11 +81,11 @@ export function Hero({
       ...p,
       display: { ...p.display, deadlineHeroDismissed: true },
     }));
-  const alertMenuItems = (event: ScheduledEvent, evKey: string) => [
+  const alertMenuItems = (event: HeroEvent) => [
     {
       label: `Hide alerts for ${event.abbreviation}`,
       description: "Always hide this event's deadline cards.",
-      onSelect: () => hideEventForever(evKey),
+      onSelect: () => hideEventForever(event.key),
     },
     {
       label: "Stop showing deadline alerts",
@@ -93,19 +94,23 @@ export function Hero({
     },
   ];
   const { upcomingDeadlines, upcomingStarts } = useMemo(() => {
-    const horizon = now.getTime() + HERO_CUTOFF_DAYS * MS_PER_DAY;
-    const starred = events.filter((e) => starredKeys.has(eventKey(e)));
+    const nowMs = now.getTime();
+    const horizon = nowMs + HERO_CUTOFF_DAYS * MS_PER_DAY;
+    const starred = events.filter((e) => starredKeys.has(e.key));
     return {
       upcomingDeadlines: starred.flatMap((event) => {
-        const lead = findNextDeadline(event, now);
-        return lead && lead.time <= horizon
-          ? [{ event, date: lead.date, name: lead.name, time: lead.time }]
+        // Pick the next deadline still in the future as of live `now`. The
+        // server may have shipped a Round 1 deadline that has since elapsed;
+        // walking the sorted list rolls forward to Round 2 automatically.
+        const d = event.upcomingDeadlines.find((d) => d.time > nowMs);
+        return d && d.time <= horizon
+          ? [{ event, date: d.date, name: d.name, time: d.time }]
           : [];
       }),
       upcomingStarts: starred.flatMap((event) => {
-        const start = findNextStart(event, now);
-        return start && start.time <= horizon
-          ? [{ event, date: start.date, time: start.time }]
+        const s = event.upcomingStart;
+        return s && s.time > nowMs && s.time <= horizon
+          ? [{ event, date: s.date, time: s.time }]
           : [];
       }),
     };
@@ -118,23 +123,21 @@ export function Hero({
   function pickHero(): ReactNode {
     if (!prefsLoaded) return null;
     if (starredKeys.size === 0) return null;
-    if (prefs.display.deadlineHeroDismissed) return null;
+    if (deadlineHeroDismissed) return null;
 
     if (upcomingDeadlines.length > 0) {
       const pick = upcomingDeadlines.reduce((a, b) =>
         a.time <= b.time ? a : b
       );
-      const evKey = eventKey(pick.event);
-      const pickKey = `deadline:${evKey}:${pick.name}:${pick.date}`;
+      const pickKey = `deadline:${pick.event.key}:${pick.name}:${pick.date}`;
       if (sessionDismissed.has(pickKey)) return null;
-      if (prefs.display.permanentlyHiddenEventHeroes?.includes(evKey))
-        return null;
+      if (permanentlyHiddenEventHeroes?.includes(pick.event.key)) return null;
       const deadline = isDeadline(pick.name);
       return (
         <HeroShell
           label={deadline ? "Your next deadline" : "Coming up"}
           onDismissOnce={() => dismissThisSession(pickKey)}
-          menuItems={alertMenuItems(pick.event, evKey)}
+          menuItems={alertMenuItems(pick.event)}
           headline={
             <>
               <span className="font-semibold">
@@ -155,17 +158,15 @@ export function Hero({
 
     if (upcomingStarts.length === 0) return null;
     const pick = upcomingStarts.reduce((a, b) => (a.time <= b.time ? a : b));
-    const evKey = eventKey(pick.event);
-    const pickKey = `start:${evKey}:${pick.date}`;
+    const pickKey = `start:${pick.event.key}:${pick.date}`;
     if (sessionDismissed.has(pickKey)) return null;
-    if (prefs.display.permanentlyHiddenEventHeroes?.includes(evKey))
-      return null;
+    if (permanentlyHiddenEventHeroes?.includes(pick.event.key)) return null;
     const startCal = toCalendarDate(pick.date);
     return (
       <HeroShell
         label="Up next"
         onDismissOnce={() => dismissThisSession(pickKey)}
-        menuItems={alertMenuItems(pick.event, evKey)}
+        menuItems={alertMenuItems(pick.event)}
         headline={
           <>
             <span className="font-semibold">{pick.event.abbreviation}</span>{" "}

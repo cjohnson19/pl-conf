@@ -18,6 +18,7 @@ export {
   isDeadline,
   formatDate,
   formatDateRange,
+  parseDateParts,
   toAoeInstant,
   toCalendarDate,
   isDeadlinePast,

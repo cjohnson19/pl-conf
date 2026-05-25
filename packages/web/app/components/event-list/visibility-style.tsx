@@ -2,21 +2,28 @@
 
 import { useEffect, useMemo } from "react";
 import { useSearchParams } from "next/navigation";
-import { usePreferences } from "../preferences-provider";
+import { useEventPrefs, usePrefsLoaded } from "../preferences-provider";
 
 const PREPAINT_STYLE_ID = "pl-prepaint-visibility";
 
 export function VisibilityStyle() {
-  const { prefs, prefsLoaded } = usePreferences();
+  const eventPrefs = useEventPrefs();
+  const prefsLoaded = usePrefsLoaded();
   const searchParams = useSearchParams();
   const view = searchParams.get("view");
 
   const rules = useMemo(() => {
-    if (!prefsLoaded) return "";
-    const entries = Object.entries(prefs.eventPrefs);
+    let css = "";
+    if (view === "submissions") {
+      css += "[data-event-key]:not([data-has-open-submission]){display:none}";
+      css +=
+        "[data-group-keys]:not(:has([data-has-open-submission])){display:none}";
+    }
+    if (!prefsLoaded) return css;
+    const entries = Object.entries(eventPrefs);
     const hidden = entries.filter(([, v]) => v?.hidden).map(([k]) => k);
     const starred = entries.filter(([, v]) => v?.favorite).map(([k]) => k);
-    let css = hidden
+    css += hidden
       .map((k) => `[data-event-key="${CSS.escape(k)}"]{display:none}`)
       .join("");
     if (view === "starred") {
@@ -31,7 +38,7 @@ export function VisibilityStyle() {
       }
     }
     return css;
-  }, [prefs, prefsLoaded, view]);
+  }, [eventPrefs, prefsLoaded, view]);
 
   useEffect(() => {
     if (!prefsLoaded) return;

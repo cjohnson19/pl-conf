@@ -1,8 +1,16 @@
 #!/usr/bin/env tsx
 
-// We need to have a separate deployment script in order to know the CDK
-// generated URLs when building the website. Maybe there is a way to build this
-// in the CDK, which would be nicer.
+// Deploys the PlConf-<stage> stack.
+//
+// The site runs SSR on ECS Express; CDK's DockerImageAsset builds and pushes
+// the container image during `cdk deploy`. The submission API URL must be
+// inlined into the image at build time (NEXT_PUBLIC_* are baked in by Next),
+// but the URL is also an output of this same stack — so on the very first
+// deploy we bootstrap with two CDK passes: pass 1 creates the API and gets
+// its URL, pass 2 rebuilds the image with the URL baked in.
+//
+// On subsequent deploys the URL is already known (read from existing stack
+// outputs) and we deploy in a single pass.
 
 import { execSync } from "node:child_process";
 import * as path from "node:path";
@@ -10,7 +18,6 @@ import { fileURLToPath } from "node:url";
 
 const ROOT_DIR = path.join(path.dirname(fileURLToPath(import.meta.url)), "..");
 const CDK_DIR = path.join(ROOT_DIR, "packages", "cdk");
-const WEB_OUT_DIR = path.join(ROOT_DIR, "packages", "web", "out");
 
 function run(
   command: string,
@@ -24,23 +31,39 @@ function run(
   });
 }
 
-function runAndCapture(command: string, options?: { cwd?: string }): string {
-  console.log(`\n$ ${command}\n`);
-  return execSync(command, {
-    cwd: options?.cwd ?? ROOT_DIR,
-    encoding: "utf-8",
-  }).trim();
+function getStackOutputs(stackName: string): Record<string, string> {
+  try {
+    const output = execSync(
+      `aws cloudformation describe-stacks --stack-name ${stackName} --query "Stacks[0].Outputs" --output json`,
+      { encoding: "utf-8", stdio: ["pipe", "pipe", "pipe"] }
+    ).trim();
+    const outputs = JSON.parse(output) as Array<{
+      OutputKey: string;
+      OutputValue: string;
+    }>;
+    return Object.fromEntries(outputs.map((o) => [o.OutputKey, o.OutputValue]));
+  } catch {
+    return {};
+  }
 }
 
-function getStackOutputs(stackName: string): Record<string, string> {
-  const output = runAndCapture(
-    `aws cloudformation describe-stacks --stack-name ${stackName} --query "Stacks[0].Outputs" --output json`
-  );
-  const outputs = JSON.parse(output) as Array<{
-    OutputKey: string;
-    OutputValue: string;
-  }>;
-  return Object.fromEntries(outputs.map((o) => [o.OutputKey, o.OutputValue]));
+function cdkDeploy(args: {
+  stage: string;
+  notificationEmail: string;
+  domainName?: string;
+  submissionApiUrl?: string;
+}) {
+  const ctxArgs = [
+    `-c notificationEmail=${args.notificationEmail}`,
+    `-c stage=${args.stage}`,
+    args.domainName ? `-c domainName=${args.domainName}` : "",
+    args.submissionApiUrl ? `-c submissionApiUrl=${args.submissionApiUrl}` : "",
+  ]
+    .filter(Boolean)
+    .join(" ");
+  run(`pnpm exec cdk deploy --require-approval never ${ctxArgs}`, {
+    cwd: CDK_DIR,
+  });
 }
 
 async function main() {
@@ -58,67 +81,51 @@ async function main() {
   console.log(`Deploying stage: ${stage}`);
   console.log("=".repeat(60));
 
+  console.log("\nGenerating events data...");
+  run("pnpm run generate");
+
   console.log("\nBuilding lambdas...");
   run("pnpm run build:lambdas");
 
-  console.log("\nDeploying CDK infrastructure...");
-  const cdkContextArgs = [
-    `-c notificationEmail=${notificationEmail}`,
-    `-c stage=${stage}`,
-    domainName ? `-c domainName=${domainName}` : "",
-  ]
-    .filter(Boolean)
-    .join(" ");
-  run(`pnpm exec cdk deploy --require-approval never ${cdkContextArgs}`, {
-    cwd: CDK_DIR,
-  });
+  let submissionApiUrl = getStackOutputs(stackName).SubmissionApiUrl;
 
-  console.log("\nFetching stack outputs...");
-  const outputs = getStackOutputs(stackName);
-  console.log("Stack outputs:", outputs);
-
-  const submissionApiUrl = outputs.SubmissionApiUrl;
-  const websiteBucketName = outputs.WebsiteBucketName;
-  const distributionId = outputs.DistributionId;
-
-  if (!submissionApiUrl || !websiteBucketName || !distributionId) {
-    console.error("Missing required stack outputs");
-    process.exit(1);
+  if (!submissionApiUrl) {
+    console.log(
+      "\nNo existing SubmissionApiUrl found — running bootstrap deploy to create the API..."
+    );
+    cdkDeploy({ stage, notificationEmail, domainName });
+    submissionApiUrl = getStackOutputs(stackName).SubmissionApiUrl;
+    if (!submissionApiUrl) {
+      console.error(
+        "Bootstrap deploy completed but SubmissionApiUrl is still missing from stack outputs."
+      );
+      process.exit(1);
+    }
+    console.log(`\nBootstrapped SubmissionApiUrl: ${submissionApiUrl}`);
   }
 
-  console.log("\nBuilding Next.js with API URLs...");
-  run("pnpm run build", {
-    env: {
-      NEXT_PUBLIC_SUBMISSION_API_URL: submissionApiUrl,
-    },
-  });
+  console.log(
+    `\nDeploying with SubmissionApiUrl=${submissionApiUrl} (DockerImageAsset will rebuild only if the arg changed)...`
+  );
+  cdkDeploy({ stage, notificationEmail, domainName, submissionApiUrl });
 
-  console.log("\nUploading to S3...");
-  run(
-    `aws s3 sync ${WEB_OUT_DIR}/_next/static/ s3://${websiteBucketName}/_next/static --delete --cache-control "public, max-age=31536000, immutable"`
-  );
-  run(
-    `aws s3 sync ${WEB_OUT_DIR}/ s3://${websiteBucketName}/ --delete --cache-control "public, max-age=0, must-revalidate" --exclude "_next/static/*" --exclude "ical/*"`
-  );
-  // .ics files need an explicit text/calendar Content-Type (S3's auto-guess
-  // is inconsistent for this extension) and an hour of CDN caching so
-  // subscribing calendar clients don't hammer CloudFront. --delete prunes
-  // feeds for events that were removed from data/ so subscribers stop
-  // receiving them.
-  run(
-    `aws s3 sync ${WEB_OUT_DIR}/ical/ s3://${websiteBucketName}/ical/ --delete --content-type "text/calendar; charset=utf-8" --cache-control "public, max-age=3600, must-revalidate"`
-  );
+  const outputs = getStackOutputs(stackName);
+  const distributionId = outputs.DistributionId;
 
-  console.log("\nInvalidating CloudFront cache...");
-  run(
-    `aws cloudfront create-invalidation --distribution-id ${distributionId} --paths "/*"`
-  );
+  if (distributionId) {
+    console.log("\nInvalidating CloudFront cache...");
+    run(
+      `aws cloudfront create-invalidation --distribution-id ${distributionId} --paths "/*"`
+    );
+  }
 
   console.log(`\n${"=".repeat(60)}`);
   console.log("Deployment complete");
   console.log(
-    `Website URL: ${domainName ? `https://${domainName}` : outputs.WebsiteUrl}`
+    `Website URL:    ${domainName ? `https://${domainName}` : outputs.WebsiteUrl}`
   );
+  console.log(`Origin:         ${outputs.ServiceEndpoint ?? "(unknown)"}`);
+  console.log(`Distribution:   ${distributionId ?? "(unknown)"}`);
   console.log("=".repeat(60));
 }
 

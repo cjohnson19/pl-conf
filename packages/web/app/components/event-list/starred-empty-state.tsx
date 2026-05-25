@@ -1,15 +1,20 @@
 "use client";
 
-import { useRouter, useSearchParams } from "next/navigation";
-import { usePreferences } from "../preferences-provider";
+import { useSearchParams } from "next/navigation";
+import { useEventPrefs, usePrefsLoaded } from "../preferences-provider";
+import { useCounts } from "./counts-context";
 
-export function StarredEmptyState({ totalActive }: { totalActive: number }) {
-  const { prefs, prefsLoaded } = usePreferences();
-  const router = useRouter();
+export function StarredEmptyState() {
+  const eventPrefs = useEventPrefs();
+  const prefsLoaded = usePrefsLoaded();
   const searchParams = useSearchParams();
+  const { totalActive } = useCounts();
+  if (searchParams.get("view") !== "starred") return null;
   if (!prefsLoaded) return null;
-  const starredCount = Object.values(prefs.eventPrefs).filter(
-    (p) => p?.favorite
+  // Filter hidden so "Nothing starred yet" doesn't include hidden favorites in
+  // its count of starred entries.
+  const starredCount = Object.values(eventPrefs).filter(
+    (p) => p?.favorite && !p?.hidden
   ).length;
   const hasOthers = totalActive > starredCount;
   if (starredCount > 0 && !hasOthers) return null;
@@ -17,7 +22,7 @@ export function StarredEmptyState({ totalActive }: { totalActive: number }) {
     const sp = new URLSearchParams(searchParams.toString());
     sp.delete("view");
     const qs = sp.toString();
-    router.replace(qs ? `?${qs}` : "?", { scroll: false });
+    window.history.replaceState(null, "", qs ? `?${qs}` : "?");
   };
   return (
     <div className="mx-5 mt-8 flex flex-col items-start gap-4 border border-dashed border-rule p-5 sm:p-7 md:mx-8 min-[480px]:flex-row min-[480px]:items-center min-[480px]:justify-between min-[480px]:gap-6">

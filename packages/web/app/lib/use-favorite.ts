@@ -1,13 +1,17 @@
 "use client";
 
-import { usePreferences } from "../components/preferences-provider";
+import { useSyncExternalStore } from "react";
+import { preferencesStore, setPrefs } from "./preferences-store";
 
 export function useFavorite(prefKey: string): {
   on: boolean;
   toggle: () => void;
 } {
-  const { prefs, setPrefs } = usePreferences();
-  const on = prefs.eventPrefs[prefKey]?.favorite ?? false;
+  const on = useSyncExternalStore(
+    preferencesStore.subscribe,
+    () => preferencesStore.getPrefs().eventPrefs[prefKey]?.favorite ?? false,
+    returnFalse
+  );
   const toggle = () =>
     setPrefs((prev) => ({
       ...prev,
@@ -20,4 +24,8 @@ export function useFavorite(prefKey: string): {
       },
     }));
   return { on, toggle };
+}
+
+function returnFalse() {
+  return false;
 }

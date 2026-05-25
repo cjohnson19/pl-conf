@@ -1,15 +1,33 @@
-import { differenceInCalendarDays } from "date-fns";
-import { type MaybeDate, toAoeInstant, toCalendarDate } from "./event";
+import { type MaybeDate, parseDateParts, toAoeInstant } from "./event";
+
+const MS_PER_DAY = 86_400_000;
+const MS_PER_HOUR = 3_600_000;
+const MS_PER_MINUTE = 60_000;
+
+// UTC calendar-day diff: must stay tz-agnostic so SSR and any viewer-tz
+// client render the same string for the same instant.
+function utcDaysUntil(date: string, now: Date): number {
+  const parts = parseDateParts(date);
+  if (!parts) return 0;
+  const [y, m, d] = parts;
+  const dateMs = Date.UTC(y, m - 1, d);
+  const nowMs = Date.UTC(
+    now.getUTCFullYear(),
+    now.getUTCMonth(),
+    now.getUTCDate()
+  );
+  return Math.round((dateMs - nowMs) / MS_PER_DAY);
+}
 
 export function shortCountdown(date: MaybeDate, now: Date): string {
+  if (date === "TBD") return "TBD";
   const instant = toAoeInstant(date);
-  const cal = toCalendarDate(date);
-  if (!instant || !cal) return "TBD";
-  const days = differenceInCalendarDays(cal, now);
+  if (!instant) return "TBD";
+  const days = utcDaysUntil(date, now);
   if (days <= 0) {
     const ms = instant.getTime() - now.getTime();
     if (ms <= 0) return "passed";
-    const hours = ms / 3_600_000;
+    const hours = ms / MS_PER_HOUR;
     if (hours < 1) return "<1h";
     return `${Math.round(hours)}h`;
   }
@@ -21,12 +39,11 @@ export function shortCountdown(date: MaybeDate, now: Date): string {
 
 export function humanCountdown(date: string, now: Date): string {
   const instant = toAoeInstant(date);
-  const cal = toCalendarDate(date);
-  if (!instant || !cal) return "soon";
-  const days = differenceInCalendarDays(cal, now);
+  if (!instant) return "soon";
+  const days = utcDaysUntil(date, now);
   if (days <= 0) {
     const ms = instant.getTime() - now.getTime();
-    const totalMinutes = Math.floor(ms / 60_000);
+    const totalMinutes = Math.max(0, Math.floor(ms / MS_PER_MINUTE));
     const hours = Math.floor(totalMinutes / 60);
     const minutes = totalMinutes % 60;
     const hPart = `${hours} ${hours === 1 ? "hour" : "hours"}`;

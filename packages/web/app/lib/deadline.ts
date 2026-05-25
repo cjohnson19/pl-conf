@@ -13,8 +13,11 @@ export type NextDeadline = {
   time: number;
 };
 
+type DeadlineEvent = Pick<ScheduledEvent, "rounds">;
+type StartEvent = Pick<ScheduledEvent, "date">;
+
 export function findNextDeadline(
-  e: ScheduledEvent,
+  e: DeadlineEvent,
   now: Date,
   options: { fallbackToPast?: boolean } = {}
 ): NextDeadline | null {
@@ -40,7 +43,28 @@ export function findNextDeadline(
   return upcoming ?? fallback;
 }
 
-export function isDueThisWeek(e: ScheduledEvent, now: Date): boolean {
+export function findAllUpcomingDeadlines(
+  e: DeadlineEvent,
+  now: Date
+): NextDeadline[] {
+  const nowTime = now.getTime();
+  const out: NextDeadline[] = [];
+  e.rounds.forEach((r, roundIdx) => {
+    (Object.entries(r.importantDates) as Array<[DateName, MaybeDate]>).forEach(
+      ([name, date]) => {
+        if (date === "TBD" || date === undefined) return;
+        const instant = toAoeInstant(date);
+        if (!instant) return;
+        const time = instant.getTime();
+        if (time > nowTime) out.push({ roundIdx, name, date, time });
+      }
+    );
+  });
+  out.sort((a, b) => a.time - b.time);
+  return out;
+}
+
+export function isDueThisWeek(e: DeadlineEvent, now: Date): boolean {
   const weekMs = 7 * 86_400_000;
   return e.rounds.some((r) =>
     (Object.entries(r.importantDates) as Array<[DateName, MaybeDate]>).some(
@@ -57,7 +81,7 @@ export function isDueThisWeek(e: ScheduledEvent, now: Date): boolean {
 }
 
 export function findNextStart(
-  e: ScheduledEvent,
+  e: StartEvent,
   now: Date
 ): { date: string; time: number } | null {
   if (e.date.start === "TBD") return null;

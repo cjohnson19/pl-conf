@@ -9,6 +9,8 @@ import * as dynamodb from "aws-cdk-lib/aws-dynamodb";
 import * as events from "aws-cdk-lib/aws-events";
 import * as targets from "aws-cdk-lib/aws-events-targets";
 import * as iam from "aws-cdk-lib/aws-iam";
+import * as ecs from "aws-cdk-lib/aws-ecs";
+import { DockerImageAsset, Platform } from "aws-cdk-lib/aws-ecr-assets";
 import * as acm from "aws-cdk-lib/aws-certificatemanager";
 import * as route53 from "aws-cdk-lib/aws-route53";
 import * as route53Targets from "aws-cdk-lib/aws-route53-targets";
@@ -22,13 +24,14 @@ interface PlConfStackProps extends cdk.StackProps {
   stage: string;
   notificationEmail: string;
   domainName?: string;
+  submissionApiUrl?: string;
 }
 
 export class PlConfStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props: PlConfStackProps) {
     super(scope, id, props);
 
-    const { stage, notificationEmail, domainName } = props;
+    const { stage, notificationEmail, domainName, submissionApiUrl } = props;
     const isProduction = stage === "production";
 
     let certificate: acm.ICertificate | undefined;
@@ -140,65 +143,159 @@ export class PlConfStack extends cdk.Stack {
       ),
     });
 
-    const websiteBucket = new s3.Bucket(this, "WebsiteBucket", {
-      blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
-      removalPolicy: isProduction
-        ? cdk.RemovalPolicy.RETAIN
-        : cdk.RemovalPolicy.DESTROY,
-      autoDeleteObjects: !isProduction,
+    const cluster = new ecs.CfnCluster(this, "WebCluster", {
+      capacityProviders: ["FARGATE"],
+    });
+    cluster.applyRemovalPolicy(
+      isProduction ? cdk.RemovalPolicy.RETAIN : cdk.RemovalPolicy.DESTROY
+    );
+
+    const executionRole = new iam.Role(this, "WebExecutionRole", {
+      assumedBy: new iam.ServicePrincipal("ecs-tasks.amazonaws.com"),
+      managedPolicies: [
+        iam.ManagedPolicy.fromAwsManagedPolicyName(
+          "service-role/AmazonECSTaskExecutionRolePolicy"
+        ),
+      ],
     });
 
-    const immutableAssetCachePolicy = new cloudfront.CachePolicy(
+    const infrastructureRole = new iam.Role(this, "WebInfrastructureRole", {
+      assumedBy: new iam.ServicePrincipal("ecs.amazonaws.com"),
+      managedPolicies: [
+        iam.ManagedPolicy.fromAwsManagedPolicyName(
+          "service-role/AmazonECSInfrastructureRoleforExpressGatewayServices"
+        ),
+      ],
+    });
+
+    // NEXT_PUBLIC_* env vars are inlined by Next at build time, so the value
+    // must be available when Docker builds the image — runtime env on the
+    // container is too late and the submission form would fall back to
+    // `/api/submit` (which 404s through CloudFront). The deploy script
+    // bootstraps this by reading the stack's SubmissionApiUrl output between
+    // CDK passes on first deploy.
+    const image = new DockerImageAsset(this, "WebImage", {
+      directory: path.join(__dirname, "../../.."),
+      file: "Dockerfile",
+      platform: Platform.LINUX_AMD64,
+      buildArgs: submissionApiUrl
+        ? { NEXT_PUBLIC_SUBMISSION_API_URL: submissionApiUrl }
+        : undefined,
+    });
+
+    const service = new ecs.CfnExpressGatewayService(this, "WebService", {
+      cluster: cluster.attrArn,
+      executionRoleArn: executionRole.roleArn,
+      infrastructureRoleArn: infrastructureRole.roleArn,
+      cpu: "256",
+      memory: "2048",
+      healthCheckPath: "/",
+      primaryContainer: {
+        image: image.imageUri,
+        containerPort: 3000,
+        environment: [
+          { name: "NODE_ENV", value: "production" },
+          { name: "PORT", value: "3000" },
+          { name: "HOSTNAME", value: "0.0.0.0" },
+          ...(submissionApiUrl
+            ? [
+                {
+                  name: "NEXT_PUBLIC_SUBMISSION_API_URL",
+                  value: submissionApiUrl,
+                },
+              ]
+            : []),
+        ],
+      },
+      scalingTarget: {
+        minTaskCount: 1,
+        maxTaskCount: isProduction ? 4 : 2,
+      },
+    });
+    service.node.addDependency(cluster, executionRole, infrastructureRole);
+
+    // `q` is intentionally excluded — search is filtered client-side, so every
+    // search string should hit the same cached HTML.
+    const filterQueryParams = ["c", "view", "tags"];
+    // Next.js App Router RSC discriminators. The `RSC` header (and friends) is
+    // how the origin distinguishes a client navigation fetch from a full HTML
+    // request — strip it and every navigation degrades to an MPA reload.
+    // Include them in the cache key so HTML and RSC payloads stay in separate
+    // entries.
+    const rscCacheHeaders = [
+      "RSC",
+      "Next-Router-State-Tree",
+      "Next-Router-Prefetch",
+      "Next-Router-Segment-Prefetch",
+      "Next-Url",
+    ];
+
+    const htmlCachePolicy = new cloudfront.CachePolicy(
       this,
-      "ImmutableAssetCache",
+      "HtmlCachePolicy",
       {
-        defaultTtl: cdk.Duration.days(365),
-        minTtl: cdk.Duration.days(1),
-        maxTtl: cdk.Duration.days(365),
+        defaultTtl: cdk.Duration.seconds(60),
+        minTtl: cdk.Duration.seconds(0),
+        maxTtl: cdk.Duration.seconds(3600),
         enableAcceptEncodingGzip: true,
         enableAcceptEncodingBrotli: true,
-        queryStringBehavior: cloudfront.CacheQueryStringBehavior.none(),
         cookieBehavior: cloudfront.CacheCookieBehavior.none(),
-        headerBehavior: cloudfront.CacheHeaderBehavior.none(),
+        queryStringBehavior: cloudfront.CacheQueryStringBehavior.allowList(
+          ...filterQueryParams
+        ),
+        headerBehavior: cloudfront.CacheHeaderBehavior.allowList(
+          ...rscCacheHeaders
+        ),
+      }
+    );
+
+    const htmlOriginRequestPolicy = new cloudfront.OriginRequestPolicy(
+      this,
+      "HtmlOriginRequestPolicy",
+      {
+        cookieBehavior: cloudfront.OriginRequestCookieBehavior.none(),
+        // `_rsc` is a cache-buster Next appends to RSC fetches; we don't want
+        // it in the cache key (every navigation would miss) but the origin
+        // still needs it forwarded.
+        queryStringBehavior:
+          cloudfront.OriginRequestQueryStringBehavior.allowList(
+            ...filterQueryParams,
+            "_rsc"
+          ),
+        headerBehavior: cloudfront.OriginRequestHeaderBehavior.none(),
       }
     );
 
     const distribution = new cloudfront.Distribution(this, "Distribution", {
       defaultBehavior: {
-        origin: origins.S3BucketOrigin.withOriginAccessControl(websiteBucket),
+        origin: new origins.HttpOrigin(service.attrEndpoint, {
+          protocolPolicy: cloudfront.OriginProtocolPolicy.HTTPS_ONLY,
+          readTimeout: cdk.Duration.seconds(30),
+        }),
         viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
+        // The SSR origin only serves GETs; the submission API is a separate
+        // Lambda not behind this distribution. Restricting methods here
+        // removes a class of body-flooding attacks at the edge.
+        allowedMethods: cloudfront.AllowedMethods.ALLOW_GET_HEAD_OPTIONS,
+        cachePolicy: htmlCachePolicy,
+        originRequestPolicy: htmlOriginRequestPolicy,
         compress: true,
-        cachePolicy: cloudfront.CachePolicy.CACHING_OPTIMIZED,
       },
-      defaultRootObject: "index.html",
       domainNames,
       certificate,
       additionalBehaviors: {
         "/_next/static/*": {
-          origin: origins.S3BucketOrigin.withOriginAccessControl(websiteBucket),
+          origin: new origins.HttpOrigin(service.attrEndpoint, {
+            protocolPolicy: cloudfront.OriginProtocolPolicy.HTTPS_ONLY,
+          }),
           viewerProtocolPolicy:
             cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
+          cachePolicy: cloudfront.CachePolicy.CACHING_OPTIMIZED,
           compress: true,
-          cachePolicy: immutableAssetCachePolicy,
         },
       },
-      errorResponses: [
-        {
-          httpStatus: 404,
-          responseHttpStatus: 200,
-          responsePagePath: "/404.html",
-          ttl: cdk.Duration.minutes(5),
-        },
-        {
-          httpStatus: 403,
-          responseHttpStatus: 200,
-          responsePagePath: "/index.html",
-          ttl: cdk.Duration.minutes(5),
-        },
-      ],
     });
 
-    // Set up the records to pl-conferences.com if we are in production
     if (isProduction && hostedZone) {
       new route53.ARecord(this, "AliasRecord", {
         zone: hostedZone,
@@ -221,14 +318,14 @@ export class PlConfStack extends cdk.Stack {
       description: "CloudFront distribution URL",
     });
 
-    new cdk.CfnOutput(this, "WebsiteBucketName", {
-      value: websiteBucket.bucketName,
-      description: "S3 bucket for static website",
-    });
-
     new cdk.CfnOutput(this, "DistributionId", {
       value: distribution.distributionId,
       description: "CloudFront distribution ID",
+    });
+
+    new cdk.CfnOutput(this, "ServiceEndpoint", {
+      value: `https://${service.attrEndpoint}`,
+      description: "ECS Express service endpoint (origin)",
     });
 
     new cdk.CfnOutput(this, "SubmissionApiUrl", {
