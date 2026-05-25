@@ -36,7 +36,12 @@ export function UrlTagFilterProvider({
       const next = new Set(activeTags);
       if (next.has(tag)) next.delete(tag);
       else next.add(tag);
-      const sp = new URLSearchParams(searchParams.toString());
+      // Read live URL, not the React snapshot, so we don't lose `q` written
+      // by SearchProvider's debounced history.replaceState.
+      const sp =
+        typeof window !== "undefined"
+          ? new URLSearchParams(window.location.search)
+          : new URLSearchParams(searchParams.toString());
       if (next.size === 0) sp.delete("tags");
       else sp.set("tags", Array.from(next).sort().join(","));
       const qs = sp.toString();

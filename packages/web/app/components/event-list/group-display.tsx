@@ -1,6 +1,6 @@
 "use client";
 
-import { useLayoutEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import clsx from "clsx";
 import { ChevronDown, X } from "lucide-react";
 import {
@@ -18,8 +18,13 @@ import {
   stringSetCodec,
   useSessionStorage,
 } from "../../hooks/use-session-storage";
-import { useNowTick } from "../../hooks/use-now-tick";
-import { usePreferences } from "../preferences-provider";
+import { useNow } from "./now-provider";
+import { useCounts } from "./counts-context";
+import {
+  setPrefs,
+  useDisplayPref,
+  usePrefsLoaded,
+} from "../preferences-provider";
 
 const SESSION_COLLAPSED_KEY = "collapsedDateGroups";
 
@@ -168,22 +173,22 @@ export function CollapsibleGroup({
   groupKey,
   groupDate,
   groupKeys,
-  count,
   isFirst,
   isFirstCollapsible,
-  nowMs,
   children,
 }: {
   groupKey: string;
   groupDate: string | null;
   groupKeys: string[];
-  count: number;
   isFirst: boolean;
   isFirstCollapsible: boolean;
-  nowMs: number;
   children: React.ReactNode;
 }) {
-  const now = useNowTick(nowMs);
+  const now = useNow();
+  // Count visible (post-view-filter, post-hidden) rows in this group so the
+  // header matches what's actually on screen.
+  const { countGroup } = useCounts();
+  const count = countGroup(groupKeys);
   const [collapsedDates, setCollapsedDates] = useSessionStorage(
     SESSION_COLLAPSED_KEY,
     new Set<string>(),
@@ -199,9 +204,9 @@ export function CollapsibleGroup({
       return next;
     });
 
-  const { prefs, setPrefs, prefsLoaded } = usePreferences();
-  const showHint =
-    isFirstCollapsible && prefsLoaded && !prefs.display.collapseHintDismissed;
+  const prefsLoaded = usePrefsLoaded();
+  const collapseHintDismissed = useDisplayPref("collapseHintDismissed");
+  const showHint = isFirstCollapsible && prefsLoaded && !collapseHintDismissed;
   const onDismissHint = () =>
     setPrefs((p) => ({
       ...p,
@@ -210,29 +215,35 @@ export function CollapsibleGroup({
 
   const sectionRef = useRef<HTMLElement>(null);
   const innerRef = useRef<HTMLDivElement>(null);
+  // Measured lazily: groups that are never toggled never run a ResizeObserver
+  // or store a height. Until the first toggle, `height: undefined` lets the
+  // content render at its natural height.
   const [contentHeight, setContentHeight] = useState<number | undefined>(
     undefined
   );
   const contentId = `group-content-${groupKey.replace(/[^a-zA-Z0-9_-]/g, "-")}`;
 
-  useLayoutEffect(() => {
-    const el = innerRef.current;
-    if (!el) return;
-    const measure = () => setContentHeight(el.scrollHeight);
-    measure();
-    const ro = new ResizeObserver(measure);
-    ro.observe(el);
-    return () => ro.disconnect();
-  }, []);
-
   const handleToggle =
     groupDate !== null
       ? () => {
           const willCollapse = !collapsed;
-          const el = sectionRef.current;
+          const el = innerRef.current;
+          // Capture a fresh measurement on every toggle so the animation
+          // reflects the current rendered height (handles viewport changes
+          // between toggles without a long-lived observer).
+          const measured = el?.scrollHeight ?? contentHeight;
+          if (willCollapse && measured !== undefined) {
+            setContentHeight(measured);
+            requestAnimationFrame(() => toggleCollapsed());
+          } else {
+            if (measured !== undefined) setContentHeight(measured);
+            toggleCollapsed();
+          }
+          const sectionEl = sectionRef.current;
           const shouldRestoreScroll =
-            willCollapse && el !== null && el.getBoundingClientRect().top < 0;
-          toggleCollapsed();
+            willCollapse &&
+            sectionEl !== null &&
+            sectionEl.getBoundingClientRect().top < 0;
           if (shouldRestoreScroll) {
             requestAnimationFrame(() => {
               sectionRef.current?.scrollIntoView({ block: "start" });

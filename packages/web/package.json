@@ -8,6 +8,7 @@
     "dev": "next dev --turbopack",
     "prebuild": "tsx scripts/build-ical.ts",
     "build": "next build",
+    "postbuild": "tsx scripts/inject-css-preload.ts",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {

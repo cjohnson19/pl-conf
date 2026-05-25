@@ -1,31 +1,34 @@
 import clsx from "clsx";
 import {
   type MaybeDate,
-  type ScheduledEvent,
   allDeadlines,
   eventKey,
+  firstDeadline,
   formatDate,
   formatDateRange,
   isDeadlinePast,
   isDeadlineUrgent,
 } from "../lib/event";
+import type { DisplayEvent } from "../lib/event-list-view";
 import { findNextDeadline } from "../lib/deadline";
 import { dayNum, monthShort, yearNum } from "../lib/date-formatters";
-import { FavoriteButton } from "./favorite-button";
+import { StarButton } from "./star-button";
 import { CalendarMenu } from "./calendar-menu";
 import { ConnectedEventTags } from "./event-tags";
 import { RowActionSheet } from "./row-action-sheet";
 import { DatesDeadlinesLink, EventNameLink } from "./event-row/shared";
 import { RoundRail } from "./event-row/rail";
 
+// `now` freezes per render — row-level urgent/round/has-open-submission do
+// not tick. Group headers handle the live clock.
 export function EventRow({
   event: e,
-  now,
   hideDate = false,
+  now,
 }: {
-  event: ScheduledEvent;
-  now: Date;
+  event: DisplayEvent;
   hideDate?: boolean;
+  now: Date;
 }) {
   const lead = findNextDeadline(e, now, { fallbackToPast: true });
 
@@ -51,11 +54,14 @@ export function EventRow({
     );
 
   const year2 = formatDate(e.date.start, "year2", "en-US");
+  const firstDl = firstDeadline(e);
+  const openSubmission = firstDl !== undefined && !isDeadlinePast(firstDl, now);
 
   return (
     <div
       data-event-key={eventKey(e)}
       data-event-abbrev={e.abbreviation}
+      data-has-open-submission={openSubmission ? "" : undefined}
       className={clsx(
         "group grid items-center rounded-xs border-t border-rule",
         hideDate ? "event-row-grid--no-date" : "event-row-grid",
@@ -64,7 +70,10 @@ export function EventRow({
       )}
     >
       {!hideDate && (
-        <div className="flex flex-col items-start gap-1.5 self-start @[680px]/row:self-auto">
+        <div
+          className="flex flex-col items-start gap-1.5 self-start @[680px]/row:self-auto"
+          style={{ gridArea: "date" }}
+        >
           <div
             className={clsx(
               "font-ui font-semibold leading-none tracking-[-0.025em] tabular-nums",
@@ -86,7 +95,10 @@ export function EventRow({
         </div>
       )}
 
-      <div className="flex min-w-0 flex-col gap-1.5">
+      <div
+        className="flex min-w-0 flex-col gap-1.5"
+        style={{ gridArea: "title" }}
+      >
         <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1 font-ui text-[22px] font-bold leading-none tracking-[-0.015em]">
           <span>{e.abbreviation}</span>
           <span className="font-mono text-[14px] font-medium text-ink-3">
@@ -104,26 +116,13 @@ export function EventRow({
         </div>
         <EventNameLink event={e} />
         <RowMetadata event={e} />
-        {e.importantDateUrl && (
-          <div className="@[680px]/row:hidden">
-            <DatesDeadlinesLink href={e.importantDateUrl} />
-          </div>
-        )}
-        <div className="block pt-1 @[680px]/row:hidden">
-          <RoundRail
-            event={e}
-            now={now}
-            lead={lead}
-            passed={passed}
-            showMultiRound={showMultiRound}
-            totalRounds={totalRounds}
-          />
-        </div>
       </div>
 
-      <div className="hidden min-w-0 flex-col gap-1 text-[13px] @[680px]/row:flex">
+      <div
+        className="flex min-w-0 flex-col gap-1 text-[13px]"
+        style={{ gridArea: "rail" }}
+      >
         {e.importantDateUrl && <DatesDeadlinesLink href={e.importantDateUrl} />}
-
         <RoundRail
           event={e}
           now={now}
@@ -134,9 +133,12 @@ export function EventRow({
         />
       </div>
 
-      <div className="flex items-center justify-end gap-1 self-start @[680px]/row:self-auto">
+      <div
+        className="flex items-center justify-end gap-1 self-start @[680px]/row:self-auto"
+        style={{ gridArea: "actions" }}
+      >
         <div className="hidden @[680px]/row:contents">
-          <FavoriteButton prefKey={eventKey(e)} />
+          <StarButton prefKey={eventKey(e)} />
           <CalendarMenu event={e} />
         </div>
         <div className="contents @[680px]/row:hidden">
@@ -147,7 +149,7 @@ export function EventRow({
   );
 }
 
-function RowMetadata({ event: e }: { event: ScheduledEvent }) {
+function RowMetadata({ event: e }: { event: DisplayEvent }) {
   const items: { node: React.ReactNode; wideOnly: boolean }[] = [];
   if (e.location)
     items.push({

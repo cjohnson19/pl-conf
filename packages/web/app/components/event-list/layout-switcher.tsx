@@ -1,21 +1,20 @@
 "use client";
 
 import clsx from "clsx";
-import { type ScheduledEvent, eventKey } from "../../lib/event";
+import { eventKey } from "../../lib/event";
+import type { DisplayEvent } from "../../lib/event-list-view";
 import { EventCard } from "../event-card";
-import { usePreferences } from "../preferences-provider";
+import { useDisplayPref, usePrefsLoaded } from "../preferences-provider";
 
 export function LayoutSwitcher({
   events,
-  serverNowMs,
   listChildren,
 }: {
-  events: ScheduledEvent[];
-  serverNowMs: number;
+  events: DisplayEvent[];
   listChildren: React.ReactNode;
 }) {
-  const { prefs, prefsLoaded } = usePreferences();
-  const layout = prefs.display.layout ?? "list";
+  const prefsLoaded = usePrefsLoaded();
+  const layout = useDisplayPref("layout") ?? "list";
   if (prefsLoaded && layout === "grid") {
     if (events.length === 0) {
       return (
@@ -31,7 +30,7 @@ export function LayoutSwitcher({
         )}
       >
         {events.map((e) => (
-          <EventCard key={eventKey(e)} event={e} now={new Date(serverNowMs)} />
+          <EventCard key={eventKey(e)} event={e} />
         ))}
       </div>
     );

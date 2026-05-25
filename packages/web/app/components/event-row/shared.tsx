@@ -4,10 +4,10 @@ import {
   type DateName,
   type MaybeDate,
   type Round,
-  type ScheduledEvent,
   isDeadlinePast,
   isDeadlineUrgent,
 } from "../../lib/event";
+import type { DisplayEvent } from "../../lib/event-list-view";
 import { findNextDeadline } from "../../lib/deadline";
 
 export type ChipKind = "past" | "next" | "default";
@@ -19,7 +19,7 @@ export type RailRow = {
   urgent?: boolean;
 };
 
-export function useEventLead(e: ScheduledEvent, now: Date) {
+export function useEventLead(e: DisplayEvent, now: Date) {
   return useMemo(
     () => findNextDeadline(e, now, { fallbackToPast: true }),
     [e, now]
@@ -60,7 +60,7 @@ export function EventNameLink({
   className,
   iconSize = 11,
 }: {
-  event: ScheduledEvent;
+  event: DisplayEvent;
   className?: string;
   iconSize?: number;
 }) {

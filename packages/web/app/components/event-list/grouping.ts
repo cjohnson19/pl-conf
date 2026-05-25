@@ -1,13 +1,13 @@
-import type { ScheduledEvent } from "../../lib/event";
+import type { DisplayEvent } from "../../lib/event-list-view";
 import { findNextDeadline } from "../../lib/deadline";
 
 export type Group = {
   key: string;
   date: string | null;
-  events: ScheduledEvent[];
+  events: DisplayEvent[];
 };
 
-export function buildGroups(events: ScheduledEvent[], now: Date): Group[] {
+export function buildGroups(events: DisplayEvent[], now: Date): Group[] {
   return events.reduce<Group[]>((acc, event) => {
     const leadDate = findNextDeadline(event, now)?.date ?? null;
     const last = acc[acc.length - 1];

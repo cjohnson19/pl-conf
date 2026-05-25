@@ -9,8 +9,20 @@ const nextConfig: NextConfig = {
   images: {
     unoptimized: true,
   },
+  async headers() {
+    return [
+      {
+        source: "/",
+        headers: [
+          {
+            key: "Cache-Control",
+            value: "public, s-maxage=60, stale-while-revalidate=300",
+          },
+        ],
+      },
+    ];
+  },
   experimental: {
-    inlineCss: true,
     optimizePackageImports: [
       "lucide-react",
       "@radix-ui/react-accordion",

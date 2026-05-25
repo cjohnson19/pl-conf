@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import clsx from "clsx";
 import {
@@ -14,8 +14,9 @@ import {
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 import { type Tag, tagDisplayName, tagValues } from "../../lib/event";
 import type { Category, View } from "../../lib/filter-params";
-import type { ViewCounts } from "../../lib/event-list-view";
-import { usePreferences } from "../preferences-provider";
+import { setPrefs, useDisplayPref } from "../preferences-provider";
+import { useCounts } from "./counts-context";
+import { useSearchQuery, useSetSearchQuery } from "./search-provider";
 
 export type Layout = "list" | "grid";
 
@@ -36,19 +37,23 @@ function replaceSearchParam(
   key: string,
   value: string | null
 ): string {
-  const sp = new URLSearchParams(searchParams.toString());
+  // Read from window.location instead of the React snapshot so we don't drop
+  // `q` (or other params SearchProvider writes via history.replaceState
+  // between React render cycles). Falls back to the snapshot during SSR.
+  const sp =
+    typeof window !== "undefined"
+      ? new URLSearchParams(window.location.search)
+      : new URLSearchParams(searchParams.toString());
   if (value === null || value === "") sp.delete(key);
   else sp.set(key, value);
   const qs = sp.toString();
   return qs ? `?${qs}` : "?";
 }
 
-export function SearchPill({ defaultValue }: { defaultValue: string }) {
-  const router = useRouter();
-  const searchParams = useSearchParams();
-  const [value, setValue] = useState(defaultValue);
+export function SearchPill() {
+  const value = useSearchQuery();
+  const setValue = useSetSearchQuery();
   const inputRef = useRef<HTMLInputElement>(null);
-  const timerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -61,20 +66,6 @@ export function SearchPill({ defaultValue }: { defaultValue: string }) {
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
   }, []);
-
-  useEffect(() => {
-    if (timerRef.current) clearTimeout(timerRef.current);
-    const current = searchParams.get("q") ?? "";
-    if (value === current) return;
-    timerRef.current = setTimeout(() => {
-      router.replace(replaceSearchParam(searchParams, "q", value || null), {
-        scroll: false,
-      });
-    }, 300);
-    return () => {
-      if (timerRef.current) clearTimeout(timerRef.current);
-    };
-  }, [value, searchParams, router]);
 
   return (
     <div className="relative w-full min-w-[200px] flex-1 sm:max-w-[360px]">
@@ -104,7 +95,8 @@ export function SearchPill({ defaultValue }: { defaultValue: string }) {
   );
 }
 
-export function FilterChips({ counts }: { counts: Record<Category, number> }) {
+export function FilterChips() {
+  const { categoryCounts: counts } = useCounts();
   const router = useRouter();
   const searchParams = useSearchParams();
   const rawActive = searchParams.get("c");
@@ -148,7 +140,8 @@ export function FilterChips({ counts }: { counts: Record<Category, number> }) {
   );
 }
 
-export function TagsFilter({ tagCounts }: { tagCounts: Record<Tag, number> }) {
+export function TagsFilter() {
+  const { tagCounts } = useCounts();
   const router = useRouter();
   const searchParams = useSearchParams();
   const rawTags = searchParams.get("tags") ?? "";
@@ -280,15 +273,13 @@ export function TagsFilter({ tagCounts }: { tagCounts: Record<Tag, number> }) {
 }
 
 export function ViewTabs({
-  counts,
   starredCountSlot,
   trailing,
 }: {
-  counts: ViewCounts;
   starredCountSlot?: React.ReactNode;
   trailing?: React.ReactNode;
 }) {
-  const router = useRouter();
+  const { viewCounts: counts } = useCounts();
   const searchParams = useSearchParams();
   const rawActive = searchParams.get("view");
   const active: View =
@@ -296,10 +287,12 @@ export function ViewTabs({
       ? (rawActive as View)
       : "all";
   const select = (next: View) => {
-    router.replace(
-      replaceSearchParam(searchParams, "view", next === "all" ? null : next),
-      { scroll: false }
+    const url = replaceSearchParam(
+      searchParams,
+      "view",
+      next === "all" ? null : next
     );
+    window.history.replaceState(null, "", url);
   };
   const tabs: {
     key: View;
@@ -372,8 +365,7 @@ export function ViewTabs({
 }
 
 export function LayoutToggle() {
-  const { prefs, setPrefs } = usePreferences();
-  const layout: Layout = prefs.display.layout ?? "list";
+  const layout: Layout = useDisplayPref("layout") ?? "list";
   const setLayout = (next: Layout) =>
     setPrefs((p) => ({ ...p, display: { ...p.display, layout: next } }));
   const options: {

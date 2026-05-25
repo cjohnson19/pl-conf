@@ -1,65 +1,29 @@
 "use client";
 
+import { useState } from "react";
+import dynamic from "next/dynamic";
 import { Calendar } from "lucide-react";
 import clsx from "clsx";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "./ui/dropdown-menu";
-import {
-  type CopyItemProps,
-  type ExportItemProps,
-  ExportOptions,
-  ExportRowContent,
-} from "./export-options";
-import { useCalendarExport } from "../lib/use-calendar-export";
-import type { ScheduledEvent } from "../lib/event";
+import { hasConcreteDates } from "../lib/event";
+import type { DisplayEvent } from "../lib/event-list-view";
 
-const itemClass =
-  "cursor-pointer rounded-md px-3 py-2.5 text-[13px] text-ink focus:bg-paper-2 focus:text-ink";
+const CalendarMenuPopover = dynamic(
+  () =>
+    import("./calendar-menu-popover").then((m) => ({
+      default: m.CalendarMenuPopover,
+    })),
+  { ssr: false }
+);
 
-function MenuItem({ href, download, icon, title, sub }: ExportItemProps) {
-  return (
-    <DropdownMenuItem asChild className={itemClass}>
-      <a
-        href={href}
-        target={download ? undefined : "_blank"}
-        download={download}
-        className="flex items-center gap-2.5 no-underline"
-      >
-        <ExportRowContent variant="menu" icon={icon} title={title} sub={sub} />
-      </a>
-    </DropdownMenuItem>
-  );
-}
+const triggerClass = clsx(
+  "grid h-11 w-11 shrink-0 place-items-center border-0 bg-transparent text-ink-3 outline-none transition-colors sm:h-8 sm:w-8",
+  "hover:text-ink data-[state=open]:text-ink"
+);
 
-function MenuCopyItem({ onSelect, icon, title, sub }: CopyItemProps) {
-  return (
-    <DropdownMenuItem
-      onSelect={(e) => {
-        e.preventDefault();
-        onSelect();
-      }}
-      className={itemClass}
-    >
-      <div className="flex items-center gap-2.5">
-        <ExportRowContent variant="menu" icon={icon} title={title} sub={sub} />
-      </div>
-    </DropdownMenuItem>
-  );
-}
+export function CalendarMenu({ event }: { event: DisplayEvent }) {
+  const [opened, setOpened] = useState(false);
 
-function MenuSeparator() {
-  return <DropdownMenuSeparator className="mx-1.5 bg-rule" />;
-}
-
-export function CalendarMenu({ event }: { event: ScheduledEvent }) {
-  const data = useCalendarExport(event);
-
-  if (data.datesTBD) {
+  if (!hasConcreteDates(event)) {
     return (
       <button
         type="button"
@@ -73,38 +37,19 @@ export function CalendarMenu({ event }: { event: ScheduledEvent }) {
     );
   }
 
-  return (
-    <DropdownMenu
-      onOpenChange={(o) => {
-        if (o) data.setHasOpened(true);
-      }}
-    >
-      <DropdownMenuTrigger
+  if (!opened) {
+    return (
+      <button
+        type="button"
+        onClick={() => setOpened(true)}
         aria-label={`Add ${event.abbreviation} to calendar`}
         title="Add to calendar"
-        className={clsx(
-          "grid h-11 w-11 shrink-0 place-items-center border-0 bg-transparent text-ink-3 outline-none transition-colors sm:h-8 sm:w-8",
-          "hover:text-ink data-[state=open]:text-ink"
-        )}
+        className={triggerClass}
       >
         <Calendar size={14} strokeWidth={1.75} />
-      </DropdownMenuTrigger>
-      <DropdownMenuContent
-        align="end"
-        sideOffset={6}
-        className="w-[280px] rounded-lg border border-rule p-1 shadow-pop"
-        style={{ background: "var(--card)" }}
-      >
-        <ExportOptions
-          variant="menu"
-          data={data}
-          slots={{
-            Item: MenuItem,
-            CopyItem: MenuCopyItem,
-            Separator: MenuSeparator,
-          }}
-        />
-      </DropdownMenuContent>
-    </DropdownMenu>
-  );
+      </button>
+    );
+  }
+
+  return <CalendarMenuPopover event={event} />;
 }
