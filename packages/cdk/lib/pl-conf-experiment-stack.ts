@@ -92,7 +92,9 @@ export class PlConfExperimentStack extends cdk.Stack {
     });
     service.node.addDependency(cluster, executionRole, infrastructureRole);
 
-    const filterQueryParams = ["q", "c", "view", "tags"];
+    // `q` is intentionally excluded — search is filtered client-side, so every
+    // search string should hit the same cached HTML.
+    const filterQueryParams = ["c", "view", "tags"];
 
     const htmlCachePolicy = new cloudfront.CachePolicy(
       this,

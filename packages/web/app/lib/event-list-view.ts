@@ -91,18 +91,12 @@ type ComputeOptions = {
   starredKeys?: Set<string>;
 };
 
-export function buildSearchHaystacks(
-  events: ScheduledEvent[]
-): Map<string, string> {
-  const m = new Map<string, string>();
-  events.forEach((e) => {
-    const parts = [e.name, e.abbreviation];
-    if (e.location) parts.push(e.location);
-    if (e.format) parts.push(e.format);
-    parts.push(...e.tags);
-    m.set(eventKey(e), parts.join("\n").toLowerCase());
-  });
-  return m;
+export function buildSearchHaystack(e: DisplayEvent): string {
+  const parts = [e.name, e.abbreviation];
+  if (e.location) parts.push(e.location);
+  if (e.format) parts.push(e.format);
+  parts.push(...e.tags);
+  return parts.join("\n").toLowerCase();
 }
 
 export function computeEventListView(
@@ -127,16 +121,8 @@ export function computeEventListView(
     categoryCounts[e.type] = (categoryCounts[e.type] ?? 0) + 1;
   });
 
-  const haystacks = buildSearchHaystacks(activeEvents);
-  const needle = filters.q.trim().toLowerCase();
-  const matchesSearch: (e: ScheduledEvent) => boolean =
-    needle === ""
-      ? () => true
-      : (e) => (haystacks.get(eventKey(e)) ?? "").includes(needle);
-
   const preTagFiltered = applyFilters(activeEvents, [
     (e) => (filters.category === "all" ? true : e.type === filters.category),
-    matchesSearch,
   ]);
 
   const tagCounts = Object.fromEntries(tagValues.map((t) => [t, 0])) as Record<

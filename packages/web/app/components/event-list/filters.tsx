@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import clsx from "clsx";
 import {
@@ -16,6 +16,7 @@ import { type Tag, tagDisplayName, tagValues } from "../../lib/event";
 import type { Category, View } from "../../lib/filter-params";
 import type { ViewCounts } from "../../lib/event-list-view";
 import { usePreferences } from "../preferences-provider";
+import { useSearchQuery, useSetSearchQuery } from "./search-provider";
 
 export type Layout = "list" | "grid";
 
@@ -43,12 +44,10 @@ function replaceSearchParam(
   return qs ? `?${qs}` : "?";
 }
 
-export function SearchPill({ defaultValue }: { defaultValue: string }) {
-  const router = useRouter();
-  const searchParams = useSearchParams();
-  const [value, setValue] = useState(defaultValue);
+export function SearchPill() {
+  const value = useSearchQuery();
+  const setValue = useSetSearchQuery();
   const inputRef = useRef<HTMLInputElement>(null);
-  const timerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -61,20 +60,6 @@ export function SearchPill({ defaultValue }: { defaultValue: string }) {
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
   }, []);
-
-  useEffect(() => {
-    if (timerRef.current) clearTimeout(timerRef.current);
-    const current = searchParams.get("q") ?? "";
-    if (value === current) return;
-    timerRef.current = setTimeout(() => {
-      router.replace(replaceSearchParam(searchParams, "q", value || null), {
-        scroll: false,
-      });
-    }, 300);
-    return () => {
-      if (timerRef.current) clearTimeout(timerRef.current);
-    };
-  }, [value, searchParams, router]);
 
   return (
     <div className="relative w-full min-w-[200px] flex-1 sm:max-w-[360px]">
