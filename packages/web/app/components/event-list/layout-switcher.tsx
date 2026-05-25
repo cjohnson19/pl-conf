@@ -4,7 +4,7 @@ import clsx from "clsx";
 import { eventKey } from "../../lib/event";
 import type { DisplayEvent } from "../../lib/event-list-view";
 import { EventCard } from "../event-card";
-import { usePreferences } from "../preferences-provider";
+import { useDisplayPref, usePrefsLoaded } from "../preferences-provider";
 
 export function LayoutSwitcher({
   events,
@@ -15,8 +15,8 @@ export function LayoutSwitcher({
   serverNowMs: number;
   listChildren: React.ReactNode;
 }) {
-  const { prefs, prefsLoaded } = usePreferences();
-  const layout = prefs.display.layout ?? "list";
+  const prefsLoaded = usePrefsLoaded();
+  const layout = useDisplayPref("layout") ?? "list";
   if (prefsLoaded && layout === "grid") {
     if (events.length === 0) {
       return (

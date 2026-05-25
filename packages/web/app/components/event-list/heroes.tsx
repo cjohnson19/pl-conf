@@ -23,7 +23,12 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "../ui/dropdown-menu";
-import { usePreferences } from "../preferences-provider";
+import {
+  setPrefs,
+  useDisplayPref,
+  useEventPrefs,
+  usePrefsLoaded,
+} from "../preferences-provider";
 import {
   stringSetCodec,
   useSessionStorage,
@@ -37,15 +42,20 @@ const SESSION_DISMISSED_KEY = "dismissedHeroKeys";
 
 export function Hero({ events }: { events: HeroEvent[] }) {
   const now = useNow();
-  const { prefs, setPrefs, prefsLoaded } = usePreferences();
+  const eventPrefs = useEventPrefs();
+  const prefsLoaded = usePrefsLoaded();
+  const deadlineHeroDismissed = useDisplayPref("deadlineHeroDismissed");
+  const permanentlyHiddenEventHeroes = useDisplayPref(
+    "permanentlyHiddenEventHeroes"
+  );
   const starredKeys = useMemo(
     () =>
       new Set(
-        Object.entries(prefs.eventPrefs)
+        Object.entries(eventPrefs)
           .filter(([, v]) => v?.favorite)
           .map(([k]) => k)
       ),
-    [prefs]
+    [eventPrefs]
   );
   const [sessionDismissed, setSessionDismissed] = useSessionStorage(
     SESSION_DISMISSED_KEY,
@@ -108,7 +118,7 @@ export function Hero({ events }: { events: HeroEvent[] }) {
   function pickHero(): ReactNode {
     if (!prefsLoaded) return null;
     if (starredKeys.size === 0) return null;
-    if (prefs.display.deadlineHeroDismissed) return null;
+    if (deadlineHeroDismissed) return null;
 
     if (upcomingDeadlines.length > 0) {
       const pick = upcomingDeadlines.reduce((a, b) =>
@@ -116,8 +126,7 @@ export function Hero({ events }: { events: HeroEvent[] }) {
       );
       const pickKey = `deadline:${pick.event.key}:${pick.name}:${pick.date}`;
       if (sessionDismissed.has(pickKey)) return null;
-      if (prefs.display.permanentlyHiddenEventHeroes?.includes(pick.event.key))
-        return null;
+      if (permanentlyHiddenEventHeroes?.includes(pick.event.key)) return null;
       const deadline = isDeadline(pick.name);
       return (
         <HeroShell
@@ -146,8 +155,7 @@ export function Hero({ events }: { events: HeroEvent[] }) {
     const pick = upcomingStarts.reduce((a, b) => (a.time <= b.time ? a : b));
     const pickKey = `start:${pick.event.key}:${pick.date}`;
     if (sessionDismissed.has(pickKey)) return null;
-    if (prefs.display.permanentlyHiddenEventHeroes?.includes(pick.event.key))
-      return null;
+    if (permanentlyHiddenEventHeroes?.includes(pick.event.key)) return null;
     const startCal = toCalendarDate(pick.date);
     return (
       <HeroShell

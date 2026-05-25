@@ -15,7 +15,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 import { type Tag, tagDisplayName, tagValues } from "../../lib/event";
 import type { Category, View } from "../../lib/filter-params";
 import type { ViewCounts } from "../../lib/event-list-view";
-import { usePreferences } from "../preferences-provider";
+import { setPrefs, useDisplayPref } from "../preferences-provider";
 import { useSearchQuery, useSetSearchQuery } from "./search-provider";
 
 export type Layout = "list" | "grid";
@@ -357,8 +357,7 @@ export function ViewTabs({
 }
 
 export function LayoutToggle() {
-  const { prefs, setPrefs } = usePreferences();
-  const layout: Layout = prefs.display.layout ?? "list";
+  const layout: Layout = useDisplayPref("layout") ?? "list";
   const setLayout = (next: Layout) =>
     setPrefs((p) => ({ ...p, display: { ...p.display, layout: next } }));
   const options: {

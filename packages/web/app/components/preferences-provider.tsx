@@ -1,49 +1,74 @@
 "use client";
 
-import {
-  createContext,
-  type Dispatch,
-  type ReactNode,
-  type SetStateAction,
-  useContext,
-  useMemo,
-} from "react";
+import { type ReactNode, useEffect, useSyncExternalStore } from "react";
 import {
   defaultPreferences,
+  type DisplayPreferences,
   type PreferenceCollection,
 } from "@/lib/user-prefs";
-import { useLocalStorage } from "@/hooks/use-local-storage";
+import { preferencesStore, setPrefs } from "@/lib/preferences-store";
 
-type PreferencesContextType = {
-  prefs: PreferenceCollection;
-  setPrefs: Dispatch<SetStateAction<PreferenceCollection>>;
-  prefsLoaded: boolean;
-};
-
-const PreferencesContext = createContext<PreferencesContextType | null>(null);
+export { setPrefs };
 
 export function PreferencesProvider({ children }: { children: ReactNode }) {
-  const [prefs, setPrefs, prefsLoaded] = useLocalStorage<PreferenceCollection>(
-    "userPrefsV2",
-    defaultPreferences
-  );
+  useEffect(() => {
+    preferencesStore.hydrateFromStorage();
+  }, []);
+  return <>{children}</>;
+}
 
-  const value = useMemo(
-    () => ({ prefs, setPrefs, prefsLoaded }),
-    [prefs, setPrefs, prefsLoaded]
-  );
-
-  return (
-    <PreferencesContext.Provider value={value}>
-      {children}
-    </PreferencesContext.Provider>
-  );
+function getServerPrefs(): PreferenceCollection {
+  return preferencesStore.getServerPrefs();
 }
 
 export function usePreferences() {
-  const context = useContext(PreferencesContext);
-  if (!context) {
-    throw new Error("usePreferences must be used within a PreferencesProvider");
-  }
-  return context;
+  const prefs = useSyncExternalStore(
+    preferencesStore.subscribe,
+    preferencesStore.getPrefs,
+    getServerPrefs
+  );
+  const prefsLoaded = useSyncExternalStore(
+    preferencesStore.subscribe,
+    preferencesStore.isLoaded,
+    returnFalse
+  );
+  return { prefs, setPrefs, prefsLoaded };
+}
+
+export function useEventPrefs() {
+  return useSyncExternalStore(
+    preferencesStore.subscribe,
+    selectEventPrefs,
+    selectDefaultEventPrefs
+  );
+}
+
+export function useDisplayPref<K extends keyof DisplayPreferences>(
+  key: K
+): DisplayPreferences[K] {
+  return useSyncExternalStore(
+    preferencesStore.subscribe,
+    () => preferencesStore.getPrefs().display[key],
+    () => defaultPreferences.display[key]
+  );
+}
+
+export function usePrefsLoaded(): boolean {
+  return useSyncExternalStore(
+    preferencesStore.subscribe,
+    preferencesStore.isLoaded,
+    returnFalse
+  );
+}
+
+function selectEventPrefs() {
+  return preferencesStore.getPrefs().eventPrefs;
+}
+
+function selectDefaultEventPrefs() {
+  return defaultPreferences.eventPrefs;
+}
+
+function returnFalse() {
+  return false;
 }

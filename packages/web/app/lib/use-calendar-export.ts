@@ -8,7 +8,7 @@ import {
   toGoogleCalendarLink,
 } from "./event";
 import type { DisplayEvent } from "./event-list-view";
-import { usePreferences } from "@/components/preferences-provider";
+import { setPrefs, useDisplayPref } from "@/components/preferences-provider";
 
 export type SubscribeUrls = {
   httpsUrl: string;
@@ -31,8 +31,7 @@ export type CalendarExport = {
 };
 
 export function useCalendarExport(event: DisplayEvent): CalendarExport {
-  const { prefs, setPrefs } = usePreferences();
-  const includeDeadlines = prefs.display.includeCalendarDeadlines;
+  const includeDeadlines = useDisplayPref("includeCalendarDeadlines");
   const setIncludeDeadlines = (v: boolean) =>
     setPrefs((prev) => ({
       ...prev,

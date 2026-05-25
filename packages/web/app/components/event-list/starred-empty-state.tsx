@@ -1,14 +1,15 @@
 "use client";
 
 import { useRouter, useSearchParams } from "next/navigation";
-import { usePreferences } from "../preferences-provider";
+import { useEventPrefs, usePrefsLoaded } from "../preferences-provider";
 
 export function StarredEmptyState({ totalActive }: { totalActive: number }) {
-  const { prefs, prefsLoaded } = usePreferences();
+  const eventPrefs = useEventPrefs();
+  const prefsLoaded = usePrefsLoaded();
   const router = useRouter();
   const searchParams = useSearchParams();
   if (!prefsLoaded) return null;
-  const starredCount = Object.values(prefs.eventPrefs).filter(
+  const starredCount = Object.values(eventPrefs).filter(
     (p) => p?.favorite
   ).length;
   const hasOthers = totalActive > starredCount;

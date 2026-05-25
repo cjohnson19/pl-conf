@@ -19,7 +19,11 @@ import {
   useSessionStorage,
 } from "../../hooks/use-session-storage";
 import { useNow } from "./now-provider";
-import { usePreferences } from "../preferences-provider";
+import {
+  setPrefs,
+  useDisplayPref,
+  usePrefsLoaded,
+} from "../preferences-provider";
 
 const SESSION_COLLAPSED_KEY = "collapsedDateGroups";
 
@@ -197,9 +201,9 @@ export function CollapsibleGroup({
       return next;
     });
 
-  const { prefs, setPrefs, prefsLoaded } = usePreferences();
-  const showHint =
-    isFirstCollapsible && prefsLoaded && !prefs.display.collapseHintDismissed;
+  const prefsLoaded = usePrefsLoaded();
+  const collapseHintDismissed = useDisplayPref("collapseHintDismissed");
+  const showHint = isFirstCollapsible && prefsLoaded && !collapseHintDismissed;
   const onDismissHint = () =>
     setPrefs((p) => ({
       ...p,
