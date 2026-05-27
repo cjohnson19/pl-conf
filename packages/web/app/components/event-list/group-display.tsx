@@ -19,6 +19,7 @@ import {
   useSessionStorage,
 } from "../../hooks/use-session-storage";
 import { useNow } from "./now-provider";
+import { useCounts } from "./counts-context";
 import {
   setPrefs,
   useDisplayPref,
@@ -172,7 +173,6 @@ export function CollapsibleGroup({
   groupKey,
   groupDate,
   groupKeys,
-  count,
   isFirst,
   isFirstCollapsible,
   children,
@@ -180,12 +180,15 @@ export function CollapsibleGroup({
   groupKey: string;
   groupDate: string | null;
   groupKeys: string[];
-  count: number;
   isFirst: boolean;
   isFirstCollapsible: boolean;
   children: React.ReactNode;
 }) {
   const now = useNow();
+  // Count visible (post-view-filter, post-hidden) rows in this group so the
+  // header matches what's actually on screen.
+  const { countGroup } = useCounts();
+  const count = countGroup(groupKeys);
   const [collapsedDates, setCollapsedDates] = useSessionStorage(
     SESSION_COLLAPSED_KEY,
     new Set<string>(),

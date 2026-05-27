@@ -13,11 +13,17 @@ export function VisibilityStyle() {
   const view = searchParams.get("view");
 
   const rules = useMemo(() => {
-    if (!prefsLoaded) return "";
+    let css = "";
+    if (view === "submissions") {
+      css += "[data-event-key]:not([data-has-open-submission]){display:none}";
+      css +=
+        "[data-group-keys]:not(:has([data-has-open-submission])){display:none}";
+    }
+    if (!prefsLoaded) return css;
     const entries = Object.entries(eventPrefs);
     const hidden = entries.filter(([, v]) => v?.hidden).map(([k]) => k);
     const starred = entries.filter(([, v]) => v?.favorite).map(([k]) => k);
-    let css = hidden
+    css += hidden
       .map((k) => `[data-event-key="${CSS.escape(k)}"]{display:none}`)
       .join("");
     if (view === "starred") {

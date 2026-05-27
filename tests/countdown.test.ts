@@ -2,8 +2,9 @@ import { describe, expect, it } from "vitest";
 import { humanCountdown, shortCountdown } from "@/lib/countdown";
 import { toAoeInstant } from "@pl-conf/core";
 
+// UTC noon so the assertions don't depend on the runner's local tz.
 const localNoon = (y: number, m: number, d: number) =>
-  new Date(y, m - 1, d, 12, 0, 0);
+  new Date(Date.UTC(y, m - 1, d, 12, 0, 0));
 
 describe("shortCountdown", () => {
   it("returns TBD for TBD", () => {
@@ -49,7 +50,7 @@ describe("shortCountdown", () => {
     // in most timezones, but the helper should still report hours since it
     // hits the days <= 0 branch only when calendar diff <= 0. To force the
     // same-calendar-day case, pin now to local midnight of the same day.
-    const sameDayLocalMidnight = new Date(2026, 4, 12, 0, 0, 0);
+    const sameDayLocalMidnight = new Date(Date.UTC(2026, 4, 12, 0, 0, 0));
     const result = shortCountdown("2026-05-12", sameDayLocalMidnight);
     expect(result).toMatch(/^\d+h$/);
     expect(Number(result.replace("h", ""))).toBeGreaterThan(0);
@@ -127,5 +128,11 @@ describe("humanCountdown", () => {
 
   it('returns "soon" for TBD', () => {
     expect(humanCountdown("TBD", localNoon(2026, 5, 12))).toBe("soon");
+  });
+
+  it("yields the same text regardless of how a viewer would localize now", () => {
+    const date = "2026-05-30";
+    const wouldBeMay27Utc = new Date("2026-05-27T02:00:00Z");
+    expect(humanCountdown(date, wouldBeMay27Utc)).toBe("in 3 days");
   });
 });

@@ -46,12 +46,27 @@ export function SearchProvider({
     timerRef.current = setTimeout(() => syncUrl(next), URL_SYNC_DEBOUNCE_MS);
   }, []);
 
-  useEffect(
-    () => () => {
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    // CloudFront strips `q` from the SSR query (intentional, to keep the
+    // origin cache hit rate up). The browser URL still has it though, so on
+    // mount we backfill from the live location.
+    const initial = new URLSearchParams(window.location.search).get("q") ?? "";
+    setQueryState((prev) => (prev === initial ? prev : initial));
+
+    // Browser back/forward across URLs with different `q` values should resync
+    // the input.
+    const onPop = () => {
+      const next = new URLSearchParams(window.location.search).get("q") ?? "";
+      setQueryState((prev) => (prev === next ? prev : next));
+    };
+    window.addEventListener("popstate", onPop);
+    return () => {
+      window.removeEventListener("popstate", onPop);
       if (timerRef.current) clearTimeout(timerRef.current);
-    },
-    []
-  );
+    };
+  }, []);
 
   const value = useMemo(() => ({ query, setQuery }), [query, setQuery]);
   return (

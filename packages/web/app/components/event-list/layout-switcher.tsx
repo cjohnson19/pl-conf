@@ -8,11 +8,9 @@ import { useDisplayPref, usePrefsLoaded } from "../preferences-provider";
 
 export function LayoutSwitcher({
   events,
-  serverNowMs,
   listChildren,
 }: {
   events: DisplayEvent[];
-  serverNowMs: number;
   listChildren: React.ReactNode;
 }) {
   const prefsLoaded = usePrefsLoaded();
@@ -32,7 +30,7 @@ export function LayoutSwitcher({
         )}
       >
         {events.map((e) => (
-          <EventCard key={eventKey(e)} event={e} now={new Date(serverNowMs)} />
+          <EventCard key={eventKey(e)} event={e} />
         ))}
       </div>
     );

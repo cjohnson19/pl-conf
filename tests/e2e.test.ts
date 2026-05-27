@@ -600,8 +600,14 @@ describe("submissions open view", () => {
         eventKey
       )
     );
+    // SSR ships every row and VisibilityStyle hides non-matching ones via
+    // CSS, so a DOM-element count would never match. Use the visibility-aware
+    // count instead.
     await page.waitForFunction(
-      (n) => document.querySelectorAll("[data-event-key]").length === n,
+      (n) =>
+        Array.from(document.querySelectorAll("[data-event-key]")).filter(
+          (el) => (el as HTMLElement).offsetParent !== null
+        ).length === n,
       { timeout: 5000 },
       expectedKeys.size
     );

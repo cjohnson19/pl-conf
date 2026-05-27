@@ -14,13 +14,17 @@ var view = new URLSearchParams(window.location.search).get("view");
 var raw = localStorage.getItem("userPrefsV2");
 var rules = "";
 var esc = function(s){return s.replace(/[\\\\"]/g, "\\\\$&");};
-if (raw) {
-  var prefs = JSON.parse(raw);
+// Inner try isolates JSON.parse so corrupt prefs don't skip the view=submissions
+// block below — otherwise a single broken localStorage entry leaves both filters
+// disabled and the user sees every row flash before VisibilityStyle hydrates.
+var prefs = null;
+try { if (raw) prefs = JSON.parse(raw); } catch (e) {}
+if (prefs) {
   var entries = Object.entries(prefs.eventPrefs || {});
   var hidden = entries.filter(function(kv){return kv[1] && kv[1].hidden;}).map(function(kv){return kv[0];});
   hidden.forEach(function(k){rules += '[data-event-key="' + esc(k) + '"]{display:none}';});
   if (view === "starred") {
-    var starred = entries.filter(function(kv){return kv[1] && kv[1].favorite;}).map(function(kv){return kv[0];});
+    var starred = entries.filter(function(kv){return kv[1] && kv[1].favorite && !kv[1].hidden;}).map(function(kv){return kv[0];});
     if (starred.length === 0) {
       rules += '[data-event-key]{display:none}[data-group-keys]{display:none}';
     } else {
@@ -31,6 +35,10 @@ if (raw) {
   }
 } else if (view === "starred") {
   rules += '[data-event-key]{display:none}[data-group-keys]{display:none}';
+}
+if (view === "submissions") {
+  rules += '[data-event-key]:not([data-has-open-submission]){display:none}';
+  rules += '[data-group-keys]:not(:has([data-has-open-submission])){display:none}';
 }
 if (rules) {
   var style = document.createElement("style");

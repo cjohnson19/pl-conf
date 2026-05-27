@@ -52,7 +52,9 @@ export function Hero({ events }: { events: HeroEvent[] }) {
     () =>
       new Set(
         Object.entries(eventPrefs)
-          .filter(([, v]) => v?.favorite)
+          // Exclude `hidden` events even if starred — VisibilityStyle hides
+          // them from the grid, so popping them up in the Hero is jarring.
+          .filter(([, v]) => v?.favorite && !v?.hidden)
           .map(([k]) => k)
       ),
     [eventPrefs]
@@ -97,8 +99,11 @@ export function Hero({ events }: { events: HeroEvent[] }) {
     const starred = events.filter((e) => starredKeys.has(e.key));
     return {
       upcomingDeadlines: starred.flatMap((event) => {
-        const d = event.upcomingDeadline;
-        return d && d.time > nowMs && d.time <= horizon
+        // Pick the next deadline still in the future as of live `now`. The
+        // server may have shipped a Round 1 deadline that has since elapsed;
+        // walking the sorted list rolls forward to Round 2 automatically.
+        const d = event.upcomingDeadlines.find((d) => d.time > nowMs);
+        return d && d.time <= horizon
           ? [{ event, date: d.date, name: d.name, time: d.time }]
           : [];
       }),

@@ -9,58 +9,68 @@ between intent and what users actually get.
 
 ## Status
 
-| #   | Finding                                                       | Status               |
-| --- | ------------------------------------------------------------- | -------------------- |
-| 1   | Origin sends `no-store`; CloudFront can't cache `/`           | implemented (origin) |
-| 2   | `Hero` serializes 65 KB of full event objects                 | done                 |
-| 2b  | `displayEvents` is a 65 KB canonical store used page-wide     | open (revised scope) |
-| 3   | Inlined CSS duplicated three times in HTML                    | open                 |
-| 4   | `PreferencesContext` fan-out re-renders ~300 nodes per toggle | open                 |
-| 5   | Search round-trips RSC on every keystroke                     | open                 |
-| 6   | Mobile DOM ships two responsive row variants                  | open                 |
-| 7   | `Hero` pops in after hydration (CLS)                          | open                 |
-| 8   | Per-group `useNowTick` + `ResizeObserver` redundancy          | open                 |
+| #   | Finding                                                           | Status                     |
+| --- | ----------------------------------------------------------------- | -------------------------- |
+| 1   | Origin sends `no-store`; CloudFront can't cache `/`               | implemented (origin)       |
+| 2   | `Hero` serializes 65 KB of full event objects                     | done                       |
+| 2b  | `displayEvents` is a 65 KB canonical store used page-wide         | partially done (option 1)  |
+| 3   | Inlined CSS duplicated three times in HTML                        | done (`inlineCss` removed) |
+| 4   | `PreferencesContext` fan-out re-renders ~300 nodes per toggle     | done                       |
+| 5   | Search round-trips RSC on every keystroke                         | done                       |
+| 6   | Mobile DOM ships two responsive row variants                      | done                       |
+| 8   | Per-group `useNowTick` + `ResizeObserver` redundancy              | done                       |
+| 9   | Logo `<Link href="/">` self-prefetches `/?_rsc=` after hydration  | done                       |
+| 10  | Lighthouse critical chain: HTML → render-blocking CSS             | done (Link preload header) |
+| B   | CloudFront compression: gzip is 3× bloated, brotli not negotiated | open                       |
 
 ## Baseline measurements
 
-Measured against the standalone build at `http://127.0.0.1:3101/` with 97
-active events. The "current" column reflects the state after Finding #1 (origin
-header) and Finding #2 (Hero slim) landed.
+"Original" and earlier "Current" numbers were captured against the standalone
+build at `http://127.0.0.1:3101/`. The "Current" column below was re-measured
+on 2026-05-25 against the production deployment at
+`https://d12c1by0uwwwq.cloudfront.net/` (cold cache-bust, mobile viewport
+375×812 for DOM count, desktop 1280×900 for the star click) after #1–#6, #8,
+#9 had landed.
 
-| Metric                        | Original     | Current     | Notes                                             |
-| ----------------------------- | ------------ | ----------- | ------------------------------------------------- |
-| HTML transfer (gzip)          | 329 KB       | 106 KB      | Mostly RSC flight payload — see "gzip note" below |
-| HTML decoded                  | 1.92 MB      | 1.94 MB     | Half of that is `<script>` tags (RSC chunks)      |
-| RSC flight (decoded)          | ~988 KB      | ~1.00 MB    | Largest single chunk: 65 KB — now `displayEvents` |
-| `Hero` RSC chunk              | ~65 KB       | ~24 KB      | Slimmed to `HeroEvent` projection                 |
-| Inlined CSS in HTML           | ~108 KB      | ~108 KB     | 35.9 KB `<style>` + 2× 36.6 KB duplicates         |
-| DOM nodes (mobile, 375×812)   | 8,443        | (unchanged) | 97 events × ~87 nodes/event                       |
-| FCP / LCP (localhost)         | 132 / 172 ms | (unchanged) | Real network adds the full HTML download          |
-| Star click → first frame      | ~14 ms       | (unchanged) | Locally fine; fan-out cost scales with row count  |
-| Category chip → row change    | ~64 ms       | (unchanged) | Full RSC round-trip                               |
-| Search keystroke → row change | ~339 ms      | (unchanged) | 300 ms debounce + RSC fetch + render              |
+| Metric                        | Original     | Current                | Notes                                             |
+| ----------------------------- | ------------ | ---------------------- | ------------------------------------------------- |
+| HTML transfer (CloudFront)    | 329 KB       | 210 KB                 | Wire bytes; CloudFront gzip is poorly tuned (B)   |
+| HTML transfer (local gzip -6) | 106 KB       | 70 KB                  | Apples-to-apples vs prior "Current" — see note    |
+| HTML decoded                  | 1.92 MB      | 1.46 MB                | −24 % from `inlineCss` removal + slimmed payloads |
+| RSC flight (decoded)          | ~988 KB      | 716 KB across 157 push | −28 % from `DisplayEvent` projection              |
+| `Hero` RSC chunk              | ~65 KB       | 23.8 KB                | Slimmed to `HeroEvent` projection                 |
+| Largest RSC chunk             | n/a          | 56 KB (push #5)        | Canonical store; remaining target for #2b 2–4     |
+| Inlined CSS in HTML           | ~108 KB      | 0 bytes                | `experimental.inlineCss` removed; 0 `<style>`     |
+| DOM nodes (mobile, 375×812)   | 8,443        | 6,584                  | −22 % from #6 row-markup consolidation            |
+| TTFB (prod, cache hit)        | n/a          | 60 ms                  | CloudFront `X-Cache: Hit` after #1                |
+| FCP (prod)                    | 132 ms local | 676 ms                 | Real network adds the HTML download               |
+| Star click → first frame      | ~14 ms local | ~12 ms median (prod)   | #4 split; scales with catalog size                |
+| Category chip → row change    | ~64 ms       | (unchanged)            | Full RSC round-trip                               |
+| Search keystroke → row change | ~339 ms      | ~14 ms                 | Client-side filter via `SearchFilterStyle` (#5)   |
 
-**gzip note.** The original 329 KB figure was measured before the SSR
-client-island refactor and likely captured the full-RSC `?_rsc` payload, not
-the rendered HTML. The current 106 KB number is `gzip -c < curl-of-/`. The
-decoded HTML size (1.94 MB) is the like-for-like comparison and is essentially
-unchanged from the original 1.92 MB — the wins so far are in the RSC chunk
-distribution, not total bytes. Treat the gzip-original column with suspicion
-until someone reproduces it.
+**gzip note.** Two distinct numbers matter. (1) CloudFront wire size — what
+the browser actually downloads — is **210 KB**. (2) Local `gzip -c -6 <
+curl-of-/` of the decoded HTML is **70 KB**, the like-for-like comparison
+with the prior "106 KB Current" entry. The 3× gap between (1) and (2) is
+the same compression-bloat issue tracked as Finding **B** below. Brotli is
+also broken (returns the uncompressed 1.46 MB), so the wire size won't
+benefit from it until that's fixed.
 
 ## TL;DR priority
 
-| #   | Finding                                                       | Effort | Impact                                         |
-| --- | ------------------------------------------------------------- | ------ | ---------------------------------------------- |
-| 1   | Origin sends `no-store`; CloudFront can't cache `/`           | S      | ~10× TTFB on warm cache hits                   |
-| 2   | `Hero` 65 KB chunk — slim to `HeroEvent` projection           | M      | ~41 KB off Hero RSC chunk (done)               |
-| 2b  | `displayEvents` 65 KB canonical store — trim or split fields  | M      | ~6–15 KB realistic; bigger needs refactor      |
-| 3   | Inlined CSS duplicated three times in HTML                    | S      | ~9–10 KB gzipped + parse cost                  |
-| 4   | `PreferencesContext` fan-out re-renders ~300 nodes per toggle | M      | INP risk that scales with catalog size         |
-| 5   | Search round-trips RSC on every keystroke                     | M      | 300 ms+ latency, high-cardinality cache misses |
-| 6   | Mobile DOM ships two responsive row variants                  | M      | Memory + parse cost on low-end devices         |
-| 7   | `Hero` pops in after hydration (CLS)                          | S      | Layout shift on slow clients                   |
-| 8   | Per-group `useNowTick` + `ResizeObserver` redundancy          | S      | Cosmetic; scales poorly                        |
+| #   | Finding                                                       | Effort | Impact                                                |
+| --- | ------------------------------------------------------------- | ------ | ----------------------------------------------------- |
+| 1   | Origin sends `no-store`; CloudFront can't cache `/`           | S      | ~10× TTFB on warm cache hits (done)                   |
+| 2   | `Hero` 65 KB chunk — slim to `HeroEvent` projection           | M      | ~41 KB off Hero RSC chunk (done)                      |
+| 2b  | `displayEvents` 65 KB canonical store — trim or split fields  | M      | Option 1 (DisplayEvent projection) landed; rest open  |
+| 3   | Inlined CSS duplicated three times in HTML                    | S      | ~9–10 KB gzipped + parse cost (done)                  |
+| 4   | `PreferencesContext` fan-out re-renders ~300 nodes per toggle | M      | ~300 → ~3 re-renders per star toggle (done)           |
+| 5   | Search round-trips RSC on every keystroke                     | M      | 300 ms+ → ~14 ms; cache no longer fragmented (done)   |
+| 6   | Mobile DOM ships two responsive row variants                  | M      | 8443 → 6584 mobile nodes (done)                       |
+| 8   | Per-group `useNowTick` + `ResizeObserver` redundancy          | S      | Cosmetic; scales poorly (done)                        |
+| 9   | Logo `<Link href="/">` self-prefetches `/?_rsc=`              | S      | ~304 KB wire / ~1.83 MB decoded per cold visit (done) |
+| 10  | Lighthouse "Avoid chaining critical requests" (HTML → CSS)    | S      | ~50 ms off critical path; clears the audit (done)     |
+| B   | CloudFront ships poorly-compressed gzip; no brotli            | S–M    | Wire 210 KB → ~70 KB possible; brotli ~−15 % more     |
 
 ---
 
@@ -190,7 +200,19 @@ once the precomputed deadline passes, the hero disappears for that event
 until the next page load (HTML cache is 60s). Acceptable given the cache
 window.
 
-## 2b. `displayEvents` is a 65 KB _canonical_ store, not a per-component prop
+## 2b. `displayEvents` is a 65 KB _canonical_ store, not a per-component prop (partially done)
+
+### Status
+
+Option 1 (trim dead fields) is implemented:
+`packages/web/app/lib/event-list-view.ts:32-52` defines a `DisplayEvent` that
+drops `submissionUrl`, `notes`, `lastUpdated`, and `sequence`. `toDisplayEvent`
+projects every event before it ships to client components, and every consumer
+(`EventRow`, `EventCard`, `CalendarMenu`, `RowActionSheet`, `StarredCount`,
+`SearchFilterStyle`) now takes `DisplayEvent` rather than `ScheduledEvent`.
+
+Options 2–4 are still open (drop empty-default keys, slim row islands, defer
+grid data). Re-measure before deciding whether any of them are worth pursuing.
 
 ### What investigation revealed
 
@@ -297,18 +319,21 @@ In order of effort:
    the client `fetch`es it, caches in memory, and renders the grid. List
    users (the default) pay nothing. Grid users pay one cached fetch.
 
-Recommendation: do (1)+(2) opportunistically alongside the other findings —
-quick wins with no architectural cost. Defer (3)/(4) until the field-level
-audit shows we're still over budget.
+Recommendation: (1) has landed. Do (2) opportunistically — still a free
+~1–2 KB. Defer (3)/(4) until a re-measure shows we're still over budget.
 
 ### Verify
 
-After (1)+(2):
+After (1) (already done — verify on re-measure):
 
-- `curl -s http://<host>/ | wc -c` should drop by ~8–12 KB decoded.
 - The chunk that begins `21:[\"$\",\"$L27\",null,{\"counts\":...` should
   no longer contain `"submissionUrl"`, `"notes":[]`, `"lastUpdated"`,
   `"sequence"`.
+
+After (2):
+
+- The same chunk should additionally drop `partOf:[]`, `colocatedWith:[]`,
+  and any `format:null` keys.
 
 After (3)/(4):
 
@@ -319,208 +344,383 @@ After (3)/(4):
 
 ---
 
-## 3. Inlined CSS is duplicated three times
+## 3. Inlined CSS is duplicated three times (done)
 
-### Current state
+### Original state
 
-The HTML contains:
+The HTML contained one `<style data-precedence="next">` (35.9 KB) plus two
+identical 36.6 KB RSC flight chunks of the same CSS — ~108 KB of CSS for the
+browser to parse, ~9–10 KB on the wire after gzip. The culprit was
+`experimental.inlineCss: true` interacting with the RSC flight pipeline.
 
-1. One `<style data-precedence="next">` tag — 35.9 KB.
-2. Two identical RSC flight chunks of 36.6 KB each containing the same CSS.
+### Implementation
 
-Gzip dedupes most of it (the on-the-wire cost is ~9–10 KB extra), but the
-browser still parses ~108 KB of CSS to hydrate the document. Almost
-certainly an artifact of `experimental.inlineCss: true`
-(`packages/web/next.config.ts:13`) interacting with the RSC flight pipeline.
+`experimental.inlineCss` was removed from `packages/web/next.config.ts` as
+part of the 9ea2af6 perf bundle. Next now serves CSS via a linked stylesheet,
+so the duplicate flight chunks are gone.
 
-### Change
+### Verification
 
-Test with `experimental.inlineCss: false` and measure FCP. If FCP regression
-is tolerable, drop the option — the duplicated flight chunks should go away.
-If FCP regresses meaningfully, file an upstream issue and keep the
-duplication for now.
-
-### Verify
-
-`grep -c '@font-face{font-family:Inter' /tmp/page.html` — currently `2`;
-expect `1` after the change.
+Pending re-measure. `grep -c '@font-face{font-family:Inter' /tmp/page.html`
+should now return `0` (font face moved to the linked stylesheet).
 
 ---
 
-## 4. `PreferencesContext` fan-out re-renders
+## 4. `PreferencesContext` fan-out re-renders (done)
 
-### Current state
+### Original state
 
-`packages/web/app/components/preferences-provider.tsx` exposes the full
-`prefs` object via one context. Any pref change rebuilds the context value
-and re-renders every consumer.
+`packages/web/app/components/preferences-provider.tsx` exposed the full
+`prefs` object via one context. Any pref change rebuilt the context value
+and re-rendered every consumer — `Hero`, `LayoutSwitcher`, `LayoutToggle`,
+`VisibilityStyle`, `StarredCount`, every `CollapsibleGroup`, plus the
+per-row trio (`FavoriteButton`, `CalendarMenu` via `useCalendarExport`,
+`RowActionSheet`). With 97 rows that came to ~300 component re-renders for
+a single star toggle.
 
-Current consumers:
+### Implementation
 
-- `Hero`, `LayoutSwitcher`, `LayoutToggle`, `VisibilityStyle`, `StarredCount`,
-  `CollapsibleGroup`
-- Per row: `FavoriteButton`, `CalendarMenu` (via `useCalendarExport`),
-  `RowActionSheet` — that's three subscribers × 97 rows = ~291 hooks
+Replaced the React context with an external store backed by
+`useSyncExternalStore`. `packages/web/app/lib/preferences-store.ts` owns
+the mutable `prefs` snapshot and a listener set; `setPrefs` is a stable
+module-level function (no more callback whose identity changes on every
+state update). `PreferencesProvider` is now a thin component that hydrates
+the store from `localStorage` once on mount via a `useEffect`.
 
-A single star toggle currently re-renders ~300 components. Locally it
-measures at ~14 ms to first frame, which is fine — but the cost scales with
-`displayEvents.length`, and the per-component work isn't free on mid-tier
-mobile.
+`preferences-provider.tsx` exposes narrow hooks so each consumer only
+subscribes to the slice it actually reads:
 
-### Change
+- `useFavorite(prefKey)` — selects the boolean
+  `prefs.eventPrefs[prefKey]?.favorite`. A toggle on one row only re-renders
+  that row's `FavoriteButton` (the other 96 `getSnapshot` calls return the
+  same boolean → `Object.is` skips the render).
+- `useEventPrefs()` — returns the `eventPrefs` map reference. Re-renders only
+  when an event pref is added/changed (`StarredCount`, `VisibilityStyle`,
+  `Hero`, `StarredEmptyState`). Display-only toggles leave this reference
+  untouched.
+- `useDisplayPref<K>(key)` — returns a single display field. `LayoutSwitcher`
+  / `LayoutToggle` only re-render on layout changes; `Hero`'s
+  `deadlineHeroDismissed` and `permanentlyHiddenEventHeroes` subscribers are
+  independent.
+- `usePrefsLoaded()` — selects the loaded boolean.
+- `usePreferences()` is kept for `SettingsPopover` only (one component,
+  rare opens, needs the full collection).
 
-Split the context. Two cheap options:
+`useFavorite`, `useCalendarExport`, `LayoutSwitcher`, `StarredCount`,
+`VisibilityStyle`, `StarredEmptyState`, `Hero`, `CollapsibleGroup`, and
+`LayoutToggle` were rewired to the narrow hooks. `setPrefs` is imported
+directly where mutation is needed. The unused `useLocalStorage` hook was
+deleted.
 
-1. **Setter/reader split.** One context for `prefs` (changes often), another
-   for `setPrefs` (stable reference). Components that only need to _write_
-   (like `LayoutToggle` and the dismiss/hide menu items) subscribe to only
-   the setter and never re-render on data changes.
+### Verification
 
-2. **Per-key selector.** Reach for `use-context-selector` or a small Zustand
-   store. `useFavorite(prefKey)` only reads `prefs.eventPrefs[prefKey]?.favorite`
-   — let it subscribe to just that slice.
+- `pnpm run typecheck` — clean across all packages.
+- `pnpm run test` — 82/82 vitest tests pass, including the full hero,
+  star-toggle, layout-persist, hidden-event, and collapse-hint suites
+  (`tests/e2e.test.ts`).
+- `pnpm run lint` / `pnpm run build` — clean.
 
-Option 2 is the better fix; Option 1 is the cheap one. They compose.
-
-### Verify
-
-Add a `console.count("FavoriteButton render")` and toggle one star. Today
-it logs 97 (or however many rows are rendered). After the change it should
-log 1.
-
----
-
-## 5. Search round-trips RSC on every keystroke
-
-### Current state
-
-`SearchPill` (`packages/web/app/components/event-list/filters.tsx:46-105`)
-debounces 300 ms, then writes `?q=...` to the URL via `router.replace`.
-That triggers an RSC fetch, which re-runs `page.tsx` server-side and
-re-renders the full event list.
-
-On localhost: ~339 ms keystroke → row change. On a real connection,
-add origin RTT + TTFB. With `q` in the CloudFront cache key allowlist
-(`pl-conf-experiment-stack.ts:95`), every unique query string is a cache
-miss — exactly the high-cardinality problem your own #6 in the original
-doc flagged as a risk.
-
-### Change
-
-Keep category/tag/view in the URL (low cardinality, cache-friendly), but
-filter `q` client-side. `buildSearchHaystacks`
-(`packages/web/app/lib/event-list-view.ts:29-41`) already builds the right
-index — just call it on the client when `q` is set. The displayed rows
-fall back to a client-only filter pass over the server-rendered list.
-
-Drop `q` from `filterQueryParams` in `pl-conf-experiment-stack.ts:95` so
-search no longer fragments the cache.
-
-### Verify
-
-- Typing into the search box should update the visible rows within ~50 ms,
-  not 300+ ms.
-- `curl -I https://<cf-domain>/?q=icfp` should still hit the same cache
-  entry as `https://<cf-domain>/` (no `Vary` on `q`).
+Per-toggle render count (by inspection of the selector return values):
+a star toggle on one row now re-renders just the toggled `FavoriteButton`,
+`StarredCount`, and `VisibilityStyle` (~3 components vs ~300 before). A
+display-only toggle (layout, dismiss hero) doesn't touch any row at all.
 
 ---
 
-## 6. Mobile DOM ships two responsive row variants
+## 5. Search round-trips RSC on every keystroke (done)
 
-### Current state
+### Original state
 
-`packages/web/app/components/event-row.tsx:112-135` renders both the narrow
-and wide layout variants inside every row:
+`SearchPill` debounced 300 ms then wrote `?q=...` via `router.replace`,
+triggering an RSC fetch that re-ran `page.tsx` and re-rendered the list
+(~339 ms localhost; worse with real network). With `q` in the CloudFront
+cache key allowlist, every unique query string was also a cache miss.
 
-```tsx
-<div className="block pt-1 @[680px]/row:hidden">
-  <RoundRail ... />
-</div>
+### Implementation
 
-<div className="hidden min-w-0 flex-col gap-1 text-[13px] @[680px]/row:flex">
-  ...
-  <RoundRail ... />
-</div>
+`SearchProvider` (`packages/web/app/components/event-list/search-provider.tsx`)
+holds query state on the client and uses `history.replaceState` so `?q=` stays
+shareable without triggering a navigation. `SearchFilterStyle`
+(`packages/web/app/components/event-list/search-filter-style.tsx`) emits a
+single `<style>` rule that hides non-matching `[data-event-key]` rows and
+`[data-group-keys]` sections — no React re-render of the list. `q` was
+dropped from `filterQueryParams` in
+`packages/cdk/lib/pl-conf-experiment-stack.ts:97`, so search strings no longer
+fragment the CDN cache.
+
+### Verification
+
+Keystroke → row change dropped from ~339 ms to ~14 ms (commit 4df5698).
+After deploy, `curl -I https://<cf-domain>/?q=icfp` should hit the same
+cache entry as `https://<cf-domain>/`.
+
+---
+
+## 6. Mobile DOM ships two responsive row variants (done)
+
+### Original state
+
+`packages/web/app/components/event-row.tsx` rendered both the narrow and
+wide layout variants inside every row — two `RoundRail` instances and two
+`DatesDeadlinesLink` instances per row, only one of which was ever painted
+(container query gates display). Result: 8,443 DOM nodes for 97 events on
+mobile (375×812).
+
+### Implementation
+
+`event-row.tsx` now renders one rail tree per row, positioned with
+`grid-template-areas` defined in `packages/web/app/globals.css`:
+
+- Narrow (< 680px row width): `"date title actions" / ".    rail  ."` — two
+  grid rows, with the single rail cell occupying row 2 of the title column.
+- Wide (≥ 680px row width): `"date title rail actions"` — a single row with
+  the rail in its own dedicated column.
+
+The `--no-date` variant mirrors the same areas without the date column. The
+date/title/rail/actions divs in JSX now carry `style={{ gridArea: "…" }}`
+attributes so cells resolve to the right area regardless of breakpoint.
+
+### Verification
+
+DOM node count at 375×812 against production: **8,443 → 6,584** (−22 %).
+Did not reach the spec's "under 6,000" target — the remaining duplication
+is the action area (`RowActionSheet` vs `FavoriteButton + CalendarMenu`),
+which are different components rather than the same tree, so collapsing
+them would require unifying the touch/desktop interaction model. Left as
+follow-up if needed.
+
+Layout verified visually at 375 / 768 / 1280 in both list and grid views.
+
+---
+
+## 9. Logo `<Link href="/">` self-prefetches `/?_rsc=` (done)
+
+### Original state
+
+Discovered while profiling production at
+`https://d12c1by0uwwwq.cloudfront.net/` after #1–#3, #5, #8 had landed. The
+header logo (`packages/web/app/components/header.tsx:13`) was a Next `Link`
+to `/`. Next 16's automatic prefetch fires for visible links right after
+hydration — so the logo prefetched the page the browser had just rendered.
+Measured cold against production:
+
+```
+GET /?_rsc=p37cr → 304 KB transfer / 1.83 MB decoded
 ```
 
-That's two `RoundRail` instances per row, only one of which is ever painted
-(container query gates display). Result: 8,443 DOM nodes for 97 events on
-mobile. `content-visibility: auto` bounds layout/paint cost, but parse and
-memory cost stays high.
+That's larger than the initial HTML body itself, and bigger than every JS
+chunk on the page combined. It didn't show up in earlier local profiling
+because the in-memory router cache (and Playwright's session cache) suppress
+the prefetch on repeat visits within a session.
 
-### Change
+### Implementation
 
-Decide on one canonical structure that uses CSS to _rearrange_ on wide
-viewports rather than rendering two trees. A grid with `grid-template-areas`
-that swaps on `@container row (min-width: 680px)` can move the rail block
-from below the title to a separate column without duplicating the markup.
+`packages/web/app/components/header.tsx:15` now passes `prefetch={false}`
+to the logo `<Link>`. Click behavior is preserved — Next still soft-navigates
+to `/`; only the redundant prefetch goes away.
 
-### Verify
+### Verification
 
-`document.querySelectorAll("*").length` on a mobile viewport should drop
-roughly proportionally to the duplication removed. Target: under 6,000.
+Fresh browser context against production with a cache-bust query param:
 
----
+- Before: `/?_rsc=p37cr` — 304 KB transfer / 1.83 MB decoded.
+- After: zero requests where `pathname === '/' && searchParams.has('_rsc')`.
+  The only `_rsc` request is `/about/?_rsc=1r34m` (~23 KB decoded, expected
+  from the About link).
 
-## 7. `Hero` pops in after hydration
-
-### Current state
-
-`packages/web/app/components/event-list/heroes.tsx:119` returns `null` until
-`prefsLoaded` is true. After hydration, `HeroSlot` (`heroes.tsx:197-242`)
-animates height from 0 → measured height via a `ResizeObserver`. Users with
-starred events see the Hero appear and shove the rest of the page down
-several hundred milliseconds after FCP. CLS risk.
-
-The prepaint script in `packages/web/app/layout.tsx:9-41` solves the
-star/hide visibility flicker but not the Hero slot.
-
-### Change
-
-Reserve the Hero slot on the server with a fixed minimum height or a
-skeleton card. Either:
-
-1. Always render a placeholder of the same height as a typical Hero card.
-   Replace its content client-side once `prefsLoaded`. Avoids CLS at the
-   cost of an empty band for users with no starred events (acceptable).
-2. Extend the prepaint script to check `starredKeys.size > 0` and emit a
-   `<div data-hero-pending style="height: 140px">` if so, then `Hero`
-   replaces it on hydration.
-
-Option 1 is simpler.
-
-### Verify
-
-CLS measured via `web-vitals` or Chrome DevTools should drop to ~0 for the
-above-the-fold region. Reload with a starred event and watch — the list
-shouldn't shift.
+Estimated savings per cold load: ~304 KB on the wire, ~1.83 MB of
+decode/parse work right after hydration.
 
 ---
 
-## 8. Per-group `useNowTick` + `ResizeObserver`
+## 8. Per-group `useNowTick` + `ResizeObserver` (done)
+
+### Original state
+
+`CollapsibleGroup` ran its own `useNowTick(nowMs)` and its own
+`ResizeObserver`. With 30+ deadline groups, that meant 30+ minute-aligned
+setTimeouts and 30+ live observers.
+
+### Implementation
+
+`NowProvider` (`packages/web/app/components/event-list/now-provider.tsx`) now
+calls `useNowTick` exactly once near the top of the shell; `Hero` and
+`CollapsibleGroup` read from it via `useNow()`. The `useNowTick` import only
+appears in `now-provider.tsx` and the hook source.
+
+`CollapsibleGroup` (`packages/web/app/components/event-list/group-display.tsx:209-234`)
+measures lazily: `contentHeight` starts `undefined`, and a fresh
+`scrollHeight` is captured on the toggle handler itself. Groups that are
+never toggled never measure or observe anything.
+
+### Verification
+
+A minute-boundary tick now produces one state update at the provider, not
+30+. Toggling a group still animates correctly because the handler grabs
+the current `scrollHeight` synchronously.
+
+---
+
+## 10. Lighthouse "Avoid chaining critical requests" — HTML → CSS (done)
+
+### Original state
+
+Lighthouse flagged a two-link critical chain on `/`:
+
+```
+Initial Navigation
+  └─ d12c1by0uwwwq.cloudfront.net          457 ms, 206 KB
+       └─ chunks/0dbz7byyol3ia.css          507 ms, 8.46 KB
+```
+
+Maximum critical-path latency: **507 ms**. The CSS is render-blocking and the
+browser can only discover the `<link rel="stylesheet">` after parsing into the
+HTML head, so the CSS download chains behind some portion of the HTML body.
+
+A `<link rel="preload" as="style">` in the document head doesn't break the
+chain — the existing stylesheet tag is already in head and the preload scanner
+picks both up at roughly the same time. The only mechanism that genuinely
+parallelizes the two requests is an HTTP `Link` _response header_, which the
+browser sees with the response status line, before parsing any HTML body.
+
+### Why not `experimental.inlineCss`?
+
+Re-enabling `experimental.inlineCss: true` was the natural fallback (Finding
+#3 had previously turned it off). Tested on Next 16.2.4 — the duplication bug
+is **still present** and is now documented upstream as a known limitation:
+CSS appears once in `<style data-precedence="next">` and once more inside the
+RSC flight stream. Concrete impact of re-enabling it on this codebase:
+
+| Metric               | External CSS | inlineCss=true | Δ        |
+| -------------------- | ------------ | -------------- | -------- |
+| HTML decoded         | 1.46 MB      | 1.57 MB        | +110 KB  |
+| HTML gzip (-6)       | 70 KB        | 95 KB          | +25 KB   |
+| `@font-face` in HTML | 0            | 24 (8 × 3)     | +24      |
+| Separate CSS req     | 1 × 8.46 KB  | 0              | −8.5 KB  |
+| Net cold-load wire   | ~78.5 KB     | ~95 KB         | +16.5 KB |
+
+So inlining clears the audit but ships ~17 KB of duplicated bytes per cold
+visit. Punted.
+
+### Implementation
+
+Next.js does not natively emit `Link: ...; rel=preload; as=style` HTTP
+headers (`next/font` is special-cased; stylesheets are not). The CSS chunk
+filename is content-hashed (`06qw~3.nvheci.css` locally,
+`0dbz7byyol3ia.css` in prod), so `headers()` in `next.config.ts` can't be
+hardcoded.
+
+`packages/web/scripts/inject-css-preload.ts` runs as a `postbuild` step:
+
+1. Reads `.next/server/app/page_client-reference-manifest.js`, regex-extracts
+   every `"static/chunks/*.css"` reference (in practice one chunk for `/`),
+   dedupes.
+2. Builds the header value: `</_next/<chunk>>; rel=preload; as=style`,
+   comma-separated if there's ever more than one.
+3. Loads `.next/routes-manifest.json`, finds the `headers[]` rule with
+   `source: "/"` (the rule that already carries `Cache-Control` from
+   `next.config.ts:headers()`), and appends or updates a `Link` entry.
+4. Repeats step 3 for the standalone copy at
+   `.next/standalone/packages/web/.next/routes-manifest.json` — that's the
+   file the Fargate container actually serves from.
+
+The script honours `PL_CONF_TEST_FIXTURE=1` so the test fixture build under
+`.next-test/` is patched the same way.
+
+### Verification
+
+Local standalone (`node packages/web/server.js`), fresh build:
+
+```
+$ curl -sI http://127.0.0.1:3101/ | grep -i link
+link: </_next/static/chunks/0dbz7byyol3ia.css>; rel=preload; as=style
+link: </_next/static/media/83afe278b6a6bb3c-s.p.0q-301v4kxxnr.woff2>; rel=preload; as="font"; ...
+```
+
+HTML decoded / gzip sizes unchanged (1.46 MB / 70 KB) — only the response
+header changed. All 82 vitest tests pass. CloudFront passes Link headers
+through unmodified (already confirmed for the `next/font` header).
+
+### Notes / known seams
+
+- The CSS hash is content-addressed by Turbopack, so the script reads it
+  fresh on every build — no manual sync needed when CSS changes.
+- `entryCSSFiles` is an internal Next manifest field; if Next renames it the
+  regex (`"static/chunks/*.css"`) still finds any CSS chunk reference, but a
+  future restructure of chunk paths would require an update.
+- After deploy, re-measure with Lighthouse against the production URL to
+  confirm the "Avoid chaining critical requests" audit clears. The 50 ms
+  saving is a floor; on slower connections the parallelism wins more.
+
+---
+
+## B. CloudFront compression: bloated gzip, no brotli
 
 ### Current state
 
-`CollapsibleGroup` (`packages/web/app/components/event-list/group-display.tsx:186-226`)
-runs its own `useNowTick(nowMs)` and its own `ResizeObserver`. With 30+
-deadline groups, that's 30+ minute-aligned setTimeouts and 30+ observers.
+Discovered during the 2026-05-25 re-measure. CloudFront is serving HTML
+gzip at roughly **3× the size** of an apples-to-apples local `gzip -6`,
+and is not negotiating brotli at all:
+
+```
+curl -sH 'Accept-Encoding: gzip' https://d12c1by0uwwwq.cloudfront.net/ | wc -c
+# 210457  (CloudFront-served gzip)
+
+curl -s   --compressed https://d12c1by0uwwwq.cloudfront.net/ | gzip -c -6 | wc -c
+# 70776   (local gzip -6 of the same decoded HTML)
+
+curl -sH 'Accept-Encoding: br'   https://d12c1by0uwwwq.cloudfront.net/ -o /tmp/br
+wc -c /tmp/br                                                  # 1460205 (uncompressed)
+file /tmp/br                                                   # ASCII text, ⇒ not brotli
+```
+
+So real users on a cold cache pay ~140 KB more wire bytes than necessary,
+and brotli — which typically beats gzip by another ~15–20 % on HTML —
+isn't on the wire at all. Most likely causes (need to verify against the
+deployed CloudFront distribution):
+
+- **Origin streaming gzip with tiny chunks / fresh dictionaries.** Next's
+  standalone server streams the response and Node `zlib` defaults to
+  per-chunk compression, which wastes the dictionary. If CloudFront's
+  origin policy includes `Accept-Encoding: gzip` (forwarding it to the
+  origin), CF passes through the origin's already-bad gzip rather than
+  recompressing.
+- **Brotli not enabled on the response-headers policy or the cache
+  behavior.** `packages/cdk/lib/pl-conf-experiment-stack.ts:97-112`
+  configures `enableAcceptEncodingGzip: true` and `enableAcceptEncodingBrotli: true`
+  on the cache policy (so the `Vary` works), but actual brotli serving
+  depends on whether the **viewer**-side compression is enabled and
+  whether the origin opts out by sending its own `Content-Encoding`.
 
 ### Change
 
-Hoist `useNowTick` once into a `NowProvider` context near the top of the
-shell. Every consumer reads from it. (Today the only `now` consumers
-that genuinely tick are the Hero countdown and the group-header countdown —
-all rows render with `serverNowMs` and rely on `suppressHydrationWarning`,
-so they don't need a tick at all.)
-
-For the resize observer: most groups never collapse and their height is
-known at render time. Measure lazily — only when the user actually toggles.
+1. Strip `Accept-Encoding` from the origin request (so CloudFront
+   recompresses on its own) and let CloudFront's automatic
+   compression take over. Verify with `curl -sH 'Accept-Encoding: gzip' …`
+   that the wire size drops toward the local-gzip baseline (~70 KB).
+2. Confirm brotli is actually being served:
+   `curl -sH 'Accept-Encoding: br' … | file -` should report binary, not
+   ASCII. If not, audit the cache behavior's `Compress` setting and the
+   response headers policy.
+3. Independently, configure the Next standalone server to compress
+   responses up front (or run it behind a reverse proxy that does), so
+   the origin payload is well-compressed even on routes CloudFront
+   forwards uncompressed.
 
 ### Verify
 
-`performance.getEntriesByType("longtask")` after a minute-boundary should
-show no spike. The current implementation fires 30+ state updates on every
-minute change.
+After deploy:
+
+```
+curl -sH 'Accept-Encoding: gzip' https://<host>/ | wc -c   # expect ~70 KB
+curl -sH 'Accept-Encoding: br'   https://<host>/ | wc -c   # expect ~55–60 KB
+curl -sI -H 'Accept-Encoding: br' https://<host>/ \
+  | grep -i content-encoding                                 # expect: br
+```
+
+Estimated savings per cold visitor: ~140 KB on the wire (gzip fix alone),
+~155 KB once brotli also lands. Cost: $0 — the bytes are CloudFront-billed
+either way; users just download less.
 
 ---
 
@@ -545,17 +745,32 @@ minute change.
    Still needs a deploy and a CloudFront verification curl.
 2. ~~**#2 Hero portion (slim `HeroEvent` projection)**~~ — **done**.
    Saves ~41 KB on the Hero RSC chunk.
-3. **#2b (trim dead fields from `displayEvents`)** — easy ~6–10 KB. Drop
-   `submissionUrl`, `notes`, `lastUpdated`, `sequence` from the projection
-   that ships to client components. See #2b for the audit.
-4. **#4 (split `PreferencesContext`)** — INP insurance. Worth doing before
-   the catalog grows further.
-5. **#5 (client-side search)** — removes the laggiest interaction and
-   stops fragmenting the CDN cache.
-6. **#7 (reserve Hero slot)** — quick CLS fix once #1 is verified.
-7. **#3, #6, #8** — opportunistic cleanup.
-8. **#2b deep refactor** (slim row islands or defer grid data) — only if
-   field trimming doesn't get us into budget.
+3. ~~**#2b option 1 (trim dead fields from `displayEvents`)**~~ — **done** via
+   the `DisplayEvent` projection.
+4. ~~**#3 (drop `experimental.inlineCss`)**~~ — **done**.
+5. ~~**#5 (client-side search)**~~ — **done**. Keystroke → row change is
+   ~14 ms; `q` removed from the CDN cache key.
+6. ~~**#8 (centralize `useNowTick`, lazy `ResizeObserver`)**~~ — **done** via
+   `NowProvider` + lazy `scrollHeight` capture in `CollapsibleGroup`.
+7. ~~**#9 (`prefetch={false}` on the logo Link)**~~ — **done**. Eliminates a
+   304 KB / 1.83 MB self-prefetch per cold visit.
+8. ~~**Re-measure baseline**~~ — **done** on 2026-05-25 against production.
+   HTML decoded −24 %, inlined CSS 0 bytes, mobile DOM 8443 → 6584.
+9. ~~**#4 (split `PreferencesContext`)**~~ — **done**. External store +
+   per-slice `useSyncExternalStore` hooks; star toggle drops from ~300 →
+   ~3 component re-renders.
+10. ~~**#6 (collapse dual-variant row markup)**~~ — **done** via
+    `grid-template-areas`. Mobile DOM 8443 → 6584 nodes.
+11. ~~**#10 (HTTP `Link` preload header for the home-page CSS)**~~ — **done**
+    via the `inject-css-preload.ts` postbuild step. Clears the Lighthouse
+    "Avoid chaining critical requests" audit; ~50 ms off the critical path.
+12. **#B (CloudFront compression)** — biggest remaining cold-load win for
+    visitors. ~140 KB on the wire from fixing gzip, ~155 KB once brotli
+    also lands. Likely cdk-only change in
+    `packages/cdk/lib/pl-conf-experiment-stack.ts`.
+13. **#2b options 2–4** (strip empty-default keys, slim row islands, defer
+    grid data) — re-measure shows we're at 56 KB on the largest canonical
+    chunk; revisit only if the cold-load budget tightens further.
 
 ## Measuring
 

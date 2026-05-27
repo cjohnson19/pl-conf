@@ -2,15 +2,23 @@
 
 import { memo } from "react";
 import { ArrowUpRight } from "lucide-react";
-import { eventKey, formatDate, formatDateRange } from "../lib/event";
+import {
+  eventKey,
+  firstDeadline,
+  formatDate,
+  formatDateRange,
+  isDeadlinePast,
+} from "../lib/event";
 import type { DisplayEvent } from "../lib/event-list-view";
 import { FavoriteButton } from "./favorite-button";
 import { CalendarMenu } from "./calendar-menu";
 import { ConnectedEventTags } from "./event-tags";
+import { useNow } from "./event-list/now-provider";
 import { DatesDeadlinesLink, useEventLead } from "./event-row/shared";
 import { CardDeadlineTable } from "./event-row/card-deadlines";
 
-function EventCardImpl({ event: e, now }: { event: DisplayEvent; now: Date }) {
+function EventCardImpl({ event: e }: { event: DisplayEvent }) {
+  const now = useNow();
   const lead = useEventLead(e, now);
   const year2 = formatDate(e.date.start, "year2", "en-US");
   const startStr =
@@ -22,6 +30,8 @@ function EventCardImpl({ event: e, now }: { event: DisplayEvent; now: Date }) {
     (r) => Object.keys(r.importantDates).length > 0
   );
   const hasRelationships = e.partOf.length > 0 || e.colocatedWith.length > 0;
+  const firstDl = firstDeadline(e);
+  const openSubmission = firstDl !== undefined && !isDeadlinePast(firstDl, now);
   const titleInner = (
     <span className="font-ui text-[19px] font-bold leading-tight tracking-[-0.015em]">
       {e.abbreviation} &rsquo;{year2}
@@ -31,6 +41,7 @@ function EventCardImpl({ event: e, now }: { event: DisplayEvent; now: Date }) {
   return (
     <div
       data-event-key={eventKey(e)}
+      data-has-open-submission={openSubmission ? "" : undefined}
       className="event-card flex h-full flex-col gap-2 border border-rule p-4"
       style={{ background: "var(--card)" }}
     >

@@ -3,6 +3,7 @@ import {
   type MaybeDate,
   allDeadlines,
   eventKey,
+  firstDeadline,
   formatDate,
   formatDateRange,
   isDeadlinePast,
@@ -18,14 +19,16 @@ import { RowActionSheet } from "./row-action-sheet";
 import { DatesDeadlinesLink, EventNameLink } from "./event-row/shared";
 import { RoundRail } from "./event-row/rail";
 
+// `now` freezes per render — row-level urgent/round/has-open-submission do
+// not tick. Group headers handle the live clock.
 export function EventRow({
   event: e,
-  now,
   hideDate = false,
+  now,
 }: {
   event: DisplayEvent;
-  now: Date;
   hideDate?: boolean;
+  now: Date;
 }) {
   const lead = findNextDeadline(e, now, { fallbackToPast: true });
 
@@ -51,11 +54,14 @@ export function EventRow({
     );
 
   const year2 = formatDate(e.date.start, "year2", "en-US");
+  const firstDl = firstDeadline(e);
+  const openSubmission = firstDl !== undefined && !isDeadlinePast(firstDl, now);
 
   return (
     <div
       data-event-key={eventKey(e)}
       data-event-abbrev={e.abbreviation}
+      data-has-open-submission={openSubmission ? "" : undefined}
       className={clsx(
         "group grid items-center rounded-xs border-t border-rule",
         hideDate ? "event-row-grid--no-date" : "event-row-grid",

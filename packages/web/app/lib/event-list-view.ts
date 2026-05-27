@@ -5,7 +5,12 @@ import {
   eventKey,
   tagValues,
 } from "./event";
-import { findNextDeadline, findNextStart, isDueThisWeek } from "./deadline";
+import {
+  findAllUpcomingDeadlines,
+  findNextDeadline,
+  findNextStart,
+  isDueThisWeek,
+} from "./deadline";
 import { applyFilters, isActive, openToNewSubmissions } from "./event-filter";
 import type { Category, FilterParams } from "./filter-params";
 import { type Group, buildGroups } from "../components/event-list/grouping";
@@ -21,7 +26,10 @@ export type HeroEvent = {
   abbreviation: string;
   type: ScheduledEvent["type"];
   location?: string;
-  upcomingDeadline?: { name: DateName; date: string; time: number };
+  // All deadlines future-at-SSR, sorted ascending. Hero picks the first one
+  // still future as of live `now`, so as the user keeps the tab open and a
+  // round elapses, the alert rolls to the next round instead of disappearing.
+  upcomingDeadlines: { name: DateName; date: string; time: number }[];
   upcomingStart?: { date: string; time: number };
 };
 
@@ -51,11 +59,24 @@ export function toDisplayEvent(e: ScheduledEvent): DisplayEvent {
   };
 }
 
+// Slim projection of `activeEvents` shipped to the client so chip/tab/footer
+// counts can be re-derived after subtracting hidden events. `hasOpenSubmission`
+// and `dueThisWeek` are computed once at SSR — they don't tick — but that's
+// the same approximation the SSR counts already make.
+export type CountableEvent = {
+  key: string;
+  category: Category;
+  tags: Tag[];
+  hasOpenSubmission: boolean;
+  dueThisWeek: boolean;
+};
+
 export type EventListView = {
   activeEvents: ScheduledEvent[];
   displayEvents: DisplayEvent[];
   heroEvents: HeroEvent[];
   groups: Group[];
+  countableActive: CountableEvent[];
   categoryCounts: Record<Category, number>;
   tagCounts: Record<Tag, number>;
   viewCounts: ViewCounts;
@@ -69,18 +90,20 @@ export function buildHeroEvents(
   now: Date
 ): HeroEvent[] {
   return events.flatMap((e) => {
-    const deadline = findNextDeadline(e, now);
+    const deadlines = findAllUpcomingDeadlines(e, now);
     const start = findNextStart(e, now);
-    if (!deadline && !start) return [];
+    if (deadlines.length === 0 && !start) return [];
     return [
       {
         key: eventKey(e),
         abbreviation: e.abbreviation,
         type: e.type,
         location: e.location,
-        upcomingDeadline: deadline
-          ? { name: deadline.name, date: deadline.date, time: deadline.time }
-          : undefined,
+        upcomingDeadlines: deadlines.map((d) => ({
+          name: d.name,
+          date: d.date,
+          time: d.time,
+        })),
         upcomingStart: start ?? undefined,
       },
     ];
@@ -148,14 +171,7 @@ export function computeEventListView(
     submissions: baseFiltered.filter(hasOpenSubmission).length,
   };
 
-  const viewFiltered = baseFiltered.filter((e) => {
-    if (filters.view === "starred")
-      return starredKeys ? starredKeys.has(eventKey(e)) : true;
-    if (filters.view === "submissions") return hasOpenSubmission(e);
-    return true;
-  });
-
-  const decorated = viewFiltered.map((e) => ({
+  const decorated = baseFiltered.map((e) => ({
     e,
     time: findNextDeadline(e, now)?.time,
   }));
@@ -178,11 +194,20 @@ export function computeEventListView(
       ? undefined
       : lastUpdatedDates.reduce((max, d) => (d > max ? d : max));
 
+  const countableActive: CountableEvent[] = activeEvents.map((e) => ({
+    key: eventKey(e),
+    category: e.type,
+    tags: [...e.tags],
+    hasOpenSubmission: hasOpenSubmission(e),
+    dueThisWeek: isDueThisWeek(e, now),
+  }));
+
   return {
     activeEvents,
     displayEvents,
     heroEvents: buildHeroEvents(activeEvents, now),
     groups,
+    countableActive,
     categoryCounts,
     tagCounts,
     viewCounts,

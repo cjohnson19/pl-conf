@@ -37,6 +37,27 @@ function notify() {
   });
 }
 
+// Listen for writes in other tabs. The `storage` event only fires in tabs OTHER
+// than the one that called setItem, so this is the canonical cross-tab signal.
+// Without it, a star added in tab A is invisible to tab B, and the next write
+// in tab B clobbers A's star.
+if (typeof window !== "undefined") {
+  window.addEventListener("storage", (e) => {
+    if (e.key !== STORAGE_KEY) return;
+    if (e.newValue === null) {
+      prefs = defaultPreferences;
+    } else {
+      try {
+        prefs = mergeDeep(defaultPreferences, JSON.parse(e.newValue));
+      } catch {
+        return;
+      }
+    }
+    loaded = true;
+    notify();
+  });
+}
+
 export const preferencesStore = {
   subscribe(listener: Listener) {
     listeners.add(listener);
@@ -71,6 +92,13 @@ export const preferencesStore = {
 export const setPrefs: Dispatch<SetStateAction<PreferenceCollection>> = (
   value
 ) => {
+  // Hydrate first if the user clicked before <PreferencesProvider>'s
+  // useEffect fired. Without this, the functional updater receives the
+  // default `prefs` and the write below clobbers whatever was in
+  // localStorage (saved stars, hidden flags, display prefs).
+  if (typeof window !== "undefined" && !loaded) {
+    preferencesStore.hydrateFromStorage();
+  }
   const next = value instanceof Function ? value(prefs) : value;
   if (next === prefs) return;
   prefs = next;

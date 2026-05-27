@@ -14,8 +14,8 @@ import {
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 import { type Tag, tagDisplayName, tagValues } from "../../lib/event";
 import type { Category, View } from "../../lib/filter-params";
-import type { ViewCounts } from "../../lib/event-list-view";
 import { setPrefs, useDisplayPref } from "../preferences-provider";
+import { useCounts } from "./counts-context";
 import { useSearchQuery, useSetSearchQuery } from "./search-provider";
 
 export type Layout = "list" | "grid";
@@ -37,7 +37,13 @@ function replaceSearchParam(
   key: string,
   value: string | null
 ): string {
-  const sp = new URLSearchParams(searchParams.toString());
+  // Read from window.location instead of the React snapshot so we don't drop
+  // `q` (or other params SearchProvider writes via history.replaceState
+  // between React render cycles). Falls back to the snapshot during SSR.
+  const sp =
+    typeof window !== "undefined"
+      ? new URLSearchParams(window.location.search)
+      : new URLSearchParams(searchParams.toString());
   if (value === null || value === "") sp.delete(key);
   else sp.set(key, value);
   const qs = sp.toString();
@@ -89,7 +95,8 @@ export function SearchPill() {
   );
 }
 
-export function FilterChips({ counts }: { counts: Record<Category, number> }) {
+export function FilterChips() {
+  const { categoryCounts: counts } = useCounts();
   const router = useRouter();
   const searchParams = useSearchParams();
   const rawActive = searchParams.get("c");
@@ -133,7 +140,8 @@ export function FilterChips({ counts }: { counts: Record<Category, number> }) {
   );
 }
 
-export function TagsFilter({ tagCounts }: { tagCounts: Record<Tag, number> }) {
+export function TagsFilter() {
+  const { tagCounts } = useCounts();
   const router = useRouter();
   const searchParams = useSearchParams();
   const rawTags = searchParams.get("tags") ?? "";
@@ -265,15 +273,13 @@ export function TagsFilter({ tagCounts }: { tagCounts: Record<Tag, number> }) {
 }
 
 export function ViewTabs({
-  counts,
   starredCountSlot,
   trailing,
 }: {
-  counts: ViewCounts;
   starredCountSlot?: React.ReactNode;
   trailing?: React.ReactNode;
 }) {
-  const router = useRouter();
+  const { viewCounts: counts } = useCounts();
   const searchParams = useSearchParams();
   const rawActive = searchParams.get("view");
   const active: View =
@@ -281,10 +287,12 @@ export function ViewTabs({
       ? (rawActive as View)
       : "all";
   const select = (next: View) => {
-    router.replace(
-      replaceSearchParam(searchParams, "view", next === "all" ? null : next),
-      { scroll: false }
+    const url = replaceSearchParam(
+      searchParams,
+      "view",
+      next === "all" ? null : next
     );
+    window.history.replaceState(null, "", url);
   };
   const tabs: {
     key: View;

@@ -15,5 +15,6 @@ importantDateUrl: "https://icfp26.sigplan.org/home/hope-2026#Call-for-Talk-Propo
 importantDates:
   paper: 2026-05-29
   notification: 2026-06-26
+colocatedWith: ICFP
 notes:
   - "Talk proposals up to 2 pages excluding references; no published proceedings"

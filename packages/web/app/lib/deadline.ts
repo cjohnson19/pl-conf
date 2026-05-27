@@ -43,6 +43,27 @@ export function findNextDeadline(
   return upcoming ?? fallback;
 }
 
+export function findAllUpcomingDeadlines(
+  e: DeadlineEvent,
+  now: Date
+): NextDeadline[] {
+  const nowTime = now.getTime();
+  const out: NextDeadline[] = [];
+  e.rounds.forEach((r, roundIdx) => {
+    (Object.entries(r.importantDates) as Array<[DateName, MaybeDate]>).forEach(
+      ([name, date]) => {
+        if (date === "TBD" || date === undefined) return;
+        const instant = toAoeInstant(date);
+        if (!instant) return;
+        const time = instant.getTime();
+        if (time > nowTime) out.push({ roundIdx, name, date, time });
+      }
+    );
+  });
+  out.sort((a, b) => a.time - b.time);
+  return out;
+}
+
 export function isDueThisWeek(e: DeadlineEvent, now: Date): boolean {
   const weekMs = 7 * 86_400_000;
   return e.rounds.some((r) =>
