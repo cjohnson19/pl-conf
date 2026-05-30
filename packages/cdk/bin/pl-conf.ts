@@ -11,8 +11,6 @@ const env = {
 };
 
 const notificationEmail = app.node.tryGetContext("notificationEmail");
-const domainName = app.node.tryGetContext("domainName");
-const submissionApiUrl = app.node.tryGetContext("submissionApiUrl");
 
 if (!notificationEmail) {
   throw new Error(
@@ -23,8 +21,5 @@ if (!notificationEmail) {
 new PlConfStack(app, `PlConf-${stage}`, {
   stage,
   notificationEmail,
-  domainName,
-  submissionApiUrl,
   env,
-  crossRegionReferences: true,
 });

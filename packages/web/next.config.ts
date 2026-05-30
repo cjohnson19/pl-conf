@@ -3,7 +3,6 @@ import type { NextConfig } from "next";
 const isTestFixture = process.env.PL_CONF_TEST_FIXTURE === "1";
 
 const nextConfig: NextConfig = {
-  output: "standalone",
   distDir: isTestFixture ? ".next-test" : ".next",
   trailingSlash: true,
   images: {

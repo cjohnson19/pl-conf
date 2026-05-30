@@ -32,9 +32,7 @@ export function SubmitEventPopover() {
     setStatus({ kind: "submitting" });
 
     try {
-      const apiUrl =
-        process.env.NEXT_PUBLIC_SUBMISSION_API_URL || "/api/submit";
-      const response = await fetch(apiUrl, {
+      const response = await fetch("/api/submit", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ url: trimmed }),

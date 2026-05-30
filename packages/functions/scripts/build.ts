@@ -22,22 +22,6 @@ async function build() {
   });
   console.log("Built drift lambda");
 
-  await esbuild.build({
-    entryPoints: [join(PKG_DIR, "submission/index.ts")],
-    bundle: true,
-    platform: "node",
-    target: "node22",
-    outfile: join(OUT_DIR, "submission/index.js"),
-    format: "cjs",
-    sourcemap: true,
-    external: [
-      "@aws-sdk/client-s3",
-      "@aws-sdk/client-sesv2",
-      "@aws-sdk/client-dynamodb",
-    ],
-  });
-  console.log("Built submission lambda");
-
   console.log("Lambda build complete!");
 }
 

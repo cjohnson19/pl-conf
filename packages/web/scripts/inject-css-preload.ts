@@ -9,17 +9,7 @@ const distDir =
 const WEB_DIR = join(__dirname, "..");
 const NEXT_DIR = join(WEB_DIR, distDir);
 
-const ROUTE_MANIFESTS = [
-  join(NEXT_DIR, "routes-manifest.json"),
-  join(
-    NEXT_DIR,
-    "standalone",
-    "packages",
-    "web",
-    distDir,
-    "routes-manifest.json"
-  ),
-];
+const ROUTE_MANIFESTS = [join(NEXT_DIR, "routes-manifest.json")];
 
 const PAGE_REFERENCE_MANIFEST = join(
   NEXT_DIR,

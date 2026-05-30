@@ -1,16 +1,8 @@
 #!/usr/bin/env tsx
 
-// Deploys the PlConf-<stage> stack.
-//
-// The site runs SSR on ECS Express; CDK's DockerImageAsset builds and pushes
-// the container image during `cdk deploy`. The submission API URL must be
-// inlined into the image at build time (NEXT_PUBLIC_* are baked in by Next),
-// but the URL is also an output of this same stack — so on the very first
-// deploy we bootstrap with two CDK passes: pass 1 creates the API and gets
-// its URL, pass 2 rebuilds the image with the URL baked in.
-//
-// On subsequent deploys the URL is already known (read from existing stack
-// outputs) and we deploy in a single pass.
+// Deploys the PlConf-<stage> stack — drift detection only (S3 + Lambda + a
+// daily cron). The web tier and submission API run on Vercel, so nothing here
+// serves user traffic and the deploy is a single CDK pass.
 
 import { execSync } from "node:child_process";
 import * as path from "node:path";
@@ -19,16 +11,9 @@ import { fileURLToPath } from "node:url";
 const ROOT_DIR = path.join(path.dirname(fileURLToPath(import.meta.url)), "..");
 const CDK_DIR = path.join(ROOT_DIR, "packages", "cdk");
 
-function run(
-  command: string,
-  options?: { cwd?: string; env?: Partial<NodeJS.ProcessEnv> }
-) {
+function run(command: string, options?: { cwd?: string }) {
   console.log(`\n$ ${command}\n`);
-  execSync(command, {
-    stdio: "inherit",
-    cwd: options?.cwd ?? ROOT_DIR,
-    env: { ...process.env, ...options?.env },
-  });
+  execSync(command, { stdio: "inherit", cwd: options?.cwd ?? ROOT_DIR });
 }
 
 function getStackOutputs(stackName: string): Record<string, string> {
@@ -47,25 +32,6 @@ function getStackOutputs(stackName: string): Record<string, string> {
   }
 }
 
-function cdkDeploy(args: {
-  stage: string;
-  notificationEmail: string;
-  domainName?: string;
-  submissionApiUrl?: string;
-}) {
-  const ctxArgs = [
-    `-c notificationEmail=${args.notificationEmail}`,
-    `-c stage=${args.stage}`,
-    args.domainName ? `-c domainName=${args.domainName}` : "",
-    args.submissionApiUrl ? `-c submissionApiUrl=${args.submissionApiUrl}` : "",
-  ]
-    .filter(Boolean)
-    .join(" ");
-  run(`pnpm exec cdk deploy --require-approval never ${ctxArgs}`, {
-    cwd: CDK_DIR,
-  });
-}
-
 async function main() {
   const notificationEmail = process.argv[2];
   if (!notificationEmail) {
@@ -74,7 +40,6 @@ async function main() {
   }
 
   const stage = process.env.STAGE || "dev";
-  const domainName = stage === "production" ? "pl-conferences.com" : undefined;
   const stackName = `PlConf-${stage}`;
 
   console.log("=".repeat(60));
@@ -87,45 +52,18 @@ async function main() {
   console.log("\nBuilding lambdas...");
   run("pnpm run build:lambdas");
 
-  let submissionApiUrl = getStackOutputs(stackName).SubmissionApiUrl;
-
-  if (!submissionApiUrl) {
-    console.log(
-      "\nNo existing SubmissionApiUrl found — running bootstrap deploy to create the API..."
-    );
-    cdkDeploy({ stage, notificationEmail, domainName });
-    submissionApiUrl = getStackOutputs(stackName).SubmissionApiUrl;
-    if (!submissionApiUrl) {
-      console.error(
-        "Bootstrap deploy completed but SubmissionApiUrl is still missing from stack outputs."
-      );
-      process.exit(1);
-    }
-    console.log(`\nBootstrapped SubmissionApiUrl: ${submissionApiUrl}`);
-  }
-
-  console.log(
-    `\nDeploying with SubmissionApiUrl=${submissionApiUrl} (DockerImageAsset will rebuild only if the arg changed)...`
+  run(
+    `pnpm exec cdk deploy --require-approval never -c notificationEmail=${notificationEmail} -c stage=${stage}`,
+    { cwd: CDK_DIR }
   );
-  cdkDeploy({ stage, notificationEmail, domainName, submissionApiUrl });
 
   const outputs = getStackOutputs(stackName);
-  const distributionId = outputs.DistributionId;
-
-  if (distributionId) {
-    console.log("\nInvalidating CloudFront cache...");
-    run(
-      `aws cloudfront create-invalidation --distribution-id ${distributionId} --paths "/*"`
-    );
-  }
 
   console.log(`\n${"=".repeat(60)}`);
   console.log("Deployment complete");
   console.log(
-    `Website URL:    ${domainName ? `https://${domainName}` : outputs.WebsiteUrl}`
+    `Drift snapshots bucket: ${outputs.DriftSnapshotsBucketName ?? "(unknown)"}`
   );
-  console.log(`Origin:         ${outputs.ServiceEndpoint ?? "(unknown)"}`);
-  console.log(`Distribution:   ${distributionId ?? "(unknown)"}`);
   console.log("=".repeat(60));
 }
 
