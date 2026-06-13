@@ -12,6 +12,7 @@ url: "https://ictcs2026.uniud.it/"
 submissionUrl: "https://easychair.org/conferences/?conf=ictcs2026"
 importantDateUrl: "https://ictcs2026.uniud.it/important-dates/"
 importantDates:
-  paper: 2026-06-14
+  abstract: 2026-06-20
+  paper: 2026-06-28
   notification: 2026-07-21
   camera-ready: 2026-08-05
