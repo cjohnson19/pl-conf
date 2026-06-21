@@ -3,18 +3,26 @@ import { type MaybeDate, parseDateParts, toAoeInstant } from "./event";
 const MS_PER_DAY = 86_400_000;
 const MS_PER_HOUR = 3_600_000;
 const MS_PER_MINUTE = 60_000;
+// AOE is UTC-12; shifting an instant back by this lands on its AOE wall-clock.
+const AOE_OFFSET_MS = 12 * MS_PER_HOUR;
 
-// UTC calendar-day diff: must stay tz-agnostic so SSR and any viewer-tz
-// client render the same string for the same instant.
-function utcDaysUntil(date: string, now: Date): number {
+// Whole-day diff measured on the AOE (UTC-12) calendar — the same clock the
+// hours branch counts down to (toAoeInstant is end-of-day in UTC-12). Anchoring
+// "today" to UTC-midnight of `now` instead placed the deadline ~36h before its
+// real AOE moment, so a deadline two AOE days out could read as "tomorrow"
+// while a one-day-out deadline simultaneously showed "in 33 hours". Shifting
+// `now` by a fixed offset keeps this tz-agnostic: SSR and any viewer-tz client
+// render the same string for the same instant.
+function aoeDaysUntil(date: string, now: Date): number {
   const parts = parseDateParts(date);
   if (!parts) return 0;
   const [y, m, d] = parts;
   const dateMs = Date.UTC(y, m - 1, d);
+  const aoeNow = new Date(now.getTime() - AOE_OFFSET_MS);
   const nowMs = Date.UTC(
-    now.getUTCFullYear(),
-    now.getUTCMonth(),
-    now.getUTCDate()
+    aoeNow.getUTCFullYear(),
+    aoeNow.getUTCMonth(),
+    aoeNow.getUTCDate()
   );
   return Math.round((dateMs - nowMs) / MS_PER_DAY);
 }
@@ -23,7 +31,7 @@ export function shortCountdown(date: MaybeDate, now: Date): string {
   if (date === "TBD") return "TBD";
   const instant = toAoeInstant(date);
   if (!instant) return "TBD";
-  const days = utcDaysUntil(date, now);
+  const days = aoeDaysUntil(date, now);
   if (days <= 0) {
     const ms = instant.getTime() - now.getTime();
     if (ms <= 0) return "passed";
@@ -40,7 +48,7 @@ export function shortCountdown(date: MaybeDate, now: Date): string {
 export function humanCountdown(date: string, now: Date): string {
   const instant = toAoeInstant(date);
   if (!instant) return "soon";
-  const days = utcDaysUntil(date, now);
+  const days = aoeDaysUntil(date, now);
   if (days <= 0) {
     const ms = instant.getTime() - now.getTime();
     const totalMinutes = Math.max(0, Math.floor(ms / MS_PER_MINUTE));

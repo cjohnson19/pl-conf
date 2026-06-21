@@ -45,15 +45,16 @@ describe("shortCountdown", () => {
     expect(shortCountdown("2026-05-12", now)).toBe("<1h");
   });
 
-  it("returns hours even when result exceeds 24 (calendar same day, deep east of AoE)", () => {
-    // 30 hours before AoE — calendar-day-of-now will be a day or two earlier
-    // in most timezones, but the helper should still report hours since it
-    // hits the days <= 0 branch only when calendar diff <= 0. To force the
-    // same-calendar-day case, pin now to local midnight of the same day.
-    const sameDayLocalMidnight = new Date(Date.UTC(2026, 4, 12, 0, 0, 0));
-    const result = shortCountdown("2026-05-12", sameDayLocalMidnight);
+  it("caps the AoE-hours branch within a single AoE day", () => {
+    // Just after the deadline's AoE day begins (UTC-12), the hours branch can
+    // report at most one AoE day — never the 30h+ the old UTC-calendar anchor
+    // produced for the same instant, which was the source of the inconsistency.
+    const aoeDayStart = new Date(
+      toAoeInstant("2026-05-12")!.getTime() - 24 * 3_600_000 + 60_000
+    );
+    const result = shortCountdown("2026-05-12", aoeDayStart);
     expect(result).toMatch(/^\d+h$/);
-    expect(Number(result.replace("h", ""))).toBeGreaterThan(0);
+    expect(Number(result.replace("h", ""))).toBeLessThanOrEqual(24);
   });
 
   it('returns "passed" once the AoE instant has elapsed', () => {
@@ -131,8 +132,34 @@ describe("humanCountdown", () => {
   });
 
   it("yields the same text regardless of how a viewer would localize now", () => {
+    // 2026-05-27T02:00Z is May 26 on the AoE (UTC-12) clock, and the deadline's
+    // AoE instant is ~4.4 days out — so "in 4 days" regardless of viewer tz.
     const date = "2026-05-30";
-    const wouldBeMay27Utc = new Date("2026-05-27T02:00:00Z");
-    expect(humanCountdown(date, wouldBeMay27Utc)).toBe("in 3 days");
+    const instant = new Date("2026-05-27T02:00:00Z");
+    expect(humanCountdown(date, instant)).toBe("in 4 days");
+  });
+
+  // Regression: 2026-06-20 21:58 local (UTC-5) = 2026-06-21T02:58Z. It is the
+  // evening of the 20th for the viewer, but already the 21st in UTC. The day
+  // count must be anchored to the same AOE (UTC-12) clock the hours branch
+  // counts down to.
+  describe("AOE day boundary (evening before UTC rollover)", () => {
+    const now = new Date("2026-06-21T02:58:30Z");
+
+    it('keeps the current AOE day in hours, not "tomorrow"', () => {
+      expect(humanCountdown("2026-06-20", now)).toBe("in 9 hours 1 minute");
+    });
+
+    it('reads the next AOE day as "tomorrow"', () => {
+      expect(humanCountdown("2026-06-21", now)).toBe("tomorrow");
+    });
+
+    it('reads two AOE days out as "in 2 days", not "tomorrow"', () => {
+      expect(humanCountdown("2026-06-22", now)).toBe("in 2 days");
+    });
+
+    it('reads three AOE days out as "in 3 days"', () => {
+      expect(humanCountdown("2026-06-23", now)).toBe("in 3 days");
+    });
   });
 });
