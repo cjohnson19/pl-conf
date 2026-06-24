@@ -10,8 +10,15 @@ location: Indianapolis, United States
 url: "https://icfp26.sigplan.org/home/scheme-2026"
 submissionUrl: "https://scheme26.hotcrp.com/"
 importantDateUrl: "https://icfp26.sigplan.org/home/scheme-2026"
-importantDates:
-  paper: 2026-06-05
-  notification: 2026-07-01
-  camera-ready: 2026-07-21
+rounds:
+  - name: Round 1
+    importantDates:
+      paper: 2026-06-05
+      notification: 2026-07-01
+      camera-ready: 2026-07-21
+  - name: Round 2
+    importantDates:
+      paper: 2026-06-19
+      notification: 2026-07-21
+      camera-ready: 2026-07-21
 partOf: ICFP

@@ -5,8 +5,15 @@ tags:
   - proof-assistants
   - verification
 date:
-  start: TBD
-  end: TBD
+  start: 2027-01-11
+  end: 2027-01-12
 location: Mexico City, Mexico
 colocatedWith: POPL
 url: "https://popl27.sigplan.org/home/CPP-2027"
+submissionUrl: "https://cpp2027.hotcrp.com"
+importantDateUrl: "https://popl27.sigplan.org/home/CPP-2027"
+importantDates:
+  abstract: 2026-09-03
+  paper: 2026-09-10
+  notification: 2026-11-10
+  camera-ready: 2026-11-25

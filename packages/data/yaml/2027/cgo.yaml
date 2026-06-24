@@ -8,6 +8,7 @@ date:
   end: TBD
 location: Salt Lake City, UT, USA
 url: "https://conf.researchr.org/home/cgo-2027"
+submissionUrl: "https://cgo27.hotcrp.com/"
 importantDateUrl: "https://conf.researchr.org/home/cgo-2027"
 rounds:
   - name: Round 1
@@ -15,3 +16,8 @@ rounds:
       paper: 2026-06-11
       rebuttal: 2026-07-23
       notification: 2026-08-03
+  - name: Round 2
+    importantDates:
+      paper: 2026-09-10
+      rebuttal: 2026-10-22
+      notification: 2026-11-02
