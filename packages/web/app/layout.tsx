@@ -2,9 +2,13 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import "./typography.css";
+import { events } from "@pl-conf/data";
+import { isActive } from "@pl-conf/core";
 import { Header } from "./components/header";
 import { ThemeProvider } from "./components/theme-provider";
 import { PreferencesProvider } from "./components/preferences-provider";
+
+const totalActive = Object.values(events).filter(isActive).length;
 
 const prePaintScript = `try {
 var ua = navigator.userAgentData;
@@ -107,7 +111,7 @@ export default function RootLayout({
       <body>
         <ThemeProvider>
           <PreferencesProvider>
-            <Header />
+            <Header totalActive={totalActive} />
             <main>{children}</main>
           </PreferencesProvider>
         </ThemeProvider>

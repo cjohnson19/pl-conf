@@ -55,10 +55,10 @@ const SettingsPopover = dynamic(
   }
 );
 
-export function HeaderActions() {
+export function HeaderActions({ totalActive }: { totalActive: number }) {
   return (
     <>
-      <HelpPopover />
+      <HelpPopover totalActive={totalActive} />
       <SettingsPopover />
       <span
         className="mx-1 hidden h-[18px] w-px bg-rule sm:inline-block"

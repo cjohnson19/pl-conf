@@ -80,21 +80,26 @@ async function fromYamlFile(fileName: string): Promise<ScheduledEvent> {
         .map((e) => `${fileName} ${e.path}: ${e.message}`)
         .join("\n")
     );
-  } else {
-    parseRes.data.rounds.forEach((round) => {
-      const dupes = duplicates(round.importantDates);
-      if (dupes.length > 0) {
-        const duplicateListings = dupes
-          .map(({ date: value, names }) => `${value}: ${names.join(", ")}`)
-          .join("\n");
-        const roundLabel = round.name ? ` (${round.name})` : "";
-        console.warn(
-          `Found duplicated values for the important dates in ${parseRes.data.abbreviation}${roundLabel}.\n${duplicateListings}\nDouble check these are not a copy paste mistake.`
-        );
-      }
-    });
-    return parseRes.data;
   }
+  return parseRes.data;
+}
+
+function reportDuplicateDates(events: Record<string, ScheduledEvent>): void {
+  const blocks = Object.values(events).flatMap((event) =>
+    event.rounds.flatMap((round) => {
+      const dupes = duplicates(round.importantDates);
+      if (dupes.length === 0) return [];
+      const roundLabel = round.name ? ` (${round.name})` : "";
+      const listing = dupes
+        .map(({ date, names }) => `\t${date}: ${names.join(", ")}`)
+        .join("\n");
+      return [`${event.abbreviation}${roundLabel}\n${listing}`];
+    })
+  );
+  if (blocks.length === 0) return;
+  console.warn(
+    `Found duplicated values for the important dates. Double check these are not copy paste mistakes:\n\n${blocks.join("\n\n")}`
+  );
 }
 
 async function loadEvents(): Promise<Record<string, ScheduledEvent>> {
@@ -187,6 +192,8 @@ export const events: Record<string, ScheduledEvent> = ${JSON.stringify(events, n
 
   await writeFile(join(OUTPUT_DIR, "events.ts"), tsContent);
   console.log(`Wrote ${OUTPUT_DIR}/events.ts`);
+
+  reportDuplicateDates(events);
 }
 
 main().catch((err) => {

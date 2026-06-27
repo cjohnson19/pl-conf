@@ -2,7 +2,7 @@ import Link from "next/link";
 import { ThemeToggle } from "./theme-toggle";
 import { HeaderActions } from "./header-actions";
 
-export function Header() {
+export function Header({ totalActive }: { totalActive: number }) {
   return (
     <header
       className="grid items-center gap-3 border-b border-rule px-4 py-3.5 sm:gap-6 sm:px-5 md:px-8"
@@ -33,7 +33,7 @@ export function Header() {
           About
         </Link>
         <ThemeToggle />
-        <HeaderActions />
+        <HeaderActions totalActive={totalActive} />
       </nav>
     </header>
   );

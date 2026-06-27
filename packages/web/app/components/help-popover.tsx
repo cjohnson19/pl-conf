@@ -1,17 +1,9 @@
 "use client";
 
-import { useMemo } from "react";
 import { Calendar, HelpCircle, Star } from "lucide-react";
-import { events } from "@pl-conf/data";
-import { isActive } from "@pl-conf/core";
 import { Popover, PopoverTrigger, PopoverContent } from "./ui/popover";
 
-export function HelpPopover() {
-  const totalActive = useMemo(
-    () => Object.values(events).filter(isActive).length,
-    []
-  );
-
+export function HelpPopover({ totalActive }: { totalActive: number }) {
   return (
     <Popover>
       <PopoverTrigger asChild>
