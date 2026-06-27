@@ -10,6 +10,7 @@ import * as events from "aws-cdk-lib/aws-events";
 import * as targets from "aws-cdk-lib/aws-events-targets";
 import * as iam from "aws-cdk-lib/aws-iam";
 import * as ecs from "aws-cdk-lib/aws-ecs";
+import * as ec2 from "aws-cdk-lib/aws-ec2";
 import { DockerImageAsset, Platform } from "aws-cdk-lib/aws-ecr-assets";
 import * as acm from "aws-cdk-lib/aws-certificatemanager";
 import * as route53 from "aws-cdk-lib/aws-route53";
@@ -183,12 +184,20 @@ export class PlConfStack extends cdk.Stack {
         : undefined,
     });
 
+    const defaultVpc = ec2.Vpc.fromLookup(this, "DefaultVpc", {
+      isDefault: true,
+    });
+    const gatewaySubnetIds = defaultVpc.publicSubnets
+      .slice(0, 2)
+      .map((subnet) => subnet.subnetId);
+
     const service = new ecs.CfnExpressGatewayService(this, "WebService", {
       cluster: cluster.attrArn,
       executionRoleArn: executionRole.roleArn,
       infrastructureRoleArn: infrastructureRole.roleArn,
-      cpu: "256",
-      memory: "2048",
+      networkConfiguration: { subnets: gatewaySubnetIds },
+      cpu: "512",
+      memory: "1024",
       healthCheckPath: "/",
       primaryContainer: {
         image: image.imageUri,

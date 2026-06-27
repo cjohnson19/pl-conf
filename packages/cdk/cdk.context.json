@@ -3,5 +3,55 @@
   "hosted-zone:account=237215840512:domainName=pl-conferences.com:region=us-east-1": {
     "Id": "/hostedzone/Z07656671AM4KDLL73PZV",
     "Name": "pl-conferences.com."
+  },
+  "vpc-provider:account=237215840512:filter.isDefault=true:region=us-east-1:returnAsymmetricSubnets=true": {
+    "vpcId": "vpc-001cb6595e13b9f3e",
+    "vpcCidrBlock": "172.31.0.0/16",
+    "ownerAccountId": "237215840512",
+    "availabilityZones": [],
+    "subnetGroups": [
+      {
+        "name": "Public",
+        "type": "Public",
+        "subnets": [
+          {
+            "subnetId": "subnet-06d7ad32847a1f851",
+            "cidr": "172.31.32.0/20",
+            "availabilityZone": "us-east-1a",
+            "routeTableId": "rtb-0b98a9e2cc4e68bb0"
+          },
+          {
+            "subnetId": "subnet-0888b28680cc17324",
+            "cidr": "172.31.0.0/20",
+            "availabilityZone": "us-east-1b",
+            "routeTableId": "rtb-0b98a9e2cc4e68bb0"
+          },
+          {
+            "subnetId": "subnet-0fd1eb5b04a402f02",
+            "cidr": "172.31.80.0/20",
+            "availabilityZone": "us-east-1c",
+            "routeTableId": "rtb-0b98a9e2cc4e68bb0"
+          },
+          {
+            "subnetId": "subnet-09aa428b6139b2b21",
+            "cidr": "172.31.16.0/20",
+            "availabilityZone": "us-east-1d",
+            "routeTableId": "rtb-0b98a9e2cc4e68bb0"
+          },
+          {
+            "subnetId": "subnet-010ac6738adaf95fc",
+            "cidr": "172.31.48.0/20",
+            "availabilityZone": "us-east-1e",
+            "routeTableId": "rtb-0b98a9e2cc4e68bb0"
+          },
+          {
+            "subnetId": "subnet-0867959f9aca5606d",
+            "cidr": "172.31.64.0/20",
+            "availabilityZone": "us-east-1f",
+            "routeTableId": "rtb-0b98a9e2cc4e68bb0"
+          }
+        ]
+      }
+    ]
   }
 }
