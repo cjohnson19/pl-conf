@@ -71,6 +71,23 @@ export function eventKey(
   return `${e.abbreviation}-${getYear(e.date.start)}`;
 }
 
+export function eventSlug(abbreviation: string): string {
+  return abbreviation
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
+
+export function eventPathFromSlug(year: number | string, slug: string): string {
+  return `/event/${year}/${slug}/`;
+}
+
+export function eventPath(
+  e: Pick<ScheduledEvent, "abbreviation" | "date">
+): string {
+  return eventPathFromSlug(getYear(e.date.start), eventSlug(e.abbreviation));
+}
+
 export function hasConcreteDates(e: Pick<ScheduledEvent, "date">): boolean {
   return e.date.start !== "TBD" && e.date.end !== "TBD";
 }

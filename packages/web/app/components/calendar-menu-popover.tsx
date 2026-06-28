@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Calendar } from "lucide-react";
-import clsx from "clsx";
+import { labeledTriggerClass, triggerClass } from "./calendar-menu";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -57,7 +57,13 @@ function MenuSeparator() {
   return <DropdownMenuSeparator className="mx-1.5 bg-rule" />;
 }
 
-export function CalendarMenuPopover({ event }: { event: DisplayEvent }) {
+export function CalendarMenuPopover({
+  event,
+  label,
+}: {
+  event: DisplayEvent;
+  label?: string;
+}) {
   const data = useCalendarExport(event);
   // Rendered only when the menu should be open: start open and seed
   // `hasOpened` so the ICS blob hydrates immediately.
@@ -72,12 +78,10 @@ export function CalendarMenuPopover({ event }: { event: DisplayEvent }) {
       <DropdownMenuTrigger
         aria-label={`Add ${event.abbreviation} to calendar`}
         title="Add to calendar"
-        className={clsx(
-          "grid h-11 w-11 shrink-0 place-items-center border-0 bg-transparent text-ink-3 outline-none transition-colors sm:h-8 sm:w-8",
-          "hover:text-ink data-[state=open]:text-ink"
-        )}
+        className={label ? labeledTriggerClass : triggerClass}
       >
-        <Calendar size={14} strokeWidth={1.75} />
+        <Calendar size={label ? 15 : 14} strokeWidth={1.75} />
+        {label}
       </DropdownMenuTrigger>
       <DropdownMenuContent
         align="end"

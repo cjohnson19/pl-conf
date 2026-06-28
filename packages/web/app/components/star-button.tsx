@@ -1,15 +1,12 @@
 import { Star } from "lucide-react";
 
-// Server-rendered: state lives in CSS and aria attributes, both managed
-// imperatively by the prepaint script (initial paint) and StarDelegate
-// (post-hydration). Skipping React keeps ~97 per-row hydrations off the
-// main thread.
 export function StarButton({ prefKey }: { prefKey: string }) {
   return (
     <button
       type="button"
       data-pl-star=""
       data-pref-key={prefKey}
+      suppressHydrationWarning
       aria-label={`Star ${prefKey}`}
       aria-pressed="false"
       title="Star"

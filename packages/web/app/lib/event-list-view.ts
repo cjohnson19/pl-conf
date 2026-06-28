@@ -1,8 +1,11 @@
+import { getYear } from "date-fns";
 import {
   type DateName,
   type ScheduledEvent,
   type Tag,
   eventKey,
+  eventPathFromSlug,
+  eventSlug,
   tagValues,
 } from "./event";
 import {
@@ -33,16 +36,48 @@ export type HeroEvent = {
   upcomingStart?: { date: string; time: number };
 };
 
+// A partOf/colocatedWith reference paired with the dedicated-page path it
+// resolves to. `path` is set only when a same-year event with that abbreviation
+// actually exists (i.e. has a page), so the UI can link real targets and leave
+// the rest as plain text instead of producing dead links.
+export type RelatedLink = { abbreviation: string; path?: string };
+
 // Projection of ScheduledEvent shipped to client components via RSC. Drops
 // fields no client consumer reads (submissionUrl, notes), fields used only
 // for server aggregation (lastUpdated), and fields only needed by the
-// server-rendered .ics path (sequence).
+// server-rendered .ics path (sequence). The raw partOf/colocatedWith arrays
+// are dropped too — clients read the resolved *Links instead.
 export type DisplayEvent = Omit<
   ScheduledEvent,
-  "submissionUrl" | "notes" | "lastUpdated" | "sequence"
->;
+  | "submissionUrl"
+  | "notes"
+  | "lastUpdated"
+  | "sequence"
+  | "partOf"
+  | "colocatedWith"
+> & {
+  partOfLinks: RelatedLink[];
+  colocatedLinks: RelatedLink[];
+};
 
-export function toDisplayEvent(e: ScheduledEvent): DisplayEvent {
+function toRelatedLinks(
+  abbrevs: string[],
+  year: number,
+  validEventPaths?: Set<string>
+): RelatedLink[] {
+  return abbrevs.map((abbreviation) => {
+    const path = eventPathFromSlug(year, eventSlug(abbreviation));
+    return validEventPaths?.has(path)
+      ? { abbreviation, path }
+      : { abbreviation };
+  });
+}
+
+export function toDisplayEvent(
+  e: ScheduledEvent,
+  validEventPaths?: Set<string>
+): DisplayEvent {
+  const year = getYear(e.date.start);
   return {
     name: e.name,
     abbreviation: e.abbreviation,
@@ -54,8 +89,8 @@ export function toDisplayEvent(e: ScheduledEvent): DisplayEvent {
     url: e.url,
     rounds: e.rounds,
     tags: e.tags,
-    partOf: e.partOf,
-    colocatedWith: e.colocatedWith,
+    partOfLinks: toRelatedLinks(e.partOf, year, validEventPaths),
+    colocatedLinks: toRelatedLinks(e.colocatedWith, year, validEventPaths),
   };
 }
 
@@ -112,6 +147,7 @@ export function buildHeroEvents(
 
 type ComputeOptions = {
   starredKeys?: Set<string>;
+  validEventPaths?: Set<string>;
 };
 
 export function buildSearchHaystack(e: DisplayEvent): string {
@@ -128,7 +164,7 @@ export function computeEventListView(
   now: Date,
   options: ComputeOptions = {}
 ): EventListView {
-  const { starredKeys } = options;
+  const { starredKeys, validEventPaths } = options;
   const hasOpenSubmission = openToNewSubmissions(true, now);
 
   const activeEvents = applyFilters(events, [isActive]);
@@ -181,7 +217,9 @@ export function computeEventListView(
     if (b.time !== undefined) return 1;
     return a.e.abbreviation.localeCompare(b.e.abbreviation);
   });
-  const displayEvents = decorated.map((d) => toDisplayEvent(d.e));
+  const displayEvents = decorated.map((d) =>
+    toDisplayEvent(d.e, validEventPaths)
+  );
 
   const groups = buildGroups(displayEvents, now);
   const dueThisWeek = displayEvents.filter((e) => isDueThisWeek(e, now)).length;

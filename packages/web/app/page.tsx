@@ -1,8 +1,11 @@
 import { events } from "@pl-conf/data";
 import { EventListShell } from "./components/event-list/event-list-shell";
+import { eventPath } from "./lib/event";
 import { isActive } from "./lib/event-filter";
 import { computeEventListView } from "./lib/event-list-view";
 import { parseFilterParams, type RawSearchParams } from "./lib/filter-params";
+
+const validEventPaths = new Set(Object.values(events).map((e) => eventPath(e)));
 
 export default async function Home({
   searchParams,
@@ -12,7 +15,9 @@ export default async function Home({
   const activeEvents = Object.values(events).filter(isActive);
   const filters = parseFilterParams(await searchParams);
   const serverNow = new Date();
-  const view = computeEventListView(activeEvents, filters, serverNow);
+  const view = computeEventListView(activeEvents, filters, serverNow, {
+    validEventPaths,
+  });
   return (
     <EventListShell
       filters={filters}

@@ -1,4 +1,4 @@
-import { eventKey } from "@pl-conf/core";
+import { eventKey, eventSlug } from "@pl-conf/core";
 import { ScheduledEvent } from "@pl-conf/core/schemas";
 import { format, getYear } from "date-fns";
 import { exec } from "node:child_process";
@@ -169,6 +169,23 @@ function validateNoTransitivePartOf(
   if (errors.length > 0) throw new Error(errors.join("\n"));
 }
 
+// Each event's dedicated page lives at /event/<year>/<slug>/, so two events in
+// the same year whose abbreviations normalize to the same slug would collide on
+// one route. Catch that here rather than silently shadowing a page.
+function validateUniqueSlugs(events: Record<string, ScheduledEvent>): void {
+  const byYearSlug = new Map<string, string[]>();
+  Object.values(events).forEach((e) => {
+    const key = `${getYear(new Date(e.date.start))}/${eventSlug(e.abbreviation)}`;
+    const abbrevs = byYearSlug.get(key) ?? [];
+    abbrevs.push(e.abbreviation);
+    byYearSlug.set(key, abbrevs);
+  });
+  const errors = [...byYearSlug.entries()]
+    .filter(([, abbrevs]) => abbrevs.length > 1)
+    .map(([key, abbrevs]) => `${key}: slug shared by ${abbrevs.join(", ")}`);
+  if (errors.length > 0) throw new Error(errors.join("\n"));
+}
+
 async function main() {
   console.log("Loading events from YAML files...");
   const events = await loadEvents();
@@ -177,6 +194,7 @@ async function main() {
 
   validateCrossReferences(events);
   validateNoTransitivePartOf(events);
+  validateUniqueSlugs(events);
 
   await mkdir(OUTPUT_DIR, { recursive: true });
 

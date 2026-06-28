@@ -1,8 +1,10 @@
 import clsx from "clsx";
+import Link from "next/link";
 import {
   type MaybeDate,
   allDeadlines,
   eventKey,
+  eventPath,
   firstDeadline,
   formatDate,
   formatDateRange,
@@ -16,7 +18,11 @@ import { StarButton } from "./star-button";
 import { CalendarMenu } from "./calendar-menu";
 import { ConnectedEventTags } from "./event-tags";
 import { RowActionSheet } from "./row-action-sheet";
-import { DatesDeadlinesLink, EventNameLink } from "./event-row/shared";
+import {
+  DatesDeadlinesLink,
+  EventNameLink,
+  RelatedLinks,
+} from "./event-row/shared";
 import { RoundRail } from "./event-row/rail";
 
 // `now` freezes per render — row-level urgent/round/has-open-submission do
@@ -100,7 +106,12 @@ export function EventRow({
         style={{ gridArea: "title" }}
       >
         <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1 font-ui text-[22px] font-bold leading-none tracking-[-0.015em]">
-          <span>{e.abbreviation}</span>
+          <Link
+            href={eventPath(e)}
+            className="text-ink no-underline decoration-1 underline-offset-[3px] transition-colors hover:text-[color:var(--accent)] hover:underline hover:decoration-[color:var(--accent)]"
+          >
+            {e.abbreviation}
+          </Link>
           <span className="font-mono text-[14px] font-medium text-ink-3">
             &rsquo;{year2}
           </span>
@@ -165,22 +176,20 @@ function RowMetadata({ event: e }: { event: DisplayEvent }) {
       ),
       wideOnly: false,
     });
-  if (e.partOf.length > 0)
+  if (e.partOfLinks.length > 0)
     items.push({
       node: (
         <span>
-          part of{" "}
-          <b className="font-medium text-ink-2">{e.partOf.join(", ")}</b>
+          part of <RelatedLinks links={e.partOfLinks} />
         </span>
       ),
       wideOnly: true,
     });
-  if (e.colocatedWith.length > 0)
+  if (e.colocatedLinks.length > 0)
     items.push({
       node: (
         <span>
-          co-located{" "}
-          <b className="font-medium text-ink-2">{e.colocatedWith.join(", ")}</b>
+          co-located <RelatedLinks links={e.colocatedLinks} />
         </span>
       ),
       wideOnly: true,

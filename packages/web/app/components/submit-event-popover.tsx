@@ -63,9 +63,10 @@ export function SubmitEventPopover() {
         <button
           type="button"
           aria-label="Submit event"
-          className="grid h-9 w-9 shrink-0 place-items-center rounded-pill bg-ink text-paper transition-opacity hover:opacity-90 sm:h-[34px] sm:w-[34px]"
+          title="Submit event"
+          className="grid h-11 w-11 shrink-0 place-items-center rounded-pill border border-rule text-ink-2 transition-colors hover:border-ink hover:text-ink data-[state=open]:border-ink data-[state=open]:text-ink sm:h-[34px] sm:w-[34px]"
         >
-          <Plus size={15} strokeWidth={1.75} />
+          <Plus size={16} strokeWidth={1.75} />
         </button>
       </PopoverTrigger>
       <PopoverContent

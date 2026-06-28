@@ -1,9 +1,10 @@
 "use client";
 
 import { memo } from "react";
-import { ArrowUpRight } from "lucide-react";
+import Link from "next/link";
 import {
   eventKey,
+  eventPath,
   firstDeadline,
   formatDate,
   formatDateRange,
@@ -14,7 +15,12 @@ import { FavoriteButton } from "./favorite-button";
 import { CalendarMenu } from "./calendar-menu";
 import { ConnectedEventTags } from "./event-tags";
 import { useNow } from "./event-list/now-provider";
-import { DatesDeadlinesLink, useEventLead } from "./event-row/shared";
+import {
+  DatesDeadlinesLink,
+  EventNameLink,
+  RelatedLinks,
+  useEventLead,
+} from "./event-row/shared";
 import { CardDeadlineTable } from "./event-row/card-deadlines";
 
 function EventCardImpl({ event: e }: { event: DisplayEvent }) {
@@ -29,14 +35,10 @@ function EventCardImpl({ event: e }: { event: DisplayEvent }) {
   const deadlineRounds = e.rounds.filter(
     (r) => Object.keys(r.importantDates).length > 0
   );
-  const hasRelationships = e.partOf.length > 0 || e.colocatedWith.length > 0;
+  const hasRelationships =
+    e.partOfLinks.length > 0 || e.colocatedLinks.length > 0;
   const firstDl = firstDeadline(e);
   const openSubmission = firstDl !== undefined && !isDeadlinePast(firstDl, now);
-  const titleInner = (
-    <span className="font-ui text-[19px] font-bold leading-tight tracking-[-0.015em]">
-      {e.abbreviation} &rsquo;{year2}
-    </span>
-  );
 
   return (
     <div
@@ -47,25 +49,12 @@ function EventCardImpl({ event: e }: { event: DisplayEvent }) {
     >
       <div className="flex items-center justify-between gap-2">
         <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1">
-          {e.url ? (
-            <a
-              href={e.url}
-              target="_blank"
-              aria-label={`Open ${e.abbreviation} website`}
-              className="group/title inline-flex min-w-0 items-center gap-0.5 no-underline"
-              rel="noopener"
-            >
-              {titleInner}
-              <ArrowUpRight
-                size={14}
-                strokeWidth={1.75}
-                className="shrink-0 text-ink-3 transition-all duration-200 ease-out group-hover/title:-translate-y-0.5 group-hover/title:translate-x-0.5 group-hover/title:text-ink"
-                aria-hidden
-              />
-            </a>
-          ) : (
-            titleInner
-          )}
+          <Link
+            href={eventPath(e)}
+            className="font-ui text-[19px] font-bold leading-tight tracking-[-0.015em] text-ink no-underline transition-colors hover:text-[color:var(--accent)]"
+          >
+            {e.abbreviation} &rsquo;{year2}
+          </Link>
           {e.tags.length > 0 && <ConnectedEventTags tags={e.tags} />}
         </div>
         <div className="-my-2 -mr-1 flex shrink-0 items-center gap-0.5 [&_button]:h-8 [&_button]:w-8">
@@ -74,9 +63,7 @@ function EventCardImpl({ event: e }: { event: DisplayEvent }) {
         </div>
       </div>
 
-      <div className="line-clamp-2 text-[13px] leading-[1.4] text-ink-2">
-        {e.name}
-      </div>
+      <EventNameLink event={e} />
 
       <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1 text-[12px] text-ink-3">
         {startStr && <span suppressHydrationWarning>{startStr}</span>}
@@ -110,23 +97,19 @@ function EventCardImpl({ event: e }: { event: DisplayEvent }) {
 
       {hasRelationships && (
         <div className="mt-auto flex flex-wrap items-center gap-x-2 gap-y-1 border-t border-rule pt-3 text-[11px] text-ink-3">
-          {e.partOf.length > 0 && (
+          {e.partOfLinks.length > 0 && (
             <span>
-              Part of{" "}
-              <b className="font-medium text-ink-2">{e.partOf.join(", ")}</b>
+              Part of <RelatedLinks links={e.partOfLinks} />
             </span>
           )}
-          {e.partOf.length > 0 && e.colocatedWith.length > 0 && (
+          {e.partOfLinks.length > 0 && e.colocatedLinks.length > 0 && (
             <span aria-hidden className="text-ink-3/60">
               ·
             </span>
           )}
-          {e.colocatedWith.length > 0 && (
+          {e.colocatedLinks.length > 0 && (
             <span>
-              Co-located with{" "}
-              <b className="font-medium text-ink-2">
-                {e.colocatedWith.join(", ")}
-              </b>
+              Co-located with <RelatedLinks links={e.colocatedLinks} />
             </span>
           )}
         </div>

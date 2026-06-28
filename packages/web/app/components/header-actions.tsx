@@ -30,9 +30,10 @@ const SubmitEventPopover = dynamic(
       <button
         type="button"
         aria-label="Submit event"
-        className="grid h-9 w-9 shrink-0 place-items-center rounded-pill bg-ink text-paper sm:h-[34px] sm:w-[34px]"
+        title="Submit event"
+        className="grid h-11 w-11 shrink-0 place-items-center rounded-pill border border-rule text-ink-2 sm:h-[34px] sm:w-[34px]"
       >
-        <Plus size={15} strokeWidth={1.75} />
+        <Plus size={16} strokeWidth={1.75} />
       </button>
     ),
   }

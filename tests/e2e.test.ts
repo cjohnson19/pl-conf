@@ -1,5 +1,10 @@
 import { events } from "@pl-conf/data";
-import { eventKey, isActive, type ScheduledEvent } from "@pl-conf/core";
+import {
+  eventKey,
+  eventPath,
+  isActive,
+  type ScheduledEvent,
+} from "@pl-conf/core";
 import puppeteer, {
   type Browser,
   type ElementHandle,
@@ -457,10 +462,10 @@ describe.concurrent("tags", () => {
           row.querySelectorAll("button[data-tag]")
         ) as HTMLButtonElement[];
         const tags = tagButtons.map((b) => b.dataset.tag ?? "");
-        const abbrevSpan = Array.from(row.querySelectorAll("span")).find(
+        const abbrevEl = Array.from(row.querySelectorAll("a, span")).find(
           (s) => s.textContent?.trim() === (expected as string)
         );
-        const titleContainer = abbrevSpan?.parentElement ?? null;
+        const titleContainer = abbrevEl?.parentElement ?? null;
         const sharesContainer =
           titleContainer !== null &&
           tagButtons.length > 0 &&
@@ -841,6 +846,40 @@ describe("mobile layout", () => {
       () => /Star this event/i.test(document.body.innerText),
       { timeout: 5000 }
     );
+  });
+});
+
+describe("event pages", () => {
+  test("the row abbreviation links to the event's dedicated page", async ({
+    page,
+    goToAllEvents,
+  }) => {
+    await goToAllEvents();
+    const mocka = findFixture("MOCKA");
+    const key = eventKey(mocka);
+    const href = await page.$eval(
+      `[data-event-key="${key}"] a[href^="/event/"]`,
+      (a) => (a as HTMLAnchorElement).getAttribute("href")
+    );
+    expect(href).toBe(eventPath(mocka));
+  });
+
+  test("the dedicated page renders the event heading, back link, and website link", async ({
+    page,
+  }) => {
+    const mocka = findFixture("MOCKA");
+    await page.goto(`${URL}${eventPath(mocka)}`, { waitUntil: "networkidle2" });
+
+    const h1 = await page.$eval("h1", (el) => el.textContent?.trim());
+    expect(h1).toBe(mocka.abbreviation);
+
+    const body = await page.evaluate(() => document.body.innerText);
+    expect(body).toMatch(/All events/);
+
+    const hasSiteLink = await page.$$eval("main a", (links) =>
+      links.some((a) => (a as HTMLAnchorElement).target === "_blank")
+    );
+    expect(hasSiteLink).toBe(true);
   });
 });
 

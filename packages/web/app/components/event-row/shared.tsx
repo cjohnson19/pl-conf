@@ -1,4 +1,5 @@
-import { useMemo } from "react";
+import { Fragment, useMemo } from "react";
+import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
 import {
   type DateName,
@@ -7,7 +8,7 @@ import {
   isDeadlinePast,
   isDeadlineUrgent,
 } from "../../lib/event";
-import type { DisplayEvent } from "../../lib/event-list-view";
+import type { DisplayEvent, RelatedLink } from "../../lib/event-list-view";
 import { findNextDeadline } from "../../lib/deadline";
 
 export type ChipKind = "past" | "next" | "default";
@@ -97,6 +98,28 @@ export function EventNameLink({
         aria-hidden
       />
     </a>
+  );
+}
+
+export function RelatedLinks({ links }: { links: RelatedLink[] }) {
+  return (
+    <>
+      {links.map((l, i) => (
+        <Fragment key={l.abbreviation}>
+          {i > 0 ? ", " : null}
+          {l.path ? (
+            <Link
+              href={l.path}
+              className="font-medium text-ink-2 underline decoration-rule decoration-1 underline-offset-2 transition-[text-decoration-color,color] duration-200 ease-out hover:text-ink hover:decoration-ink"
+            >
+              {l.abbreviation}
+            </Link>
+          ) : (
+            <b className="font-medium text-ink-2">{l.abbreviation}</b>
+          )}
+        </Fragment>
+      ))}
+    </>
   );
 }
 

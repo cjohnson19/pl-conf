@@ -1,5 +1,8 @@
 export {
   eventKey,
+  eventSlug,
+  eventPath,
+  eventPathFromSlug,
   eventTypes,
   hasConcreteDates,
   allDeadlines,
