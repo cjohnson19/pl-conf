@@ -1,0 +1,18 @@
+name: Foundations of Software Technology and Theoretical Computer Science
+abbreviation: FSTTCS
+type: "conference"
+tags:
+  - logic
+  - automata
+date:
+  start: 2026-12-15
+  end: 2026-12-20
+location: New Delhi, India
+url: "https://www.fsttcs.org.in/2026/"
+submissionUrl: "https://easychair.org/conferences/?conf=fsttcs2026"
+importantDateUrl: "https://www.fsttcs.org.in/2026/#dates"
+importantDates:
+  abstract: 2026-07-04
+  paper: 2026-07-11
+  rebuttal: 2026-08-28
+  notification: 2026-09-15

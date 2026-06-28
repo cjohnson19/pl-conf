@@ -1,0 +1,20 @@
+name: Asian Symposium on Programming Languages and Systems
+abbreviation: APLAS
+type: "symposium"
+tags:
+  - semantics
+  - types
+date:
+  start: 2026-12-01
+  end: 2026-12-05
+location: Hong Kong SAR, China
+url: "https://conf.researchr.org/track/aplas-atva-2026/aplas-2026"
+submissionUrl: "https://aplas26.hotcrp.com/"
+importantDateUrl: "https://conf.researchr.org/track/aplas-atva-2026/aplas-2026#Call-for-Papers"
+importantDates:
+  paper: 2026-06-22
+  rebuttal: 2026-07-24
+  notification: 2026-08-04
+  camera-ready: 2026-09-08
+notes:
+  - "Co-located with ATVA 2026"

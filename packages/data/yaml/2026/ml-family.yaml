@@ -1,0 +1,20 @@
+name: ML Family Workshop
+abbreviation: ML Family
+type: "workshop"
+tags:
+  - functional-programming
+  - types
+date:
+  start: 2026-08-28
+  end: 2026-08-28
+location: Indianapolis, United States
+url: "https://icfp26.sigplan.org/home/mlfamilyworkshop-2026"
+submissionUrl: "https://ml2026.hotcrp.com/"
+importantDateUrl: "https://icfp26.sigplan.org/home/mlfamilyworkshop-2026#dates-and-deadlines"
+importantDates:
+  paper: 2026-07-01
+  notification: 2026-07-23
+partOf: ICFP
+notes:
+  - "Talk-based workshop with no published proceedings"
+  - "Runs across two co-located events the same day: ICFP'26 (Indianapolis) and FW'26 (Paris)"

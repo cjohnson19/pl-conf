@@ -1,0 +1,19 @@
+name: "International Conference on Verified Software: Theories, Tools, and Experiments"
+abbreviation: VSTTE
+type: "conference"
+tags:
+  - verification
+  - formal-methods
+date:
+  start: 2026-09-14
+  end: 2026-09-14
+location: Graz, Austria
+url: "https://fmcad.org/FMCAD26/vstte/"
+submissionUrl: "https://easychair.org/conferences/?conf=vstte2026"
+importantDateUrl: "https://fmcad.org/FMCAD26/vstte/#important-dates"
+importantDates:
+  abstract: 2026-07-17
+  paper: 2026-07-24
+  notification: 2026-08-22
+  camera-ready: 2026-10-23
+colocatedWith: FMCAD
