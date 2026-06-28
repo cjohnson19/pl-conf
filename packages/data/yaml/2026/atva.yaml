@@ -1,0 +1,20 @@
+name: International Symposium on Automated Technology for Verification and Analysis
+abbreviation: ATVA
+type: "symposium"
+tags:
+  - verification
+  - model-checking
+date:
+  start: 2026-12-01
+  end: 2026-12-05
+location: Hong Kong SAR, China
+url: "https://conf.researchr.org/track/aplas-atva-2026/atva-2026"
+submissionUrl: "https://atva26.hotcrp.com/"
+importantDateUrl: "https://conf.researchr.org/track/aplas-atva-2026/atva-2026#Call-for-Papers"
+importantDates:
+  abstract: 2026-05-19
+  paper: 2026-05-21
+  rebuttal: 2026-07-09
+  notification: 2026-07-23
+  camera-ready: 2026-09-10
+colocatedWith: APLAS

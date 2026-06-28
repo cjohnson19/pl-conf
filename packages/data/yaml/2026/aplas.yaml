@@ -16,5 +16,4 @@ importantDates:
   rebuttal: 2026-07-24
   notification: 2026-08-04
   camera-ready: 2026-09-08
-notes:
-  - "Co-located with ATVA 2026"
+colocatedWith: ATVA
