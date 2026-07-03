@@ -19,6 +19,6 @@ rounds:
   - name: Round 2
     importantDates:
       paper: 2026-06-19
-      notification: 2026-07-21
+      notification: 2026-07-14
       camera-ready: 2026-07-21
 partOf: ICFP

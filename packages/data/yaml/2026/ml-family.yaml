@@ -13,7 +13,7 @@ submissionUrl: "https://ml2026.hotcrp.com/"
 importantDateUrl: "https://icfp26.sigplan.org/home/mlfamilyworkshop-2026#dates-and-deadlines"
 importantDates:
   paper: 2026-07-01
-  notification: 2026-07-23
+  notification: 2026-07-30
 partOf: ICFP
 notes:
   - "Talk-based workshop with no published proceedings"
