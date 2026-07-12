@@ -19,13 +19,11 @@ import {
   DatesDeadlinesLink,
   EventNameLink,
   RelatedLinks,
-  useEventLead,
 } from "./event-row/shared";
 import { CardDeadlineTable } from "./event-row/card-deadlines";
 
 function EventCardImpl({ event: e }: { event: DisplayEvent }) {
   const now = useNow();
-  const lead = useEventLead(e, now);
   const year2 = formatDate(e.date.start, "year2", "en-US");
   const startStr =
     e.date.start !== "TBD" && e.date.end !== "TBD"
@@ -88,7 +86,6 @@ function EventCardImpl({ event: e }: { event: DisplayEvent }) {
               round={r}
               roundIndex={idx}
               showRoundLabel={deadlineRounds.length > 1}
-              activeName={lead?.roundIdx === idx ? lead?.name : undefined}
               now={now}
             />
           ))}

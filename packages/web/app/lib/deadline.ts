@@ -2,7 +2,9 @@ import {
   type DateName,
   type MaybeDate,
   type ScheduledEvent,
+  allDeadlines,
   isDeadline,
+  isDeadlinePast,
   toAoeInstant,
 } from "./event";
 
@@ -94,24 +96,30 @@ export function findNextStart(
 
 export type RoundSlotStatus = "done" | "active" | "next";
 
-export type RoundSlot = {
-  idx: number;
-  status: RoundSlotStatus;
-};
-
-export function pickMultiRoundSlots(
-  totalRounds: number,
-  activeRoundIdx: number
-): { left: RoundSlot | null; right: RoundSlot } {
-  const active: RoundSlot = { idx: activeRoundIdx, status: "active" };
-  if (activeRoundIdx > 0) {
+// A round's status depends only on its own dates (rounds can overlap, so
+// several may be active at once): "done" once every date has passed, "active"
+// while mid-flight, and for untouched rounds "active" if every earlier round
+// is done, otherwise "next". TBD counts as pending, never as passed.
+export function roundStatuses(e: DeadlineEvent, now: Date): RoundSlotStatus[] {
+  const facts = e.rounds.map((r) => {
+    const dates = allDeadlines({ rounds: [r] });
     return {
-      left: { idx: activeRoundIdx - 1, status: "done" },
-      right: active,
+      hasPassed: dates.some((d) => isDeadlinePast(d, now)),
+      done: dates.length > 0 && dates.every((d) => isDeadlinePast(d, now)),
     };
-  }
-  if (totalRounds > 1) {
-    return { left: active, right: { idx: 1, status: "next" } };
-  }
-  return { left: null, right: active };
+  });
+  return facts.map((f, idx) => {
+    if (f.done) return "done";
+    if (f.hasPassed) return "active";
+    return facts.slice(0, idx).every((p) => p.done) ? "active" : "next";
+  });
+}
+
+export function isMidMultiRound(e: DeadlineEvent, now: Date): boolean {
+  const dates = allDeadlines(e).filter((d) => d !== "TBD");
+  return (
+    e.rounds.length > 1 &&
+    dates.some((d) => isDeadlinePast(d, now)) &&
+    dates.some((d) => !isDeadlinePast(d, now))
+  );
 }

@@ -1,4 +1,4 @@
-import { Fragment, useMemo } from "react";
+import { Fragment } from "react";
 import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
 import {
@@ -9,7 +9,6 @@ import {
   isDeadlineUrgent,
 } from "../../lib/event";
 import type { DisplayEvent, RelatedLink } from "../../lib/event-list-view";
-import { findNextDeadline } from "../../lib/deadline";
 
 export type ChipKind = "past" | "next" | "default";
 
@@ -20,17 +19,10 @@ export type RailRow = {
   urgent?: boolean;
 };
 
-export function useEventLead(e: DisplayEvent, now: Date) {
-  return useMemo(
-    () => findNextDeadline(e, now, { fallbackToPast: true }),
-    [e, now]
-  );
-}
-
 export function buildRoundRows(
   round: Round,
   now: Date,
-  activeNext?: DateName
+  highlightNext = true
 ): RailRow[] {
   const entries = (
     Object.entries(round.importantDates) as Array<[DateName, MaybeDate]>
@@ -41,11 +33,14 @@ export function buildRoundRows(
       if (b === "TBD") return -1;
       return a < b ? -1 : 1;
     });
+  const nextName = highlightNext
+    ? entries.find(([, d]) => d !== "TBD" && !isDeadlinePast(d, now))?.[0]
+    : undefined;
   return entries.map(([name, date]) => {
     if (date === "TBD") return { name, date, kind: "default" as ChipKind };
     if (isDeadlinePast(date, now))
       return { name, date, kind: "past" as ChipKind };
-    if (activeNext && name === activeNext)
+    if (name === nextName)
       return {
         name,
         date,

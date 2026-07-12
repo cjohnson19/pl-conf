@@ -1,60 +1,35 @@
 import clsx from "clsx";
-import type { DateName } from "../../lib/event";
 import type { DisplayEvent } from "../../lib/event-list-view";
-import {
-  type NextDeadline,
-  type RoundSlotStatus,
-  pickMultiRoundSlots,
-} from "../../lib/deadline";
+import { roundStatuses } from "../../lib/deadline";
 import { dateNameShort, roundShortDate } from "../../lib/date-formatters";
+import { type RoundSlot, pickMultiRoundSlots } from "./rail-slots";
 import { type RailRow, buildRoundRows } from "./shared";
 
 export function RoundRail({
   event: e,
   now,
-  lead,
-  passed,
   showMultiRound,
-  totalRounds,
 }: {
   event: DisplayEvent;
   now: Date;
-  lead: NextDeadline | null;
-  passed: boolean;
   showMultiRound: boolean;
-  totalRounds: number;
 }) {
   if (showMultiRound) {
-    return (
-      <MultiRoundRail
-        event={e}
-        now={now}
-        activeRoundIdx={lead?.roundIdx ?? totalRounds - 1}
-        activeNext={lead?.name}
-      />
-    );
+    return <MultiRoundRail event={e} now={now} />;
   }
-  return (
-    <SingleRoundRail
-      event={e}
-      now={now}
-      activeNext={passed ? undefined : lead?.name}
-    />
-  );
+  return <SingleRoundRail event={e} now={now} />;
 }
 
 function SingleRoundRail({
   event: e,
   now,
-  activeNext,
 }: {
   event: DisplayEvent;
   now: Date;
-  activeNext?: DateName;
 }) {
   const round = e.rounds[0];
-  const rows = round ? buildRoundRows(round, now, activeNext) : [];
   if (!round) return null;
+  const rows = buildRoundRows(round, now);
   if (rows.length === 0) return null;
   return (
     <div className="mt-2 flex max-w-xs flex-col gap-1 border-l-2 border-rule pl-2.5">
@@ -91,77 +66,29 @@ function DateRow({ row: r }: { row: RailRow }) {
   );
 }
 
-function MultiRoundRail({
-  event: e,
-  now,
-  activeRoundIdx,
-  activeNext,
-}: {
-  event: DisplayEvent;
-  now: Date;
-  activeRoundIdx: number;
-  activeNext?: DateName;
-}) {
-  const { left, right } = pickMultiRoundSlots(e.rounds.length, activeRoundIdx);
+function MultiRoundRail({ event: e, now }: { event: DisplayEvent; now: Date }) {
+  const { left, right } = pickMultiRoundSlots(roundStatuses(e, now));
   return (
     <div className="mt-2 grid grid-cols-2 gap-3">
-      {left ? (
-        <RoundColumnContainer
-          event={e}
-          slot={left}
-          now={now}
-          activeNext={activeNext}
-        />
-      ) : (
-        <div />
-      )}
-      <RoundColumnContainer
-        event={e}
-        slot={right}
-        now={now}
-        activeNext={activeNext}
-      />
+      {left ? <RoundColumn event={e} slot={left} now={now} /> : <div />}
+      <RoundColumn event={e} slot={right} now={now} />
     </div>
   );
 }
 
-function RoundColumnContainer({
+function RoundColumn({
   event: e,
   slot,
   now,
-  activeNext,
 }: {
   event: DisplayEvent;
-  slot: { idx: number; status: RoundSlotStatus };
+  slot: RoundSlot;
   now: Date;
-  activeNext?: DateName;
 }) {
   const round = e.rounds[slot.idx];
-  const isActive = slot.status === "active";
-  const effectiveActiveNext = isActive ? activeNext : undefined;
-  const rows = round ? buildRoundRows(round, now, effectiveActiveNext) : [];
   if (!round) return <div />;
-  return (
-    <RoundColumn
-      idx={slot.idx}
-      status={slot.status}
-      rows={rows}
-      active={isActive}
-    />
-  );
-}
-
-function RoundColumn({
-  idx,
-  status,
-  rows,
-  active,
-}: {
-  idx: number;
-  status: RoundSlotStatus;
-  rows: RailRow[];
-  active: boolean;
-}) {
+  const active = slot.status === "active";
+  const rows = buildRoundRows(round, now, active);
   const urgent = active && rows.some((r) => r.kind === "next" && r.urgent);
   const accentClass = urgent ? "text-hot" : "text-[color:var(--accent)]";
   const borderClass = urgent ? "border-hot" : "border-[color:var(--accent)]";
@@ -178,12 +105,12 @@ function RoundColumn({
           active ? accentClass : "text-ink-3"
         )}
       >
-        Round {idx + 1}
+        Round {slot.idx + 1}
         <span
           className="rounded-xs border px-1 py-px text-[9px]"
           style={{ borderColor: "currentColor" }}
         >
-          {status}
+          {slot.status}
         </span>
       </div>
       {rows.map((r) => (

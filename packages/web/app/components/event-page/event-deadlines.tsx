@@ -4,13 +4,11 @@ import clsx from "clsx";
 import type { Round } from "../../lib/event";
 import { dateNameShort, roundShortDate } from "../../lib/date-formatters";
 import { shortCountdown } from "../../lib/countdown";
-import { findNextDeadline } from "../../lib/deadline";
 import { useNow } from "../event-list/now-provider";
 import { buildRoundRows } from "../event-row/shared";
 
 export function EventDeadlines({ rounds }: { rounds: Round[] }) {
   const now = useNow();
-  const lead = findNextDeadline({ rounds }, now, { fallbackToPast: true });
   const deadlineRounds = rounds.filter(
     (r) => Object.keys(r.importantDates).length > 0
   );
@@ -19,8 +17,7 @@ export function EventDeadlines({ rounds }: { rounds: Round[] }) {
   return (
     <div className="flex flex-col gap-6">
       {deadlineRounds.map((round, idx) => {
-        const activeName = lead?.roundIdx === idx ? lead?.name : undefined;
-        const rows = buildRoundRows(round, now, activeName);
+        const rows = buildRoundRows(round, now);
         if (rows.length === 0) return null;
         return (
           <div key={round.name ?? idx} className="flex flex-col gap-3">

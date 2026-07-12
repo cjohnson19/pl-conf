@@ -1,36 +1,109 @@
 import { describe, expect, it } from "vitest";
-import { pickMultiRoundSlots } from "@/lib/deadline";
+import type { Round } from "@pl-conf/core";
+import { pickMultiRoundSlots } from "@/components/event-row/rail-slots";
+import { roundStatuses } from "@/lib/deadline";
+
+const round = (importantDates: Round["importantDates"]): Round => ({
+  importantDates,
+});
+
+const now = new Date("2026-07-12T12:00:00Z");
+
+describe("roundStatuses", () => {
+  it("marks a round done only when every date has passed", () => {
+    const rounds = [
+      round({ paper: "2026-04-15", notification: "2026-05-01" }),
+      round({ paper: "2026-06-19", notification: "2026-09-01" }),
+    ];
+    expect(roundStatuses({ rounds }, now)).toEqual(["done", "active"]);
+  });
+
+  it("keeps an earlier round active while its camera-ready is pending, alongside a later active round", () => {
+    // Scheme 2026 on July 12: both rounds are mid-flight.
+    const rounds = [
+      round({
+        paper: "2026-06-05",
+        notification: "2026-07-01",
+        "camera-ready": "2026-07-21",
+      }),
+      round({
+        paper: "2026-06-19",
+        notification: "2026-07-14",
+        "camera-ready": "2026-07-21",
+      }),
+    ];
+    expect(roundStatuses({ rounds }, now)).toEqual(["active", "active"]);
+  });
+
+  it("treats a TBD date as still pending", () => {
+    const rounds = [round({ paper: "2026-06-05", notification: "TBD" })];
+    expect(roundStatuses({ rounds }, now)).toEqual(["active"]);
+  });
+
+  it("marks the first round active and later rounds next before anything passes", () => {
+    const rounds = [
+      round({ paper: "2026-08-01" }),
+      round({ paper: "2026-10-01" }),
+    ];
+    expect(roundStatuses({ rounds }, now)).toEqual(["active", "next"]);
+  });
+
+  it("keeps a round next while any earlier round is still in flight", () => {
+    const rounds = [
+      round({ paper: "2026-04-15", notification: "2026-05-01" }),
+      round({ paper: "2026-06-19", "camera-ready": "2026-08-01" }),
+      round({ paper: "2026-10-16" }),
+    ];
+    expect(roundStatuses({ rounds }, now)).toEqual(["done", "active", "next"]);
+  });
+
+  it("activates an untouched round once all earlier rounds are done", () => {
+    const rounds = [
+      round({ paper: "2026-04-15", notification: "2026-05-01" }),
+      round({ paper: "2026-10-16" }),
+    ];
+    expect(roundStatuses({ rounds }, now)).toEqual(["done", "active"]);
+  });
+});
 
 describe("pickMultiRoundSlots", () => {
+  it("shows both rounds when two are active at once", () => {
+    expect(pickMultiRoundSlots(["active", "active"])).toEqual({
+      left: { idx: 0, status: "active" },
+      right: { idx: 1, status: "active" },
+    });
+  });
+
+  it("shows the first two active rounds when more than two are active", () => {
+    expect(pickMultiRoundSlots(["active", "active", "active"])).toEqual({
+      left: { idx: 0, status: "active" },
+      right: { idx: 1, status: "active" },
+    });
+  });
+
   it("shows previous round done + active when active is not first", () => {
-    expect(pickMultiRoundSlots(2, 1)).toEqual({
+    expect(pickMultiRoundSlots(["done", "active"])).toEqual({
       left: { idx: 0, status: "done" },
       right: { idx: 1, status: "active" },
     });
   });
 
   it("shows active + next upcoming round when active is the first round", () => {
-    expect(pickMultiRoundSlots(2, 0)).toEqual({
+    expect(pickMultiRoundSlots(["active", "next"])).toEqual({
       left: { idx: 0, status: "active" },
       right: { idx: 1, status: "next" },
     });
   });
 
-  it("never labels a later round as done when it has not occurred yet", () => {
-    const { left, right } = pickMultiRoundSlots(2, 0);
-    expect(left?.status).not.toBe("done");
-    expect(right.status).not.toBe("done");
-  });
-
   it("picks the immediately prior round when active is in the middle", () => {
-    expect(pickMultiRoundSlots(3, 2)).toEqual({
+    expect(pickMultiRoundSlots(["done", "done", "active"])).toEqual({
       left: { idx: 1, status: "done" },
       right: { idx: 2, status: "active" },
     });
   });
 
   it("returns no left slot when there is only one round", () => {
-    expect(pickMultiRoundSlots(1, 0)).toEqual({
+    expect(pickMultiRoundSlots(["active"])).toEqual({
       left: null,
       right: { idx: 0, status: "active" },
     });

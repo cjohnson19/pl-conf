@@ -12,7 +12,7 @@ import {
   isDeadlineUrgent,
 } from "../lib/event";
 import type { DisplayEvent } from "../lib/event-list-view";
-import { findNextDeadline } from "../lib/deadline";
+import { findNextDeadline, isMidMultiRound } from "../lib/deadline";
 import { dayNum, monthShort, yearNum } from "../lib/date-formatters";
 import { StarButton } from "./star-button";
 import { CalendarMenu } from "./calendar-menu";
@@ -42,22 +42,10 @@ export function EventRow({
   const anchorDate: MaybeDate =
     leadDate ?? allDeadlines(e).find((d) => d !== undefined) ?? e.date.start;
 
-  const passed = leadDate ? isDeadlinePast(leadDate, now) : false;
   const urgent = leadDate ? isDeadlineUrgent(leadDate, now) : false;
 
   const totalRounds = e.rounds.length;
-  const showMultiRound =
-    totalRounds > 1 &&
-    e.rounds.some((r) =>
-      Object.values(r.importantDates).some(
-        (d) => d !== undefined && d !== "TBD" && isDeadlinePast(d, now)
-      )
-    ) &&
-    e.rounds.some((r) =>
-      Object.values(r.importantDates).some(
-        (d) => d !== undefined && d !== "TBD" && !isDeadlinePast(d, now)
-      )
-    );
+  const showMultiRound = isMidMultiRound(e, now);
 
   const year2 = formatDate(e.date.start, "year2", "en-US");
   const firstDl = firstDeadline(e);
@@ -134,14 +122,7 @@ export function EventRow({
         style={{ gridArea: "rail" }}
       >
         {e.importantDateUrl && <DatesDeadlinesLink href={e.importantDateUrl} />}
-        <RoundRail
-          event={e}
-          now={now}
-          lead={lead}
-          passed={passed}
-          showMultiRound={showMultiRound}
-          totalRounds={totalRounds}
-        />
+        <RoundRail event={e} now={now} showMultiRound={showMultiRound} />
       </div>
 
       <div

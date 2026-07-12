@@ -1,5 +1,5 @@
 import clsx from "clsx";
-import type { DateName, Round } from "../../lib/event";
+import type { Round } from "../../lib/event";
 import { dateNameShort, roundShortDate } from "../../lib/date-formatters";
 import { shortCountdown } from "../../lib/countdown";
 import { type RailRow, buildRoundRows } from "./shared";
@@ -8,16 +8,14 @@ export function CardDeadlineTable({
   round,
   roundIndex,
   showRoundLabel,
-  activeName,
   now,
 }: {
   round: Round;
   roundIndex: number;
   showRoundLabel: boolean;
-  activeName: DateName | undefined;
   now: Date;
 }) {
-  const rows = buildRoundRows(round, now, activeName);
+  const rows = buildRoundRows(round, now);
   if (rows.length === 0) return null;
   return (
     <div className="flex flex-col gap-1">
