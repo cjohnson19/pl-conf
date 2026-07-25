@@ -714,16 +714,20 @@ describe("calendar menu", () => {
     const icsLinkSelector = 'a[download$=".ics"]';
     await page.waitForSelector(icsLinkSelector, { timeout: 5000 });
 
+    // The href is a real path under public/ical now, not a blob: URL, so a
+    // missing or misnamed feed comes back as the 404 HTML page. Surface that
+    // rather than letting it fail later as a VEVENT count of 0.
     const fetchIcs = (selector: string) =>
       page.evaluate(async (sel) => {
         const a = document.querySelector(sel) as HTMLAnchorElement | null;
         if (!a) return null;
         const res = await fetch(a.href);
+        if (!res.ok) return `HTTP ${res.status} for ${a.getAttribute("href")}`;
         return res.text();
       }, selector);
 
     const withDeadlines = await fetchIcs(icsLinkSelector);
-    expect(withDeadlines).toBeTruthy();
+    expect(withDeadlines).toContain("BEGIN:VCALENDAR");
     const withDeadlinesCount = (withDeadlines?.match(/BEGIN:VEVENT/g) ?? [])
       .length;
     expect(withDeadlinesCount).toBeGreaterThan(1);
@@ -747,7 +751,7 @@ describe("calendar menu", () => {
     );
 
     const eventsOnly = await fetchIcs(icsLinkSelector);
-    expect(eventsOnly).toBeTruthy();
+    expect(eventsOnly).toContain("BEGIN:VCALENDAR");
     const eventsOnlyCount = (eventsOnly?.match(/BEGIN:VEVENT/g) ?? []).length;
     expect(eventsOnlyCount).toBe(1);
     expect(eventsOnlyCount).toBeLessThan(withDeadlinesCount);

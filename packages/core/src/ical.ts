@@ -23,15 +23,9 @@ function lastModifiedArray(date: string): ics.DateArray {
   return [y, m, d, 12, 0];
 }
 
-function todayYmd(): string {
-  const d = new Date();
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
-}
-
-// `sequence` and `lastUpdated` are populated server-side from git history; the
-// canonical .ics files in /public/ical carry the real values. The client-side
-// blob path (download via `useCalendarExport`) doesn't have access to them,
-// so allow callers to omit and we fall back to safe defaults.
+// `sequence` and `lastUpdated` are derived from git history at generate time,
+// so every caller has them: feeds are written once by the `prebuild` script
+// and served from /public/ical.
 export type ICalEvent = Pick<
   ScheduledEvent,
   | "name"
@@ -42,18 +36,17 @@ export type ICalEvent = Pick<
   | "url"
   | "rounds"
   | "tags"
-> & {
-  sequence?: number;
-  lastUpdated?: string;
-};
+  | "sequence"
+  | "lastUpdated"
+>;
 
 export function toICal(e: ICalEvent, includeDates: boolean = false): string {
   if (!hasConcreteDates(e)) {
     return "";
   }
   const key = eventKey(e);
-  const sequence = e.sequence ?? 0;
-  const lastModified = lastModifiedArray(e.lastUpdated ?? todayYmd());
+  const sequence = e.sequence;
+  const lastModified = lastModifiedArray(e.lastUpdated);
   const [sy, sm, sd] = ymdParts(e.date.start);
   const [ey, em, ed] = ymdParts(e.date.end);
   const calName = `${e.abbreviation} ${sy} - PL Conferences`;

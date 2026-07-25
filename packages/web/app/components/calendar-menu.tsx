@@ -1,28 +1,25 @@
 "use client";
 
-import { Suspense, lazy, useState } from "react";
+import { type ComponentType, useState } from "react";
 import { Calendar } from "lucide-react";
 import clsx from "clsx";
+import { anyVisible, deferredComponent } from "../lib/deferred-component";
 import { hasConcreteDates } from "../lib/event";
 import type { DisplayEvent } from "../lib/event-list-view";
 
-const importPopover = () => import("./calendar-menu-popover");
-const CalendarMenuPopover = lazy(() =>
-  importPopover().then((m) => ({ default: m.CalendarMenuPopover }))
+type PopoverProps = { event: DisplayEvent; label?: string };
+
+const popover = deferredComponent<PopoverProps>(() =>
+  import("./calendar-menu-popover").then((m) => m.CalendarMenuPopover)
 );
 
-function preloadPopover() {
-  void importPopover();
-  void import("@pl-conf/core/ical");
-}
+const TRIGGER_SELECTOR =
+  'button[aria-label^="Add "][aria-label$=" to calendar"]';
 
-if (typeof window !== "undefined") {
-  if (typeof window.requestIdleCallback === "function") {
-    window.requestIdleCallback(preloadPopover);
-  } else {
-    setTimeout(preloadPopover, 200);
-  }
-}
+// List rows hide this below 680px in favour of RowActionSheet, but the grid
+// layout and the event pages render it at every width — so ask the rendered
+// trigger rather than assuming a viewport.
+popover.preloadWhenIdle(() => anyVisible(TRIGGER_SELECTOR));
 
 export const triggerClass = clsx(
   "grid h-11 w-11 shrink-0 place-items-center border-0 bg-transparent text-ink-3 outline-none transition-colors sm:h-8 sm:w-8",
@@ -41,7 +38,9 @@ export function CalendarMenu({
   event: DisplayEvent;
   label?: string;
 }) {
-  const [opened, setOpened] = useState(false);
+  const [Popover, setPopover] = useState<
+    ComponentType<PopoverProps> | undefined
+  >(undefined);
 
   if (!hasConcreteDates(event)) {
     return (
@@ -63,12 +62,28 @@ export function CalendarMenu({
     );
   }
 
-  const trigger = (
+  if (Popover) return <Popover event={event} label={label} />;
+
+  const open = () => {
+    const ready = popover.loaded();
+    if (ready) setPopover(() => ready);
+    else
+      void popover.load().then((c) => {
+        if (c) setPopover(() => c);
+      });
+  };
+
+  // Warm on the events that precede activation, covering the cases the
+  // once-evaluated idle predicate misses (rotation, resize, layout switch).
+  const warm = () => void popover.load();
+
+  return (
     <button
       type="button"
-      onClick={() => setOpened(true)}
-      onMouseEnter={preloadPopover}
-      onFocus={preloadPopover}
+      onClick={open}
+      onPointerDown={warm}
+      onMouseEnter={warm}
+      onFocus={warm}
       aria-label={`Add ${event.abbreviation} to calendar`}
       title="Add to calendar"
       className={label ? labeledTriggerClass : triggerClass}
@@ -76,13 +91,5 @@ export function CalendarMenu({
       <Calendar size={label ? 15 : 14} strokeWidth={1.75} />
       {label}
     </button>
-  );
-
-  if (!opened) return trigger;
-
-  return (
-    <Suspense fallback={trigger}>
-      <CalendarMenuPopover event={event} label={label} />
-    </Suspense>
   );
 }

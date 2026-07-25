@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Calendar } from "lucide-react";
 import { labeledTriggerClass, triggerClass } from "./calendar-menu";
 import {
@@ -65,13 +65,8 @@ export function CalendarMenuPopover({
   label?: string;
 }) {
   const data = useCalendarExport(event);
-  // Rendered only when the menu should be open: start open and seed
-  // `hasOpened` so the ICS blob hydrates immediately.
+  // Rendered only when the menu should be open.
   const [open, setOpen] = useState(true);
-  // biome-ignore lint/correctness/useExhaustiveDependencies: intentional one-shot
-  useEffect(() => {
-    data.setHasOpened(true);
-  }, []);
 
   return (
     <DropdownMenu open={open} onOpenChange={setOpen}>

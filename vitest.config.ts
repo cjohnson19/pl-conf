@@ -19,5 +19,9 @@ export default defineConfig({
     include: ["tests/**/*.test.ts"],
     testTimeout: 30_000,
     hookTimeout: 30_000,
+    // A test that stubs a global and fails mid-body would otherwise leak it
+    // into every later test in the file.
+    unstubGlobals: true,
+    restoreMocks: true,
   },
 });

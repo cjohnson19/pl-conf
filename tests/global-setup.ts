@@ -112,6 +112,23 @@ function buildFixtureSite() {
     path.join(STANDALONE_WEB_DIR, "public"),
     { recursive: true }
   );
+
+  // The fixture build's prebuild step rm -rf'd public/ical and refilled it
+  // with MOCK feeds. Those are now safely inside the standalone bundle above,
+  // so rebuild the real ones: the directory is gitignored, nothing else
+  // restores it, and the .ics download links resolve against it at runtime.
+  console.log("Restoring real iCal feeds...");
+  const ical = spawnSync(
+    "pnpm",
+    ["--filter", "@pl-conf/web", "run", "prebuild"],
+    {
+      cwd: ROOT,
+      stdio: "inherit",
+    }
+  );
+  if (ical.status !== 0) {
+    console.warn("Could not restore real iCal feeds; run `pnpm run generate`.");
+  }
 }
 
 export async function setup() {

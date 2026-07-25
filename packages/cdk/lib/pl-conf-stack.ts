@@ -395,6 +395,18 @@ export class PlConfStack extends cdk.Stack {
           cachePolicy: cloudfront.CachePolicy.CACHING_OPTIMIZED,
           compress: true,
         },
+        // Static feeds. The default behaviour keys on the preference cookies
+        // and RSC headers, which would shard the cache for files that are
+        // identical for every viewer.
+        "/ical/*": {
+          origin: new origins.HttpOrigin(originHost, {
+            protocolPolicy: originProtocolPolicy,
+          }),
+          viewerProtocolPolicy:
+            cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
+          cachePolicy: cloudfront.CachePolicy.CACHING_OPTIMIZED,
+          compress: true,
+        },
       },
     });
 

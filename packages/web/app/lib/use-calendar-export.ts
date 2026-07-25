@@ -18,16 +18,14 @@ export type SubscribeUrls = {
 
 export type CalendarExport = {
   datesTBD: boolean;
-  hasOpened: boolean;
-  setHasOpened: (v: boolean) => void;
   includeDeadlines: boolean;
   setIncludeDeadlines: (v: boolean) => void;
   copied: boolean;
   copyFeedUrl: () => void;
-  icsUrl: string | null;
+  icsUrl: string | undefined;
   fileName: string;
-  gcalHref: string | null;
-  subscribeUrls: SubscribeUrls | null;
+  gcalHref: string | undefined;
+  subscribeUrls: SubscribeUrls | undefined;
 };
 
 export function useCalendarExport(event: DisplayEvent): CalendarExport {
@@ -37,34 +35,8 @@ export function useCalendarExport(event: DisplayEvent): CalendarExport {
       ...prev,
       display: { ...prev.display, includeCalendarDeadlines: v },
     }));
-  const [hasOpened, setHasOpened] = useState(false);
   const [copied, setCopied] = useState(false);
   const datesTBD = !hasConcreteDates(event);
-
-  const [icsUrl, setIcsUrl] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (!hasOpened || datesTBD) {
-      setIcsUrl(null);
-      return;
-    }
-    let cancelled = false;
-    let createdUrl: string | null = null;
-    (async () => {
-      const { toICal } = await import("@pl-conf/core/ical");
-      if (cancelled) return;
-      const ics = toICal(event, includeDeadlines);
-      if (!ics) return;
-      createdUrl = URL.createObjectURL(
-        new Blob([ics], { type: "text/calendar" })
-      );
-      setIcsUrl(createdUrl);
-    })();
-    return () => {
-      cancelled = true;
-      if (createdUrl) URL.revokeObjectURL(createdUrl);
-    };
-  }, [hasOpened, event, includeDeadlines, datesTBD]);
 
   useEffect(() => {
     if (!copied) return;
@@ -73,10 +45,13 @@ export function useCalendarExport(event: DisplayEvent): CalendarExport {
   }, [copied]);
 
   const fileName = icalFileName(event, includeDeadlines);
+  // `prebuild` already writes both variants of every feed to public/ical/, so
+  // the download links at the static file rather than pulling the `ics` package
+  // into the browser to rebuild identical bytes as a blob.
   const feedPath = icalFeedPath(event, includeDeadlines);
 
-  const subscribeUrls = useMemo<SubscribeUrls | null>(() => {
-    if (!hasOpened || datesTBD || typeof window === "undefined") return null;
+  const subscribeUrls = useMemo<SubscribeUrls | undefined>(() => {
+    if (datesTBD || typeof window === "undefined") return undefined;
     const host = window.location.host;
     // Google Calendar's add-by-URL flow only accepts http:// in `cid`; it
     // silently rejects https://. CloudFront serves both schemes.
@@ -85,9 +60,11 @@ export function useCalendarExport(event: DisplayEvent): CalendarExport {
       webcalUrl: `webcal://${host}${feedPath}`,
       googleSubscribeUrl: `https://calendar.google.com/calendar/r?cid=${encodeURIComponent(`http://${host}${feedPath}`)}`,
     };
-  }, [hasOpened, datesTBD, feedPath]);
+  }, [datesTBD, feedPath]);
 
-  const gcalHref = datesTBD ? null : toGoogleCalendarLink(event) || null;
+  const gcalHref = datesTBD
+    ? undefined
+    : toGoogleCalendarLink(event) || undefined;
 
   const copyFeedUrl = () => {
     if (!subscribeUrls) return;
@@ -99,13 +76,11 @@ export function useCalendarExport(event: DisplayEvent): CalendarExport {
 
   return {
     datesTBD,
-    hasOpened,
-    setHasOpened,
     includeDeadlines,
     setIncludeDeadlines,
     copied,
     copyFeedUrl,
-    icsUrl,
+    icsUrl: datesTBD ? undefined : feedPath,
     fileName,
     gcalHref,
     subscribeUrls,

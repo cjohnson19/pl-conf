@@ -20,6 +20,20 @@ const nextConfig: NextConfig = {
           },
         ],
       },
+      {
+        // Written once by `prebuild` and only change on redeploy, but they are
+        // fetched on every .ics download and polled by subscribed calendar
+        // clients. Without this they inherit `max-age=0` and revalidate to the
+        // origin every time.
+        source: "/ical/:path*",
+        headers: [
+          {
+            key: "Cache-Control",
+            value:
+              "public, max-age=300, s-maxage=3600, stale-while-revalidate=86400",
+          },
+        ],
+      },
     ];
   },
   experimental: {

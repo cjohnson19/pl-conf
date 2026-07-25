@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import * as Dialog from "@radix-ui/react-dialog";
 import { MoreHorizontal, Star, X } from "lucide-react";
 import clsx from "clsx";
@@ -55,15 +55,10 @@ export function RowActionSheetDialog({
   event: DisplayEvent;
   prefKey: string;
 }) {
-  // Rendered only when the sheet should be open: start open and seed
-  // `hasOpened` so the ICS blob hydrates immediately.
+  // Rendered only when the sheet should be open.
   const [open, setOpen] = useState(true);
   const { on: starred, toggle: toggleStar } = useFavorite(prefKey);
   const data = useCalendarExport(event);
-  // biome-ignore lint/correctness/useExhaustiveDependencies: intentional one-shot
-  useEffect(() => {
-    data.setHasOpened(true);
-  }, []);
 
   return (
     <Dialog.Root open={open} onOpenChange={setOpen}>
