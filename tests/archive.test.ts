@@ -1,11 +1,18 @@
 import { describe, expect, it } from "vitest";
-import { events } from "@pl-conf/data";
+import { BUILD_NOW_MS, events } from "@pl-conf/data";
 import { eventKey, type Tag } from "@pl-conf/core";
 import { computeEventListView } from "@/lib/event-list-view";
 import { defaultFilterParams, type FilterParams } from "@/lib/filter-params";
+import { FROZEN_NOW_ISO, FROZEN_NOW_MS } from "./frozen-now";
 
-const NOW = new Date("2026-06-01T12:00:00.000Z");
+const NOW = new Date(FROZEN_NOW_ISO);
 const all = Object.values(events);
+
+describe("fixture clock", () => {
+  it("pins BUILD_NOW_MS to the frozen instant", () => {
+    expect(BUILD_NOW_MS).toBe(FROZEN_NOW_MS);
+  });
+});
 
 const params = (overrides: Partial<FilterParams> = {}): FilterParams => ({
   ...defaultFilterParams,

@@ -3,12 +3,15 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import "./typography.css";
 import { events } from "@pl-conf/data";
-import { isActive } from "@pl-conf/core";
+import { isActiveAt } from "@pl-conf/core";
 import { Header } from "./components/header";
 import { ThemeProvider } from "./components/theme-provider";
 import { PreferencesProvider } from "./components/preferences-provider";
+import { serverNow } from "./lib/server-now";
 
-const totalActive = Object.values(events).filter(isActive).length;
+const totalActive = Object.values(events).filter(
+  isActiveAt(serverNow())
+).length;
 
 const prePaintScript = `try {
 var ua = navigator.userAgentData;

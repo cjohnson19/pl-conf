@@ -2,6 +2,7 @@ import { type ChildProcess, spawn, spawnSync } from "node:child_process";
 import fs from "node:fs";
 import net from "node:net";
 import path from "node:path";
+import { FROZEN_NOW_MS } from "./frozen-now";
 
 const PORT =
   Number(new URL(process.env.E2E_BASE_URL ?? "http://localhost:3000").port) ||
@@ -83,7 +84,11 @@ function buildFixtureSite() {
     build = spawnSync("pnpm", ["--filter", "@pl-conf/web", "run", "build"], {
       cwd: ROOT,
       stdio: "inherit",
-      env: { ...process.env, PL_CONF_TEST_FIXTURE: "1" },
+      env: {
+        ...process.env,
+        PL_CONF_TEST_FIXTURE: "1",
+        PL_CONF_NOW_MS: String(FROZEN_NOW_MS),
+      },
     });
   } finally {
     fs.renameSync(GENERATED_BACKUP, GENERATED_FILE);
@@ -134,6 +139,7 @@ export async function setup() {
       PORT: String(PORT),
       HOSTNAME: "127.0.0.1",
       NODE_ENV: "production",
+      PL_CONF_NOW_MS: String(FROZEN_NOW_MS),
     },
   });
 

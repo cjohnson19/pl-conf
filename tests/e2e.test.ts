@@ -18,10 +18,10 @@ import {
   test as base,
   vi,
 } from "vitest";
+import { FROZEN_NOW_ISO } from "./frozen-now";
 
 const URL = process.env.E2E_BASE_URL ?? "http://localhost:3000";
 
-const FROZEN_NOW_ISO = "2026-06-01T12:00:00.000Z";
 const FROZEN_NOW = new Date(FROZEN_NOW_ISO);
 
 let browser: Browser;

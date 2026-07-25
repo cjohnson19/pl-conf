@@ -2,7 +2,7 @@
 // real ScheduledEvent Zod schema, so any schema/preprocessor regression that
 // would break real YAML data also breaks these fixtures.
 //
-// Dates are anchored to FROZEN_NOW (see tests/e2e.test.ts). Edit them together.
+// Dates are anchored to FROZEN_NOW (see tests/frozen-now.ts). Edit them together.
 
 import { eventKey } from "@pl-conf/core";
 import { ScheduledEvent } from "@pl-conf/core/schemas";
@@ -126,4 +126,8 @@ export const events: Record<string, ScheduledEvent> = Object.fromEntries(
   rawEvents.map((r) => ScheduledEvent.parse(r)).map((e) => [eventKey(e), e])
 );
 
-export const BUILD_NOW_MS = Date.UTC(2026, 4, 19);
+// Same instant as FROZEN_NOW_ISO in tests/frozen-now.ts, spelled out rather
+// than imported: this file is copied verbatim into packages/data/generated/ for
+// the fixture build, so a relative import would only resolve from one of its
+// two homes. tests/archive.test.ts asserts the two stay equal.
+export const BUILD_NOW_MS = Date.UTC(2026, 5, 1, 12);
