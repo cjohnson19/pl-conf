@@ -9,10 +9,6 @@ import { ThemeProvider } from "./components/theme-provider";
 import { PreferencesProvider } from "./components/preferences-provider";
 import { serverNow } from "./lib/server-now";
 
-const totalActive = Object.values(events).filter(
-  isActiveAt(serverNow())
-).length;
-
 const prePaintScript = `try {
 var ua = navigator.userAgentData;
 var uaStr = (navigator.userAgent || "") + " " + (navigator.platform || "");
@@ -103,6 +99,12 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  // Counted per render, not once at module scope: the container is long-lived,
+  // so a module-scope count would freeze at process start and drift out of
+  // agreement with the per-request list as events end.
+  const totalActive = Object.values(events).filter(
+    isActiveAt(serverNow())
+  ).length;
   return (
     <html lang="en" className={inter.variable} suppressHydrationWarning>
       <head>
