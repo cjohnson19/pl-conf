@@ -6,4 +6,11 @@ date:
 location: Dresden, Germany
 url: "https://informatik2026.gi.de/"
 submissionUrl: "https://www.conftool.org/informatik2026/"
+importantDateUrl: "https://informatik2026.gi.de/callforpapers.html"
+importantDates:
+  paper: 2026-05-21
+  camera-ready: 2026-07-26
 type: "conference"
+notes:
+  - "Festival-wide deadlines for the 40-workshop scientific programme; individual workshops set their own dates"
+  - "Paper deadline is soft — late submissions accepted in exceptional cases up to the start of the conference"
