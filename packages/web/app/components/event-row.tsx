@@ -30,19 +30,30 @@ import { RoundRail } from "./event-row/rail";
 export function EventRow({
   event: e,
   hideDate = false,
+  dateAnchor = "deadline",
   now,
 }: {
   event: DisplayEvent;
   hideDate?: boolean;
+  // What the big date on the left refers to: the deadline the row is sorted by,
+  // or the event itself (the archive, where every deadline is long gone).
+  dateAnchor?: "deadline" | "event";
   now: Date;
 }) {
   const lead = findNextDeadline(e, now, { fallbackToPast: true });
 
   const leadDate = lead?.date;
   const anchorDate: MaybeDate =
-    leadDate ?? allDeadlines(e).find((d) => d !== undefined) ?? e.date.start;
+    dateAnchor === "event"
+      ? e.date.start
+      : (leadDate ??
+        allDeadlines(e).find((d) => d !== undefined) ??
+        e.date.start);
 
-  const urgent = leadDate ? isDeadlineUrgent(leadDate, now) : false;
+  const urgent =
+    dateAnchor === "deadline" && leadDate
+      ? isDeadlineUrgent(leadDate, now)
+      : false;
 
   const totalRounds = e.rounds.length;
   const showMultiRound = isMidMultiRound(e, now);

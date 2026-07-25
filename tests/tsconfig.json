@@ -3,6 +3,8 @@
   "compilerOptions": {
     "lib": ["ES2023", "DOM"],
     "types": ["node"],
+    // Tests reach into packages/web/app, whose lib modules pull in .tsx files.
+    "jsx": "react-jsx",
     "paths": {
       "@/*": ["../packages/web/app/*"]
     }

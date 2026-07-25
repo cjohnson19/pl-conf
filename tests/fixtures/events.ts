@@ -91,6 +91,35 @@ const rawEvents = [
     lastUpdated: "2026-01-01",
     sequence: 0,
   },
+  // MOCKF and MOCKG have already happened: they belong to the archive, never
+  // to the live list. MOCKF is the more recent of the two.
+  {
+    name: "Mock Finished Symposium",
+    abbreviation: "MOCKF",
+    type: "symposium",
+    date: { start: "2026-02-10", end: "2026-02-12" },
+    location: "Fargo, FG",
+    importantDateUrl: "https://example.com/mockf/dates",
+    url: "https://example.com/mockf",
+    tags: ["logic"],
+    importantDates: {
+      paper: "2025-11-01",
+      notification: "2025-12-15",
+    },
+    lastUpdated: "2026-01-01",
+    sequence: 0,
+  },
+  {
+    name: "Mock Finished Workshop",
+    abbreviation: "MOCKG",
+    type: "workshop",
+    date: { start: "2025-09-03", end: "2025-09-04" },
+    location: "Gotham, GT",
+    url: "https://example.com/mockg",
+    tags: ["types"],
+    lastUpdated: "2026-01-01",
+    sequence: 0,
+  },
 ];
 
 export const events: Record<string, ScheduledEvent> = Object.fromEntries(

@@ -621,6 +621,65 @@ describe("submissions open view", () => {
   });
 });
 
+describe("archive view", () => {
+  const openArchive = async (
+    page: Page,
+    clickButtonStartingWith: (label: string) => Promise<void>
+  ) => {
+    await clickButtonStartingWith("Archive");
+    // Unlike the other tabs, the archive is a real navigation: its rows are
+    // not in the DOM until the server renders them.
+    await page.waitForFunction(
+      () => new URLSearchParams(location.search).get("view") === "archive",
+      { timeout: 8000 }
+    );
+    await page.waitForFunction(
+      (n) =>
+        Array.from(document.querySelectorAll("[data-event-key]")).filter(
+          (el) => (el as HTMLElement).offsetParent !== null
+        ).length === n,
+      { timeout: 8000 },
+      2
+    );
+  };
+
+  test("lists finished events, most recent first", async ({
+    page,
+    renderedKeys,
+    clickButtonStartingWith,
+  }) => {
+    await openArchive(page, clickButtonStartingWith);
+    expect(await renderedKeys()).toEqual([
+      eventKey(findFixture("MOCKF")),
+      eventKey(findFixture("MOCKG")),
+    ]);
+  });
+
+  test("heads each group with the month the events took place in", async ({
+    page,
+    clickButtonStartingWith,
+  }) => {
+    await openArchive(page, clickButtonStartingWith);
+    const headings = await page.$$eval("[data-group-keys] h2", (nodes) =>
+      nodes.map((n) => (n.textContent ?? "").replace(/\s+/g, " ").trim())
+    );
+    expect(headings).toEqual(["February 2026", "September 2025"]);
+  });
+
+  test("finished events stay out of the live list", async ({
+    page,
+    renderedKeys,
+    goToAllEvents,
+  }) => {
+    await goToAllEvents();
+    const keys = await renderedKeys();
+    expect(keys).not.toContain(eventKey(findFixture("MOCKF")));
+    expect(keys).not.toContain(eventKey(findFixture("MOCKG")));
+    const body = await page.evaluate(() => document.body.innerText);
+    expect(body).toMatch(/deadlines closed/i);
+  });
+});
+
 describe.concurrent("multi-round badge", () => {
   test("renders Round N / M on events with past + future deadlines across rounds", async ({
     page,

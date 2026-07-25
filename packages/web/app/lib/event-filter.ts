@@ -1,8 +1,11 @@
 import { eventKey, type EventType } from "@pl-conf/core";
 import {
   isActive,
+  isActiveAt,
   isType as coreIsType,
   hasYear as coreHasYear,
+  hasEnded,
+  hasEndedAt,
   hasOpenSubmission,
   hasOpenSubmissionAt,
   type EventFilter,
@@ -20,6 +23,9 @@ import type { PreferenceCollection } from "./user-prefs";
 export type { EventFilter };
 export {
   isActive,
+  isActiveAt,
+  hasEnded,
+  hasEndedAt,
   hasDate,
   hasTag,
   startsAfter,

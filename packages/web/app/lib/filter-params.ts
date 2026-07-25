@@ -6,10 +6,10 @@ export type Category =
   | "workshop"
   | "symposium"
   | "school";
-export type View = "starred" | "all" | "submissions";
+export type View = "starred" | "all" | "submissions" | "archive";
 
 const categories = new Set<string>(["all", ...eventTypes, "school"]);
-const views = new Set<string>(["starred", "all", "submissions"]);
+const views = new Set<string>(["starred", "all", "submissions", "archive"]);
 const tags = new Set<string>(tagValues);
 
 export type FilterParams = {

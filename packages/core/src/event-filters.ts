@@ -2,6 +2,7 @@ import {
   isAfter as dateIsAfter,
   isBefore as dateIsBefore,
   getYear,
+  startOfDay,
 } from "date-fns";
 import { allDeadlines, firstDeadline, isDeadlinePast } from "./event";
 import type { EventType, MaybeDate, ScheduledEvent, Tag } from "./schemas";
@@ -12,8 +13,25 @@ export function hasDate(s: MaybeDate): s is string {
   return s !== "TBD";
 }
 
-export const isActive: EventFilter = (e) =>
-  hasDate(e.date.end) && dateIsAfter(e.date.end, new Date());
+export const isActiveAt =
+  (now: Date): EventFilter =>
+  (e) =>
+    hasDate(e.date.end) && dateIsAfter(e.date.end, now);
+
+export const isActive: EventFilter = (e) => isActiveAt(new Date())(e);
+
+// The archive: events whose last day is behind us. Dates parse to local
+// midnight, so this compares against the start of today — an event still
+// running on its final day has not "already happened" and must not be filed
+// under the archive. (`isActiveAt` drops it at that midnight, so on its closing
+// day an event appears in neither view.) An end date of TBD is likewise neither
+// active nor ended, mirroring `isActive` treating it as unschedulable.
+export const hasEndedAt =
+  (now: Date): EventFilter =>
+  (e) =>
+    hasDate(e.date.end) && dateIsBefore(e.date.end, startOfDay(now));
+
+export const hasEnded: EventFilter = (e) => hasEndedAt(new Date())(e);
 
 export const isType: (t: EventType) => EventFilter = (t) => (e) => e.type === t;
 

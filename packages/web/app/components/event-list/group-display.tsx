@@ -20,6 +20,7 @@ import {
 } from "../../hooks/use-session-storage";
 import { useNow } from "./now-provider";
 import { useCounts } from "./counts-context";
+import type { GroupHeading } from "./grouping";
 import {
   setPrefs,
   useDisplayPref,
@@ -27,6 +28,95 @@ import {
 } from "../preferences-provider";
 
 const SESSION_COLLAPSED_KEY = "collapsedDateGroups";
+
+function EventCount({ count }: { count: number }) {
+  return (
+    <div className="font-mono text-[11px] uppercase tracking-[0.04em] text-ink-3">
+      <b className="font-medium text-ink-2">{count}</b> event
+      {count === 1 ? "" : "s"}
+    </div>
+  );
+}
+
+// Month heading for the archive, where nothing is counting down.
+function MonthGroupHeader({
+  month,
+  count,
+  isFirst,
+  collapsed,
+  onToggle,
+  controlsId,
+}: {
+  month: string;
+  count: number;
+  isFirst: boolean;
+  collapsed?: boolean;
+  onToggle?: () => void;
+  controlsId?: string;
+}) {
+  const [y, m] = month.split("-").map(Number);
+  const cal = y && m ? new Date(y, m - 1, 1) : null;
+  const label = cal ? `${monthLongFmt.format(cal)} ${y}` : "Date unknown";
+  const inner = (
+    <>
+      <h2 className="flex items-baseline gap-2.5 font-ui text-[18px] font-semibold leading-none tracking-[-0.02em] text-ink-2 sm:text-[22px]">
+        <span suppressHydrationWarning>
+          {cal ? monthLongFmt.format(cal) : "Date unknown"}
+        </span>{" "}
+        {cal && (
+          <span className="font-mono text-[12px] font-medium tracking-[0.06em] text-ink-3">
+            {y}
+          </span>
+        )}
+      </h2>
+      <div className="flex items-end gap-3">
+        <EventCount count={count} />
+        {onToggle && (
+          <ChevronDown
+            aria-hidden
+            size={16}
+            strokeWidth={1.75}
+            className={clsx(
+              "shrink-0 text-ink-3 transition-transform duration-200 ease-out",
+              collapsed && "-rotate-90"
+            )}
+          />
+        )}
+      </div>
+    </>
+  );
+  const layout = clsx(
+    "flex items-end justify-between gap-4 px-5 pb-3 pt-4 md:px-8",
+    "border-b-2 border-rule",
+    !isFirst && "border-t-2"
+  );
+  return (
+    <div className="sticky top-0 z-10" style={{ background: "var(--paper)" }}>
+      {onToggle ? (
+        <button
+          type="button"
+          onClick={onToggle}
+          aria-expanded={!collapsed}
+          aria-controls={controlsId}
+          aria-label={
+            collapsed ? `Show events for ${label}` : `Hide events for ${label}`
+          }
+          className={clsx(
+            layout,
+            "w-full text-left transition-colors hover:bg-paper-2"
+          )}
+          // The label carries a locale-formatted month, which the server and
+          // the viewer's browser can disagree on.
+          suppressHydrationWarning
+        >
+          {inner}
+        </button>
+      ) : (
+        <div className={layout}>{inner}</div>
+      )}
+    </div>
+  );
+}
 
 function DeadlineGroupHeader({
   date,
@@ -59,12 +149,10 @@ function DeadlineGroupHeader({
           )}
         >
           <h2 className="font-ui text-[18px] font-semibold leading-none tracking-[-0.02em] text-ink-2 sm:text-[22px]">
-            No upcoming deadlines
+            Deadlines closed
+            <span className="font-normal text-ink-3"> · event ahead</span>
           </h2>
-          <div className="font-mono text-[11px] uppercase tracking-[0.04em] text-ink-3">
-            <b className="font-medium text-ink-2">{count}</b> event
-            {count === 1 ? "" : "s"}
-          </div>
+          <EventCount count={count} />
         </div>
       </div>
     );
@@ -171,14 +259,14 @@ function DeadlineGroupHeader({
 
 export function CollapsibleGroup({
   groupKey,
-  groupDate,
+  heading,
   groupKeys,
   isFirst,
   isFirstCollapsible,
   children,
 }: {
   groupKey: string;
-  groupDate: string | null;
+  heading: GroupHeading;
   groupKeys: string[];
   isFirst: boolean;
   isFirstCollapsible: boolean;
@@ -189,18 +277,22 @@ export function CollapsibleGroup({
   // header matches what's actually on screen.
   const { countGroup } = useCounts();
   const count = countGroup(groupKeys);
+  // Dated and month groups collapse (keyed by the date / "YYYY-MM" they head);
+  // the catch-all "Deadlines closed" group has nothing unique to key on.
+  const collapseId =
+    heading.kind === "month" ? heading.month : (heading.date ?? null);
   const [collapsedDates, setCollapsedDates] = useSessionStorage(
     SESSION_COLLAPSED_KEY,
     new Set<string>(),
     stringSetCodec
   );
-  const collapsed = groupDate !== null && collapsedDates.has(groupDate);
+  const collapsed = collapseId !== null && collapsedDates.has(collapseId);
   const toggleCollapsed = () =>
     setCollapsedDates((prev) => {
-      if (groupDate === null) return prev;
+      if (collapseId === null) return prev;
       const next = new Set(prev);
-      if (next.has(groupDate)) next.delete(groupDate);
-      else next.add(groupDate);
+      if (next.has(collapseId)) next.delete(collapseId);
+      else next.add(collapseId);
       return next;
     });
 
@@ -224,7 +316,7 @@ export function CollapsibleGroup({
   const contentId = `group-content-${groupKey.replace(/[^a-zA-Z0-9_-]/g, "-")}`;
 
   const handleToggle =
-    groupDate !== null
+    collapseId !== null
       ? () => {
           const willCollapse = !collapsed;
           const el = innerRef.current;
@@ -258,15 +350,26 @@ export function CollapsibleGroup({
       data-group-keys={groupKeys.join(",")}
       className={clsx("relative", !isFirst && "-mt-[2px]")}
     >
-      <DeadlineGroupHeader
-        date={groupDate}
-        count={count}
-        now={now}
-        isFirst={isFirst}
-        collapsed={collapsed}
-        onToggle={handleToggle}
-        controlsId={contentId}
-      />
+      {heading.kind === "month" ? (
+        <MonthGroupHeader
+          month={heading.month}
+          count={count}
+          isFirst={isFirst}
+          collapsed={collapsed}
+          onToggle={handleToggle}
+          controlsId={contentId}
+        />
+      ) : (
+        <DeadlineGroupHeader
+          date={heading.date}
+          count={count}
+          now={now}
+          isFirst={isFirst}
+          collapsed={collapsed}
+          onToggle={handleToggle}
+          controlsId={contentId}
+        />
+      )}
       <div
         id={contentId}
         className="overflow-hidden transition-[height] duration-200 ease-out motion-reduce:transition-none"
@@ -291,7 +394,7 @@ export function CollapsibleGroup({
 function CollapseHint({ onDismiss }: { onDismiss: () => void }) {
   return (
     <div className="flex items-center justify-between gap-3 border-b border-rule px-5 py-2 text-[11px] italic text-ink-3 md:px-8">
-      <span>Tip: tap any date heading to hide its events.</span>
+      <span>Tip: tap any heading to hide its events.</span>
       <button
         type="button"
         onClick={onDismiss}

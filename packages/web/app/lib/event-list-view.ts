@@ -7,6 +7,7 @@ import {
   eventPathFromSlug,
   eventSlug,
   tagValues,
+  toCalendarDate,
 } from "./event";
 import {
   findAllUpcomingDeadlines,
@@ -14,14 +15,19 @@ import {
   findNextStart,
   isDueThisWeek,
 } from "./deadline";
-import { applyFilters, isActive, openToNewSubmissions } from "./event-filter";
+import { hasEndedAt, isActiveAt, openToNewSubmissions } from "./event-filter";
 import type { Category, FilterParams } from "./filter-params";
-import { type Group, buildGroups } from "../components/event-list/grouping";
+import {
+  type Group,
+  buildArchiveGroups,
+  buildGroups,
+} from "../components/event-list/grouping";
 
 export type ViewCounts = {
   starred: number | null;
   all: number;
   submissions: number;
+  archive: number;
 };
 
 export type HeroEvent = {
@@ -94,24 +100,29 @@ export function toDisplayEvent(
   };
 }
 
-// Slim projection of `activeEvents` shipped to the client so chip/tab/footer
-// counts can be re-derived after subtracting hidden events. `hasOpenSubmission`
-// and `dueThisWeek` are computed once at SSR — they don't tick — but that's
-// the same approximation the SSR counts already make.
+// Slim projection of every event — active and archived — shipped to the client
+// so chip/tab/footer counts can be re-derived after subtracting hidden events.
+// `hasOpenSubmission` and `dueThisWeek` are computed once at SSR — they don't
+// tick — but that's the same approximation the SSR counts already make.
 export type CountableEvent = {
   key: string;
   category: Category;
   tags: Tag[];
   hasOpenSubmission: boolean;
   dueThisWeek: boolean;
+  archived: boolean;
 };
 
 export type EventListView = {
   activeEvents: ScheduledEvent[];
+  archivedEvents: ScheduledEvent[];
+  // True when the archive view is active: `displayEvents` and `groups` then
+  // describe finished events instead of the live list.
+  isArchive: boolean;
   displayEvents: DisplayEvent[];
   heroEvents: HeroEvent[];
   groups: Group[];
-  countableActive: CountableEvent[];
+  countableEvents: CountableEvent[];
   categoryCounts: Record<Category, number>;
   tagCounts: Record<Tag, number>;
   viewCounts: ViewCounts;
@@ -158,6 +169,41 @@ export function buildSearchHaystack(e: DisplayEvent): string {
   return parts.join("\n").toLowerCase();
 }
 
+// Most recently held first, so the top of the archive is the conference that
+// just wrapped up. Sorting and grouping both key off the *start* date, which
+// keeps month groups contiguous even for events that straddle a month boundary;
+// within a month that can put a long event above a short one that ended later.
+function sortArchived(events: ScheduledEvent[]): ScheduledEvent[] {
+  return [...events].sort((a, b) => {
+    const at = startTime(a);
+    const bt = startTime(b);
+    if (at !== bt) return bt - at;
+    return a.abbreviation.localeCompare(b.abbreviation);
+  });
+}
+
+function startTime(e: ScheduledEvent): number {
+  const cal = e.date.start === "TBD" ? null : toCalendarDate(e.date.start);
+  return cal ? cal.getTime() : Number.NEGATIVE_INFINITY;
+}
+
+function sortByNextDeadline(
+  events: ScheduledEvent[],
+  now: Date
+): ScheduledEvent[] {
+  const decorated = events.map((e) => ({
+    e,
+    time: findNextDeadline(e, now)?.time,
+  }));
+  decorated.sort((a, b) => {
+    if (a.time !== undefined && b.time !== undefined) return a.time - b.time;
+    if (a.time !== undefined) return -1;
+    if (b.time !== undefined) return 1;
+    return a.e.abbreviation.localeCompare(b.e.abbreviation);
+  });
+  return decorated.map((d) => d.e);
+}
+
 export function computeEventListView(
   events: ScheduledEvent[],
   filters: FilterParams,
@@ -166,23 +212,35 @@ export function computeEventListView(
 ): EventListView {
   const { starredKeys, validEventPaths } = options;
   const hasOpenSubmission = openToNewSubmissions(true, now);
+  const isArchive = filters.view === "archive";
 
-  const activeEvents = applyFilters(events, [isActive]);
+  const activeEvents = events.filter(isActiveAt(now));
+  const archivedEvents = events.filter(hasEndedAt(now));
+  // The archive view swaps which pool the list, the chips, and the tag counts
+  // describe; the tab counts always report on both.
+  const listed = isArchive ? archivedEvents : activeEvents;
 
   const categoryCounts: Record<Category, number> = {
-    all: activeEvents.length,
+    all: listed.length,
     conference: 0,
     workshop: 0,
     symposium: 0,
     school: 0,
   };
-  activeEvents.forEach((e) => {
+  listed.forEach((e) => {
     categoryCounts[e.type] = (categoryCounts[e.type] ?? 0) + 1;
   });
 
-  const preTagFiltered = applyFilters(activeEvents, [
-    (e) => (filters.category === "all" ? true : e.type === filters.category),
-  ]);
+  const byCategory = (list: ScheduledEvent[]) =>
+    filters.category === "all"
+      ? list
+      : list.filter((e) => e.type === filters.category);
+  const byTags = (list: ScheduledEvent[]) =>
+    filters.tags.size === 0
+      ? list
+      : list.filter((e) => e.tags.some((t) => filters.tags.has(t)));
+
+  const preTagFiltered = byCategory(listed);
 
   const tagCounts = Object.fromEntries(tagValues.map((t) => [t, 0])) as Record<
     Tag,
@@ -194,35 +252,34 @@ export function computeEventListView(
     });
   });
 
-  const baseFiltered =
-    filters.tags.size === 0
-      ? preTagFiltered
-      : preTagFiltered.filter((e) => e.tags.some((t) => filters.tags.has(t)));
+  const baseFiltered = byTags(preTagFiltered);
+  const activeFiltered = isArchive
+    ? byTags(byCategory(activeEvents))
+    : baseFiltered;
+  const archivedFiltered = isArchive
+    ? baseFiltered
+    : byTags(byCategory(archivedEvents));
 
   const viewCounts: ViewCounts = {
     starred: starredKeys
-      ? baseFiltered.filter((e) => starredKeys.has(eventKey(e))).length
+      ? activeFiltered.filter((e) => starredKeys.has(eventKey(e))).length
       : null,
-    all: baseFiltered.length,
-    submissions: baseFiltered.filter(hasOpenSubmission).length,
+    all: activeFiltered.length,
+    submissions: activeFiltered.filter(hasOpenSubmission).length,
+    archive: archivedFiltered.length,
   };
 
-  const decorated = baseFiltered.map((e) => ({
-    e,
-    time: findNextDeadline(e, now)?.time,
-  }));
-  decorated.sort((a, b) => {
-    if (a.time !== undefined && b.time !== undefined) return a.time - b.time;
-    if (a.time !== undefined) return -1;
-    if (b.time !== undefined) return 1;
-    return a.e.abbreviation.localeCompare(b.e.abbreviation);
-  });
-  const displayEvents = decorated.map((d) =>
-    toDisplayEvent(d.e, validEventPaths)
-  );
+  const sorted = isArchive
+    ? sortArchived(baseFiltered)
+    : sortByNextDeadline(baseFiltered, now);
+  const displayEvents = sorted.map((e) => toDisplayEvent(e, validEventPaths));
 
-  const groups = buildGroups(displayEvents, now);
-  const dueThisWeek = displayEvents.filter((e) => isDueThisWeek(e, now)).length;
+  const groups = isArchive
+    ? buildArchiveGroups(displayEvents)
+    : buildGroups(displayEvents, now);
+  const dueThisWeek = activeFiltered.filter((e) =>
+    isDueThisWeek(e, now)
+  ).length;
 
   const lastUpdatedDates = events
     .map((e) => e.lastUpdated)
@@ -232,20 +289,30 @@ export function computeEventListView(
       ? undefined
       : lastUpdatedDates.reduce((max, d) => (d > max ? d : max));
 
-  const countableActive: CountableEvent[] = activeEvents.map((e) => ({
+  const toCountable = (
+    e: ScheduledEvent,
+    archived: boolean
+  ): CountableEvent => ({
     key: eventKey(e),
     category: e.type,
     tags: [...e.tags],
-    hasOpenSubmission: hasOpenSubmission(e),
-    dueThisWeek: isDueThisWeek(e, now),
-  }));
+    hasOpenSubmission: !archived && hasOpenSubmission(e),
+    dueThisWeek: !archived && isDueThisWeek(e, now),
+    archived,
+  });
+  const countableEvents: CountableEvent[] = [
+    ...activeEvents.map((e) => toCountable(e, false)),
+    ...archivedEvents.map((e) => toCountable(e, true)),
+  ];
 
   return {
     activeEvents,
+    archivedEvents,
+    isArchive,
     displayEvents,
     heroEvents: buildHeroEvents(activeEvents, now),
     groups,
-    countableActive,
+    countableEvents,
     categoryCounts,
     tagCounts,
     viewCounts,

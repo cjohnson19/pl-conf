@@ -46,17 +46,19 @@ export function EventListShell({
     displayEvents,
     heroEvents,
     groups,
-    countableActive,
+    countableEvents,
     lastUpdatedDate,
   } = view;
-  const firstCollapsibleIdx = groups.findIndex((g) => g.date !== null);
+  const firstCollapsibleIdx = groups.findIndex(
+    (g) => g.heading.kind === "month" || g.heading.date !== null
+  );
   const hasMultipleGroups = groups.length > 1;
   const serverNow = new Date(serverNowMs);
 
   return (
     <Suspense>
       <UrlTagFilterProvider>
-        <CountsProvider events={countableActive}>
+        <CountsProvider events={countableEvents}>
           <SearchProvider defaultValue={filters.q}>
             <NowProvider initialMs={serverNowMs}>
               <HydrationMarker />
@@ -87,34 +89,45 @@ export function EventListShell({
                 events={displayEvents}
                 listChildren={
                   displayEvents.length > 0 ? (
-                    groups.map((g, gi) => (
-                      <CollapsibleGroup
-                        key={g.key}
-                        groupKey={g.key}
-                        groupDate={g.date}
-                        groupKeys={g.events.map((e) => eventKey(e))}
-                        isFirst={gi === 0}
-                        isFirstCollapsible={
-                          gi === firstCollapsibleIdx && hasMultipleGroups
-                        }
-                      >
-                        {g.events.map((e, i) => (
-                          <div
-                            key={eventKey(e)}
-                            className={clsx(
-                              "@container/row",
-                              i === 0 && "[&>*]:border-t-0"
-                            )}
-                          >
-                            <EventRow
-                              event={e}
-                              hideDate={g.date !== null}
-                              now={serverNow}
-                            />
-                          </div>
-                        ))}
-                      </CollapsibleGroup>
-                    ))
+                    groups.map((g, gi) => {
+                      // A dated heading already states the deadline, so its
+                      // rows drop their own date. Everywhere else — the archive
+                      // and "Deadlines closed" — the row shows the event date
+                      // rather than a deadline that is already behind us.
+                      const headingDate =
+                        g.heading.kind === "deadline" ? g.heading.date : null;
+                      return (
+                        <CollapsibleGroup
+                          key={g.key}
+                          groupKey={g.key}
+                          heading={g.heading}
+                          groupKeys={g.events.map((e) => eventKey(e))}
+                          isFirst={gi === 0}
+                          isFirstCollapsible={
+                            gi === firstCollapsibleIdx && hasMultipleGroups
+                          }
+                        >
+                          {g.events.map((e, i) => (
+                            <div
+                              key={eventKey(e)}
+                              className={clsx(
+                                "@container/row",
+                                i === 0 && "[&>*]:border-t-0"
+                              )}
+                            >
+                              <EventRow
+                                event={e}
+                                hideDate={headingDate !== null}
+                                dateAnchor={
+                                  headingDate === null ? "event" : "deadline"
+                                }
+                                now={serverNow}
+                              />
+                            </div>
+                          ))}
+                        </CollapsibleGroup>
+                      );
+                    })
                   ) : (
                     <NoEventsMessage />
                   )

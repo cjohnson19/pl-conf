@@ -9,7 +9,9 @@ export function NoEventsMessage() {
   if (view === "starred") return null;
   return (
     <div className="px-5 py-8 text-[13px] text-ink-3 md:px-8">
-      No events match these filters.
+      {view === "archive"
+        ? "No past events match these filters."
+        : "No events match these filters."}
     </div>
   );
 }

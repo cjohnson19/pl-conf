@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef, useTransition } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import clsx from "clsx";
 import {
@@ -29,7 +29,7 @@ const CATEGORY_CHIPS: { key: Category; label: string }[] = [
 ];
 
 const CATEGORY_KEYS: Category[] = CATEGORY_CHIPS.map((c) => c.key);
-const VIEW_KEYS: View[] = ["starred", "all", "submissions"];
+const VIEW_KEYS: View[] = ["starred", "all", "submissions", "archive"];
 const KNOWN_TAGS = new Set<string>(tagValues);
 
 function replaceSearchParam(
@@ -280,7 +280,9 @@ export function ViewTabs({
   trailing?: React.ReactNode;
 }) {
   const { viewCounts: counts } = useCounts();
+  const router = useRouter();
   const searchParams = useSearchParams();
+  const [pending, startTransition] = useTransition();
   const rawActive = searchParams.get("view");
   const active: View =
     rawActive && (VIEW_KEYS as string[]).includes(rawActive)
@@ -292,7 +294,17 @@ export function ViewTabs({
       "view",
       next === "all" ? null : next
     );
-    window.history.replaceState(null, "", url);
+    // Starred / submissions are CSS filters over rows the page already shipped,
+    // so they switch with a bare history entry. Archived rows aren't in the DOM
+    // at all — entering or leaving the archive needs a real render.
+    if (next === "archive" || active === "archive") {
+      // Scrolls to the top, unlike the chips: this swaps the list for a
+      // different set of events, so holding the old offset would drop the
+      // reader into the middle of it with no heading in sight.
+      startTransition(() => router.replace(url));
+    } else {
+      window.history.replaceState(null, "", url);
+    }
   };
   const tabs: {
     key: View;
@@ -314,10 +326,17 @@ export function ViewTabs({
     },
     { key: "all", label: "All events", shortLabel: "All" },
     { key: "submissions", label: "Submissions open", shortLabel: "Open" },
+    { key: "archive", label: "Archive", shortLabel: "Past" },
   ];
   return (
     <div className="flex flex-wrap items-end gap-x-2 gap-y-2 border-b border-rule px-5 pt-8 sm:gap-x-4 md:px-8">
-      <div className="-mx-5 flex flex-1 gap-0.5 overflow-x-auto overflow-y-hidden px-5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:gap-1 md:mx-0 md:overflow-visible md:px-0">
+      <div
+        aria-busy={pending}
+        className={clsx(
+          "-mx-5 flex flex-1 gap-0.5 overflow-x-auto overflow-y-hidden px-5 transition-opacity [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:gap-1 md:mx-0 md:overflow-visible md:px-0",
+          pending && "opacity-60"
+        )}
+      >
         {tabs.map((t) => {
           const on = t.key === active;
           const countNode =

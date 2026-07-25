@@ -20,7 +20,7 @@ const CATEGORY_KEYS: Category[] = [
   "symposium",
   "school",
 ];
-const VIEW_KEYS: View[] = ["starred", "all", "submissions"];
+const VIEW_KEYS: View[] = ["starred", "all", "submissions", "archive"];
 const KNOWN_TAGS = new Set<string>(tagValues);
 
 type CountsContextValue = {
@@ -70,6 +70,8 @@ export function CountsProvider({
       if (eventPrefs[key]?.hidden) return false;
       if (view === "starred" && !starredKeys.has(key)) return false;
       if (view === "submissions" && !e.hasOpenSubmission) return false;
+      // The archive is server-rendered on its own, so whichever rows are on the
+      // page already belong to the active view — nothing further to filter.
       return true;
     },
     [keyMap, eventPrefs, view, starredKeys]
@@ -89,22 +91,34 @@ export function CountsProvider({
     // same shape as the SSR counts. After hydration, hidden events drop out
     // and counts shift to reflect what's visible on screen.
     const visible = events.filter((e) => !eventPrefs[e.key]?.hidden);
+    const visibleActive = visible.filter((e) => !e.archived);
+    const visibleArchived = visible.filter((e) => e.archived);
+    // Mirrors computeEventListView: the chips and tag counts describe whichever
+    // pool the list is showing, while the tabs always report on both.
+    const listed = view === "archive" ? visibleArchived : visibleActive;
 
     const categoryCounts: Record<Category, number> = {
-      all: visible.length,
+      all: listed.length,
       conference: 0,
       workshop: 0,
       symposium: 0,
       school: 0,
     };
-    visible.forEach((e) => {
+    listed.forEach((e) => {
       categoryCounts[e.category] = (categoryCounts[e.category] ?? 0) + 1;
     });
 
+    const byChips = (list: CountableEvent[]) =>
+      list
+        .filter((e) => category === "all" || e.category === category)
+        .filter(
+          (e) => activeTags.size === 0 || e.tags.some((t) => activeTags.has(t))
+        );
+
     const preTagFiltered =
       category === "all"
-        ? visible
-        : visible.filter((e) => e.category === category);
+        ? listed
+        : listed.filter((e) => e.category === category);
     const tagCounts = Object.fromEntries(
       tagValues.map((t) => [t, 0])
     ) as Record<Tag, number>;
@@ -114,28 +128,26 @@ export function CountsProvider({
       });
     });
 
-    const baseFiltered =
-      activeTags.size === 0
-        ? preTagFiltered
-        : preTagFiltered.filter((e) => e.tags.some((t) => activeTags.has(t)));
+    const activeFiltered = byChips(visibleActive);
 
     const viewCounts: ViewCounts = {
       // Match prior SSR semantics: until prefs hydrate, "Starred" count is
       // unknown, so suppress the badge instead of showing a misleading 0.
       starred: prefsLoaded
-        ? baseFiltered.filter((e) => starredKeys.has(e.key)).length
+        ? activeFiltered.filter((e) => starredKeys.has(e.key)).length
         : null,
-      all: baseFiltered.length,
-      submissions: baseFiltered.filter((e) => e.hasOpenSubmission).length,
+      all: activeFiltered.length,
+      submissions: activeFiltered.filter((e) => e.hasOpenSubmission).length,
+      archive: byChips(visibleArchived).length,
     };
 
-    const dueThisWeek = baseFiltered.filter((e) => e.dueThisWeek).length;
+    const dueThisWeek = activeFiltered.filter((e) => e.dueThisWeek).length;
 
     return {
       categoryCounts,
       tagCounts,
       viewCounts,
-      totalActive: visible.length,
+      totalActive: visibleActive.length,
       dueThisWeek,
       countGroup,
       matchesActiveView,
@@ -149,6 +161,7 @@ export function CountsProvider({
     starredKeys,
     countGroup,
     matchesActiveView,
+    view,
   ]);
 
   return (
@@ -171,6 +184,14 @@ export function TotalActiveText() {
 
 export function DueThisWeekPhrase() {
   const { dueThisWeek } = useCounts();
+  const searchParams = useSearchParams();
+  if (searchParams.get("view") === "archive") {
+    return (
+      <span className="hidden text-[13px] text-ink-3 lg:inline">
+        past events · most recent first
+      </span>
+    );
+  }
   return (
     <span className="hidden text-[13px] text-ink-3 lg:inline">
       sorted by next deadline ·{" "}
