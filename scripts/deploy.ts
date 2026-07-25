@@ -124,7 +124,7 @@ async function main() {
   console.log(
     `Website URL:    ${domainName ? `https://${domainName}` : outputs.WebsiteUrl}`
   );
-  console.log(`Origin:         ${outputs.ServiceEndpoint ?? "(unknown)"}`);
+  console.log(`Origin:         ${outputs.OriginAlbUrl ?? "(unknown)"}`);
   console.log(`Distribution:   ${distributionId ?? "(unknown)"}`);
   console.log("=".repeat(60));
 }

@@ -11,8 +11,10 @@ import * as targets from "aws-cdk-lib/aws-events-targets";
 import * as iam from "aws-cdk-lib/aws-iam";
 import * as ecs from "aws-cdk-lib/aws-ecs";
 import * as ec2 from "aws-cdk-lib/aws-ec2";
+import * as elbv2 from "aws-cdk-lib/aws-elasticloadbalancingv2";
 import { DockerImageAsset, Platform } from "aws-cdk-lib/aws-ecr-assets";
 import * as acm from "aws-cdk-lib/aws-certificatemanager";
+import * as logs from "aws-cdk-lib/aws-logs";
 import * as route53 from "aws-cdk-lib/aws-route53";
 import * as route53Targets from "aws-cdk-lib/aws-route53-targets";
 import type { Construct } from "constructs";
@@ -119,6 +121,7 @@ export class PlConfStack extends cdk.Stack {
       new events.Rule(this, "DriftCronRule", {
         schedule: events.Schedule.cron({ minute: "0", hour: "17" }), // Daily at 5 PM UTC
         targets: [new targets.LambdaFunction(driftFunction)],
+        enabled: false, // temporarily paused; flip to re-enable the daily drift email
       });
     }
 
@@ -160,15 +163,6 @@ export class PlConfStack extends cdk.Stack {
       ],
     });
 
-    const infrastructureRole = new iam.Role(this, "WebInfrastructureRole", {
-      assumedBy: new iam.ServicePrincipal("ecs.amazonaws.com"),
-      managedPolicies: [
-        iam.ManagedPolicy.fromAwsManagedPolicyName(
-          "service-role/AmazonECSInfrastructureRoleforExpressGatewayServices"
-        ),
-      ],
-    });
-
     // NEXT_PUBLIC_* env vars are inlined by Next at build time, so the value
     // must be available when Docker builds the image — runtime env on the
     // container is too late and the submission form would fall back to
@@ -178,50 +172,149 @@ export class PlConfStack extends cdk.Stack {
     const image = new DockerImageAsset(this, "WebImage", {
       directory: path.join(__dirname, "../../.."),
       file: "Dockerfile",
-      platform: Platform.LINUX_AMD64,
+      platform: Platform.LINUX_ARM64,
       buildArgs: submissionApiUrl
         ? { NEXT_PUBLIC_SUBMISSION_API_URL: submissionApiUrl }
         : undefined,
     });
 
+    const webLogGroup = new logs.LogGroup(this, "WebLogGroup", {
+      retention: logs.RetentionDays.ONE_MONTH,
+      removalPolicy: cdk.RemovalPolicy.DESTROY,
+    });
+
+    // Express Mode's managed task definition doesn't expose runtimePlatform,
+    // so we bring our own to run on ARM64 Fargate (~20% cheaper). Express
+    // requires the container to be named "Main" with a single named TCP port
+    // mapping and FARGATE compatibility.
+    const taskDefinition = new ecs.FargateTaskDefinition(
+      this,
+      "WebTaskDefinition",
+      {
+        cpu: 256,
+        memoryLimitMiB: 512,
+        executionRole,
+        runtimePlatform: {
+          cpuArchitecture: ecs.CpuArchitecture.ARM64,
+          operatingSystemFamily: ecs.OperatingSystemFamily.LINUX,
+        },
+      }
+    );
+
+    taskDefinition.addContainer("Main", {
+      containerName: "Main",
+      image: ecs.ContainerImage.fromDockerImageAsset(image),
+      portMappings: [
+        { name: "web", containerPort: 3000, protocol: ecs.Protocol.TCP },
+      ],
+      environment: {
+        NODE_ENV: "production",
+        PORT: "3000",
+        HOSTNAME: "0.0.0.0",
+        ...(submissionApiUrl
+          ? { NEXT_PUBLIC_SUBMISSION_API_URL: submissionApiUrl }
+          : {}),
+      },
+      logging: ecs.LogDrivers.awsLogs({
+        logGroup: webLogGroup,
+        streamPrefix: "web",
+      }),
+    });
+
     const defaultVpc = ec2.Vpc.fromLookup(this, "DefaultVpc", {
       isDefault: true,
     });
-    const gatewaySubnetIds = defaultVpc.publicSubnets
-      .slice(0, 2)
-      .map((subnet) => subnet.subnetId);
+    const originSubnets = defaultVpc.publicSubnets.slice(0, 2);
 
-    const service = new ecs.CfnExpressGatewayService(this, "WebService", {
-      cluster: cluster.attrArn,
-      executionRoleArn: executionRole.roleArn,
-      infrastructureRoleArn: infrastructureRole.roleArn,
-      networkConfiguration: { subnets: gatewaySubnetIds },
-      cpu: "512",
-      memory: "1024",
-      healthCheckPath: "/",
-      primaryContainer: {
-        image: image.imageUri,
-        containerPort: 3000,
-        environment: [
-          { name: "NODE_ENV", value: "production" },
-          { name: "PORT", value: "3000" },
-          { name: "HOSTNAME", value: "0.0.0.0" },
-          ...(submissionApiUrl
-            ? [
-                {
-                  name: "NEXT_PUBLIC_SUBMISSION_API_URL",
-                  value: submissionApiUrl,
-                },
-              ]
-            : []),
-        ],
-      },
-      scalingTarget: {
-        minTaskCount: 1,
-        maxTaskCount: isProduction ? 4 : 2,
-      },
+    const webCluster = ecs.Cluster.fromClusterAttributes(
+      this,
+      "WebClusterRef",
+      {
+        clusterName: cluster.ref,
+        vpc: defaultVpc,
+      }
+    );
+
+    const webService = new ecs.FargateService(this, "WebFargateService", {
+      cluster: webCluster,
+      taskDefinition,
+      desiredCount: 1,
+      assignPublicIp: true,
+      vpcSubnets: { subnets: originSubnets },
+      circuitBreaker: { rollback: true },
+      minHealthyPercent: 100,
+      maxHealthyPercent: 200,
     });
-    service.node.addDependency(cluster, executionRole, infrastructureRole);
+    webService.node.addDependency(cluster);
+
+    const webScaling = webService.autoScaleTaskCount({
+      minCapacity: 1,
+      maxCapacity: isProduction ? 4 : 2,
+    });
+    webScaling.scaleOnCpuUtilization("Cpu", { targetUtilizationPercent: 70 });
+
+    let originCertificate: acm.ICertificate | undefined;
+    if (hostedZone && domainName) {
+      originCertificate = new acm.Certificate(this, "OriginCertificate", {
+        domainName: `origin.${domainName}`,
+        validation: acm.CertificateValidation.fromDns(hostedZone),
+      });
+    }
+
+    // Two AZs, not all six — each public IPv4 the ALB holds bills hourly, and
+    // two is the ALB minimum.
+    const originAlb = new elbv2.ApplicationLoadBalancer(this, "OriginAlb", {
+      vpc: defaultVpc,
+      internetFacing: true,
+      vpcSubnets: { subnets: originSubnets },
+    });
+
+    const originListener = originCertificate
+      ? originAlb.addListener("Https", {
+          port: 443,
+          certificates: [originCertificate],
+          open: false,
+        })
+      : originAlb.addListener("Http", { port: 80, open: false });
+
+    // Only CloudFront's origin-facing range may reach the ALB — the origin
+    // subdomain resolves publicly, but direct requests bypassing the CDN (and
+    // its cache/rate limiting) are dropped at the security group.
+    const cloudfrontOriginFacing = ec2.PrefixList.fromLookup(
+      this,
+      "CloudFrontOriginFacing",
+      { prefixListName: "com.amazonaws.global.cloudfront.origin-facing" }
+    );
+    originAlb.connections.allowFrom(
+      ec2.Peer.prefixList(cloudfrontOriginFacing.prefixListId),
+      ec2.Port.tcp(originCertificate ? 443 : 80)
+    );
+
+    originListener.addTargets("Web", {
+      port: 3000,
+      protocol: elbv2.ApplicationProtocol.HTTP,
+      targets: [webService],
+      healthCheck: { path: "/", healthyHttpCodes: "200" },
+      deregistrationDelay: cdk.Duration.seconds(30),
+    });
+
+    if (hostedZone) {
+      new route53.ARecord(this, "OriginAliasRecord", {
+        zone: hostedZone,
+        recordName: "origin",
+        target: route53.RecordTarget.fromAlias(
+          new route53Targets.LoadBalancerTarget(originAlb)
+        ),
+      });
+    }
+
+    const originHost =
+      hostedZone && domainName
+        ? `origin.${domainName}`
+        : originAlb.loadBalancerDnsName;
+    const originProtocolPolicy = originCertificate
+      ? cloudfront.OriginProtocolPolicy.HTTPS_ONLY
+      : cloudfront.OriginProtocolPolicy.HTTP_ONLY;
 
     // `q` is intentionally excluded — search is filtered client-side, so every
     // search string should hit the same cached HTML.
@@ -277,8 +370,8 @@ export class PlConfStack extends cdk.Stack {
 
     const distribution = new cloudfront.Distribution(this, "Distribution", {
       defaultBehavior: {
-        origin: new origins.HttpOrigin(service.attrEndpoint, {
-          protocolPolicy: cloudfront.OriginProtocolPolicy.HTTPS_ONLY,
+        origin: new origins.HttpOrigin(originHost, {
+          protocolPolicy: originProtocolPolicy,
           readTimeout: cdk.Duration.seconds(30),
         }),
         viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
@@ -294,8 +387,8 @@ export class PlConfStack extends cdk.Stack {
       certificate,
       additionalBehaviors: {
         "/_next/static/*": {
-          origin: new origins.HttpOrigin(service.attrEndpoint, {
-            protocolPolicy: cloudfront.OriginProtocolPolicy.HTTPS_ONLY,
+          origin: new origins.HttpOrigin(originHost, {
+            protocolPolicy: originProtocolPolicy,
           }),
           viewerProtocolPolicy:
             cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
@@ -332,9 +425,12 @@ export class PlConfStack extends cdk.Stack {
       description: "CloudFront distribution ID",
     });
 
-    new cdk.CfnOutput(this, "ServiceEndpoint", {
-      value: `https://${service.attrEndpoint}`,
-      description: "ECS Express service endpoint (origin)",
+    new cdk.CfnOutput(this, "OriginAlbUrl", {
+      value:
+        hostedZone && domainName
+          ? `https://origin.${domainName}`
+          : `http://${originAlb.loadBalancerDnsName}`,
+      description: "Dedicated origin ALB endpoint",
     });
 
     new cdk.CfnOutput(this, "SubmissionApiUrl", {

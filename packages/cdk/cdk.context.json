@@ -53,5 +53,11 @@
         ]
       }
     ]
-  }
+  },
+  "cc-api-provider:account=237215840512:expectedMatchCount=exactly-one:propertiesToReturn.0=PrefixListId:propertyMatch.PrefixListName=com.amazonaws.global.cloudfront.origin-facing:region=us-east-1:typeName=AWS$:$:EC2$:$:PrefixList": [
+    {
+      "PrefixListId": "pl-3b927c52",
+      "Identifier": "pl-3b927c52"
+    }
+  ]
 }
