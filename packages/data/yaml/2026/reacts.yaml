@@ -1,0 +1,22 @@
+name: "International Workshop on Reconfigurable Transition Systems: Semantics, Logics and Applications"
+abbreviation: ReacTS
+type: "workshop"
+tags:
+  - logic
+  - formal-methods
+date:
+  start: 2026-11-24
+  end: 2026-11-24
+location: Valletta, Malta
+colocatedWith: SEFM
+url: "https://reacts-workshop.github.io/2026/"
+submissionUrl: "https://easychair.org/conferences/?conf=reacts2026"
+importantDateUrl: "https://reacts-workshop.github.io/2026/cfp.html"
+importantDates:
+  abstract: 2026-09-08
+  paper: 2026-09-13
+  notification: 2026-10-16
+  camera-ready: 2026-11-06
+notes:
+  - "Satellite workshop of SEFM 2026"
+  - "Camera-ready is for the informal pre-proceedings; the Springer LNCS post-proceedings deadline is not yet announced"
