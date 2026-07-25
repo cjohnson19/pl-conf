@@ -12,7 +12,8 @@
       "!**/cdk.out",
       "!packages/data/generated",
       "!packages/web/public/ical",
-      "!pnpm-lock.yaml"
+      "!pnpm-lock.yaml",
+      "!**/*.json"
     ]
   },
   "formatter": {
