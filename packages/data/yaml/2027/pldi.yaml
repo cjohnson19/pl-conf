@@ -1,0 +1,13 @@
+name: Conference on Programming Language Design and Implementation
+abbreviation: PLDI
+type: "conference"
+tags:
+  - compilers
+  - program-analysis
+date:
+  start: 2027-06-05
+  end: 2027-06-11
+location: Atlanta, Georgia
+url: "https://pldi27.sigplan.org/"
+notes:
+  - Held as part of FCRC 2027; the call for papers has not been published yet.

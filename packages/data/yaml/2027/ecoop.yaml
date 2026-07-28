@@ -1,0 +1,23 @@
+name: European Conference on Object-Oriented Programming
+abbreviation: ECOOP
+type: "conference"
+tags:
+  - types
+  - program-analysis
+date:
+  start: 2027-06-28
+  end: 2027-07-02
+location: Turin, Italy
+url: "https://2027.ecoop.org"
+importantDateUrl: "https://2027.ecoop.org/dates"
+rounds:
+  - name: Round 1
+    importantDates:
+      paper: 2026-11-19
+      rebuttal: 2027-01-15
+      notification: 2027-01-28
+  - name: Round 2
+    importantDates:
+      paper: 2027-02-11
+      rebuttal: 2027-03-26
+      notification: 2027-04-08

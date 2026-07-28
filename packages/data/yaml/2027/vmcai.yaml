@@ -1,0 +1,19 @@
+name: Conference on Verification, Model Checking, and Abstract Interpretation
+abbreviation: VMCAI
+type: "conference"
+tags:
+  - verification
+  - model-checking
+  - program-analysis
+date:
+  start: 2027-01-11
+  end: 2027-01-12
+location: Mexico City, Mexico
+partOf: POPL
+url: "https://conf.researchr.org/home/VMCAI-2027"
+submissionUrl: "https://easychair.org/conferences/?conf=vmcai2027"
+importantDateUrl: "https://conf.researchr.org/home/VMCAI-2027"
+importantDates:
+  paper: 2026-09-16
+  notification: 2026-11-06
+  camera-ready: 2026-11-20

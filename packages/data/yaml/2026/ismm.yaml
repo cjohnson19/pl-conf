@@ -1,0 +1,18 @@
+name: International Symposium on Memory Management
+abbreviation: ISMM
+type: "symposium"
+tags:
+  - systems
+  - compilers
+date:
+  start: 2026-06-16
+  end: 2026-06-16
+location: Boulder, Colorado, United States
+colocatedWith: PLDI
+url: "https://conf.researchr.org/home/ismm-2026"
+submissionUrl: "https://ismm26.hotcrp.com"
+importantDateUrl: "https://conf.researchr.org/home/ismm-2026"
+importantDates:
+  paper: 2026-04-03
+  notification: 2026-05-04
+  camera-ready: 2026-05-15

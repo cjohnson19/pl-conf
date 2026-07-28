@@ -1,0 +1,17 @@
+name: International Conference on Compiler Construction
+abbreviation: CC
+type: "conference"
+tags:
+  - compilers
+date:
+  start: 2026-01-31
+  end: 2026-02-01
+location: Sydney, Australia
+url: "https://conf.researchr.org/home/CC-2026"
+submissionUrl: "https://cc26.hotcrp.com"
+importantDateUrl: "https://conf.researchr.org/track/CC-2026/calls"
+importantDates:
+  paper: 2025-11-11
+  rebuttal: 2025-12-04
+  notification: 2025-12-10
+  camera-ready: 2025-12-20

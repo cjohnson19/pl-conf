@@ -1,0 +1,21 @@
+name: ACM SIGPLAN Conference on New Ideas, New Paradigms, and Reflections on Programming and Software
+abbreviation: "Onward!"
+type: "conference"
+tags:
+  - software-engineering
+date:
+  start: 2026-10-03
+  end: 2026-10-09
+location: Oakland, California
+partOf: SPLASH
+url: "https://2026.splashcon.org/track/splash-2026-onward--papers"
+submissionUrl: "https://onward2026papers.hotcrp.com"
+importantDateUrl: "https://2026.splashcon.org/track/splash-2026-onward--papers"
+importantDates:
+  paper: 2026-05-15
+  conditional-acceptance: 2026-06-22
+  revisions: 2026-07-27
+  notification: 2026-08-14
+  camera-ready: 2026-08-25
+notes:
+  - The Papers and Essays tracks share the same review schedule; essays are submitted at https://onwardessays26.hotcrp.com/
