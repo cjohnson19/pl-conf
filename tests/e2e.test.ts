@@ -946,6 +946,99 @@ describe("event pages", () => {
   });
 });
 
+describe("back navigation", () => {
+  const clickBackToList = (page: Page) =>
+    page.evaluate(() => {
+      const link = Array.from(document.querySelectorAll("a")).find(
+        (a) => a.textContent?.trim() === "All events"
+      );
+      (link as HTMLAnchorElement | undefined)?.click();
+    });
+
+  const openEventFromList = async (page: Page, abbrev: string) => {
+    const key = eventKey(findFixture(abbrev));
+    await page.click(`[data-event-key="${key}"] a[href^="/event/"]`);
+    await page.waitForFunction(() => document.querySelector("h1") !== null, {
+      timeout: 5000,
+    });
+  };
+
+  const waitForList = (page: Page) =>
+    page.waitForFunction(() => location.pathname === "/", { timeout: 5000 });
+
+  // history.length can't tell a pop from a push — traversing back leaves the
+  // forward entries in place, so the count is unchanged either way. Tagging
+  // the list entry's state does discriminate: returning restores the tag,
+  // while a push mints an entry that never had it.
+  const tagListEntry = (page: Page) =>
+    page.evaluate(() =>
+      history.replaceState({ ...history.state, e2eListEntry: true }, "")
+    );
+
+  const onTaggedListEntry = (page: Page) =>
+    page.evaluate(() => history.state?.e2eListEntry === true);
+
+  test("returns to the list entry rather than pushing a new one", async ({
+    page,
+    waitForSettled,
+  }) => {
+    await page.setViewport({ width: 1280, height: 400 });
+    await page.goto(`${URL}?c=conference`, { waitUntil: "networkidle2" });
+    await waitForSettled();
+
+    await page.evaluate(() => window.scrollBy(0, 300));
+    expect(await page.evaluate(() => window.scrollY)).toBeGreaterThan(0);
+    await tagListEntry(page);
+
+    await openEventFromList(page, "MOCKA");
+    await clickBackToList(page);
+    await waitForList(page);
+
+    expect(await onTaggedListEntry(page)).toBe(true);
+    // A push would land on a bare "/" scrolled to the top.
+    expect(await page.evaluate(() => location.search)).toBe("?c=conference");
+    expect(await page.evaluate(() => window.scrollY)).toBeGreaterThan(0);
+  });
+
+  test("pops past every event visited when following relations", async ({
+    page,
+    waitForSettled,
+  }) => {
+    await waitForSettled();
+    await tagListEntry(page);
+
+    await openEventFromList(page, "MOCKA");
+    await page.click('a[href^="/event/"]');
+    await page.waitForFunction(
+      () => document.querySelector("h1")?.textContent?.trim() === "MOCKC",
+      { timeout: 5000 }
+    );
+    expect(await page.evaluate(() => history.state?.plConfDepth)).toBe(2);
+
+    await clickBackToList(page);
+    await waitForList(page);
+    expect(await onTaggedListEntry(page)).toBe(true);
+  });
+
+  test("falls back to a plain link when there is no list entry behind", async ({
+    page,
+  }) => {
+    const mockc = findFixture("MOCKC");
+    await page.goto(`${URL}${eventPath(mockc)}`, { waitUntil: "networkidle2" });
+    const entriesBefore = await page.evaluate(() => history.length);
+    expect(
+      await page.evaluate(() => history.state?.plConfDepth)
+    ).toBeUndefined();
+
+    await clickBackToList(page);
+    await waitForList(page);
+
+    // Deep link, new tab, pasted URL: popping would jump into unrelated
+    // history, so the anchor navigates instead.
+    expect(await page.evaluate(() => history.length)).toBe(entriesBefore + 1);
+  });
+});
+
 describe.concurrent("persistence settle", () => {
   // Storage keys mirror what the app uses today. Any refactor that moves
   // initial-load reads into a coalesced provider must preserve these keys

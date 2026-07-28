@@ -1,5 +1,5 @@
 import { getYear } from "date-fns";
-import { ArrowLeft, ArrowUpRight } from "lucide-react";
+import { ArrowUpRight } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -20,6 +20,7 @@ import {
   resolveRelations,
 } from "../../../lib/relationships";
 import { NowProvider } from "../../../components/event-list/now-provider";
+import { BackToList } from "../../../components/event-page/back-to-list";
 import { EventActions } from "../../../components/event-page/event-actions";
 import { EventDeadlines } from "../../../components/event-page/event-deadlines";
 import { EventTags } from "../../../components/event-tags";
@@ -86,18 +87,7 @@ export default async function EventPage({ params }: { params: Params }) {
 
   return (
     <article className="mx-auto max-w-[760px] px-5 pb-24 pt-10 md:px-8">
-      <Link
-        href="/"
-        className="group/back mb-8 inline-flex items-center gap-1.5 text-[13px] text-ink-3 no-underline transition-colors hover:text-ink"
-      >
-        <ArrowLeft
-          size={14}
-          strokeWidth={1.75}
-          className="transition-transform group-hover/back:-translate-x-0.5"
-          aria-hidden
-        />
-        All events
-      </Link>
+      <BackToList />
 
       <header className="flex flex-col gap-5 border-b border-rule pb-8">
         <div className="flex flex-col gap-3">

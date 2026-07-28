@@ -15,6 +15,7 @@ import { EventRow } from "../event-row";
 import { LastUpdated } from "../last-updated";
 import { HydrationMarker } from "./hydration-marker";
 import { LayoutSwitcher } from "./layout-switcher";
+import { ListDepthAnchor } from "./list-depth-anchor";
 import { NowProvider } from "./now-provider";
 import { SearchEmptyState } from "./search-empty-state";
 import { SearchFilterStyle } from "./search-filter-style";
@@ -62,6 +63,7 @@ export function EventListShell({
           <SearchProvider defaultValue={filters.q}>
             <NowProvider initialMs={serverNowMs}>
               <HydrationMarker />
+              <ListDepthAnchor />
               <StarDelegate />
               <VisibilityStyle />
               <SearchFilterStyle events={displayEvents} />

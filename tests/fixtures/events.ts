@@ -61,6 +61,9 @@ const rawEvents = [
     importantDateUrl: "https://example.com/mockc/dates",
     url: "https://example.com/mockc",
     tags: ["types"],
+    // Gives the event page a relation row to click, so back-navigation depth
+    // can be driven past one level.
+    partOf: ["MOCKA"],
     importantDates: {
       paper: "2026-10-01",
     },
