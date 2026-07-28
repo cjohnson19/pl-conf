@@ -944,6 +944,26 @@ describe("event pages", () => {
     );
     expect(hasSiteLink).toBe(true);
   });
+
+  test("an event with TBD dates still routes and labels by its year", async ({
+    page,
+  }) => {
+    const mockh = findFixture("MOCKH");
+    expect(eventKey(mockh)).toBe("MOCKH-2026");
+    expect(eventPath(mockh)).toBe("/event/2026/mockh/");
+
+    const res = await page.goto(`${URL}${eventPath(mockh)}`, {
+      waitUntil: "networkidle2",
+    });
+    expect(res?.status()).toBe(200);
+
+    const h1 = await page.$eval("h1", (el) => el.textContent?.trim());
+    expect(h1).toBe("MOCKH");
+
+    const body = await page.evaluate(() => document.body.innerText);
+    expect(body).toContain("’26");
+    expect(body).not.toMatch(/NaN/);
+  });
 });
 
 describe.concurrent("persistence settle", () => {

@@ -1,6 +1,7 @@
 export {
   eventKey,
   eventSlug,
+  eventYear2,
   eventPath,
   eventPathFromSlug,
   eventTypes,

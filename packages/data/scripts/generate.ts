@@ -1,6 +1,6 @@
 import { eventKey, eventSlug } from "@pl-conf/core";
 import { ScheduledEvent } from "@pl-conf/core/schemas";
-import { format, getYear } from "date-fns";
+import { format } from "date-fns";
 import { exec } from "node:child_process";
 import { lstat, mkdir, readdir, readFile, writeFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
@@ -62,7 +62,10 @@ async function commitSequence(fileName: string): Promise<number> {
   return count > 0 ? count - 1 : 0;
 }
 
-async function fromYamlFile(fileName: string): Promise<ScheduledEvent> {
+async function fromYamlFile(
+  fileName: string,
+  year: number
+): Promise<ScheduledEvent> {
   const [yaml, lastUpdated, sequence] = await Promise.all([
     readFile(fileName, "utf8"),
     lastUpdatedDate(fileName),
@@ -71,6 +74,7 @@ async function fromYamlFile(fileName: string): Promise<ScheduledEvent> {
   const data = YAML.parse(yaml);
   const parseRes = ScheduledEvent.safeParse({
     ...data,
+    year,
     lastUpdated,
     sequence,
   });
@@ -112,7 +116,7 @@ async function loadEvents(): Promise<Record<string, ScheduledEvent>> {
       const conferenceFiles = await readdir(join(DATA_DIR, yearDir));
       const res = await Promise.all(
         conferenceFiles.map(async (fileName) =>
-          fromYamlFile(join(DATA_DIR, yearDir, fileName))
+          fromYamlFile(join(DATA_DIR, yearDir, fileName), Number(yearDir))
         )
       );
       return res;
@@ -142,9 +146,8 @@ function validateNoTransitivePartOf(
   events: Record<string, ScheduledEvent>
 ): void {
   const all = Object.values(events);
-  const eventYear = (e: ScheduledEvent) => getYear(new Date(e.date.start));
   const findIn = (abbrev: string, year: number) =>
-    all.find((e) => e.abbreviation === abbrev && eventYear(e) === year);
+    all.find((e) => e.abbreviation === abbrev && e.year === year);
 
   const ancestors = (abbrev: string, year: number): string[] => {
     const parent = findIn(abbrev, year);
@@ -154,7 +157,7 @@ function validateNoTransitivePartOf(
 
   const errors = all.flatMap((e) => {
     if (e.partOf.length < 2) return [];
-    const year = eventYear(e);
+    const year = e.year;
     return e.partOf.flatMap((direct) => {
       const via = ancestors(direct, year);
       return e.partOf
@@ -175,7 +178,7 @@ function validateNoTransitivePartOf(
 function validateUniqueSlugs(events: Record<string, ScheduledEvent>): void {
   const byYearSlug = new Map<string, string[]>();
   Object.values(events).forEach((e) => {
-    const key = `${getYear(new Date(e.date.start))}/${eventSlug(e.abbreviation)}`;
+    const key = `${e.year}/${eventSlug(e.abbreviation)}`;
     const abbrevs = byYearSlug.get(key) ?? [];
     abbrevs.push(e.abbreviation);
     byYearSlug.set(key, abbrevs);

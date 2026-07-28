@@ -1,4 +1,3 @@
-import { getYear } from "date-fns";
 import { type MaybeDate, type ScheduledEvent, eventPath } from "./event";
 
 export type RelatedEvent = {
@@ -15,9 +14,6 @@ export type EventRelations = {
   colocatedWith: RelatedEvent[];
   contains: RelatedEvent[];
 };
-
-const yearOf = (e: Pick<ScheduledEvent, "date">) =>
-  getYear(new Date(e.date.start));
 
 function toRelated(e: ScheduledEvent): RelatedEvent {
   return {
@@ -46,8 +42,7 @@ export function resolveRelations(
   target: ScheduledEvent,
   all: ScheduledEvent[]
 ): EventRelations {
-  const year = yearOf(target);
-  const siblings = all.filter((e) => e !== target && yearOf(e) === year);
+  const siblings = all.filter((e) => e !== target && e.year === target.year);
 
   const partOf = siblings.filter((e) => target.partOf.includes(e.abbreviation));
   const colocatedWith = siblings.filter(

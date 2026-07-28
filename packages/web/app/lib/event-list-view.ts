@@ -1,4 +1,3 @@
-import { getYear } from "date-fns";
 import {
   type DateName,
   type ScheduledEvent,
@@ -83,11 +82,12 @@ export function toDisplayEvent(
   e: ScheduledEvent,
   validEventPaths?: Set<string>
 ): DisplayEvent {
-  const year = getYear(e.date.start);
+  const year = e.year;
   return {
     name: e.name,
     abbreviation: e.abbreviation,
     type: e.type,
+    year,
     date: e.date,
     location: e.location,
     importantDateUrl: e.importantDateUrl,

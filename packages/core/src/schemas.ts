@@ -1,4 +1,4 @@
-import { isBefore } from "date-fns";
+import { getYear, isBefore } from "date-fns";
 import { z } from "zod";
 import { eventTypes, tagValues } from "./event";
 
@@ -54,6 +54,11 @@ const ScheduledEventNormalized = z
   .object({
     name: z.string().nonempty(),
     abbreviation: z.string().nonempty(),
+    // The edition year, supplied by the generator from the containing
+    // yaml/{year}/ directory rather than read from YAML. Identity (keys,
+    // routes, same-year relations) hangs off this, so an event whose exact
+    // dates are still TBD is still addressable.
+    year: z.number().int(),
     date: z
       .object({
         start: MaybeDate,
@@ -109,6 +114,17 @@ export const ScheduledEvent = z
     },
     {
       message: "Event's start must be the same or before the end",
+      path: ["date"],
+    }
+  )
+  .refine(
+    (data) =>
+      [data.date.start, data.date.end]
+        .filter((d) => d !== "TBD")
+        .every((d) => getYear(d) === data.year),
+    {
+      message:
+        "Event's dates must fall within the year of its containing directory",
       path: ["date"],
     }
   );

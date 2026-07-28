@@ -5,8 +5,8 @@ import Link from "next/link";
 import {
   eventKey,
   eventPath,
+  eventYear2,
   firstDeadline,
-  formatDate,
   formatDateRange,
   isDeadlinePast,
 } from "../lib/event";
@@ -24,7 +24,7 @@ import { CardDeadlineTable } from "./event-row/card-deadlines";
 
 function EventCardImpl({ event: e }: { event: DisplayEvent }) {
   const now = useNow();
-  const year2 = formatDate(e.date.start, "year2", "en-US");
+  const year2 = eventYear2(e);
   const startStr =
     e.date.start !== "TBD" && e.date.end !== "TBD"
       ? formatDateRange(e.date.start, e.date.end, "short")

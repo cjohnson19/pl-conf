@@ -1,4 +1,3 @@
-import { getYear } from "date-fns";
 import { ArrowLeft, ArrowUpRight } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
@@ -10,7 +9,7 @@ import {
   eventPath,
   eventPathFromSlug,
   eventSlug,
-  formatDate,
+  eventYear2,
   formatDateRange,
   hasConcreteDates,
 } from "../../../lib/event";
@@ -41,7 +40,7 @@ const sectionHeading =
 
 export function generateStaticParams() {
   return allEvents.map((e) => ({
-    year: String(getYear(e.date.start)),
+    year: String(e.year),
     slug: eventSlug(e.abbreviation),
   }));
 }
@@ -64,7 +63,7 @@ export async function generateMetadata({
   const { year, slug } = await params;
   const e = lookup(year, slug);
   if (!e) return {};
-  const yy = formatDate(e.date.start, "year2", "en-US");
+  const yy = eventYear2(e);
   const title = `${e.abbreviation} ’${yy} — ${e.name}`;
   const description = [e.name, e.location, dateRange(e)]
     .filter(Boolean)
@@ -77,7 +76,7 @@ export default async function EventPage({ params }: { params: Params }) {
   const e = lookup(year, slug);
   if (!e) notFound();
 
-  const yy = formatDate(e.date.start, "year2", "en-US");
+  const yy = eventYear2(e);
   const dates = dateRange(e);
   const relations = resolveRelations(e, allEvents);
   const hasDeadlines =

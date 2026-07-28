@@ -31,6 +31,7 @@ export type ICalEvent = Pick<
   | "name"
   | "abbreviation"
   | "type"
+  | "year"
   | "date"
   | "location"
   | "url"
