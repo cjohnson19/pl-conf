@@ -5,8 +5,8 @@ import {
   allDeadlines,
   eventKey,
   eventPath,
+  eventYear2,
   firstDeadline,
-  formatDate,
   formatDateRange,
   isDeadlinePast,
   isDeadlineUrgent,
@@ -58,7 +58,7 @@ export function EventRow({
   const totalRounds = e.rounds.length;
   const showMultiRound = isMidMultiRound(e, now);
 
-  const year2 = formatDate(e.date.start, "year2", "en-US");
+  const year2 = eventYear2(e);
   const firstDl = firstDeadline(e);
   const openSubmission = firstDl !== undefined && !isDeadlinePast(firstDl, now);
 

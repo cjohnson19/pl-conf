@@ -38,9 +38,13 @@ describe("live list", () => {
     expect(view.categoryCounts.all).toBe(5);
   });
 
-  it("ships every event as countable so archive counts survive hiding", () => {
+  it("ships every schedulable event as countable so archive counts survive hiding", () => {
     const view = computeEventListView(all, params(), NOW);
-    expect(view.countableEvents).toHaveLength(all.length);
+    const countable = new Set(view.countableEvents.map((e) => e.key));
+    // MOCKH's dates are TBD, so it is neither active nor ended: it belongs to
+    // no list and has nothing to count. Every other event must be countable.
+    const missing = all.filter((e) => !countable.has(eventKey(e)));
+    expect(missing.map((e) => e.abbreviation)).toEqual(["MOCKH"]);
     const archived = view.countableEvents.filter((e) => e.archived);
     expect(archived.map((e) => e.key)).toEqual(
       view.archivedEvents.map(eventKey)

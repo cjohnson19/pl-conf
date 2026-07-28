@@ -1,7 +1,6 @@
 import {
   isAfter as dateIsAfter,
   isBefore as dateIsBefore,
-  getYear,
   startOfDay,
 } from "date-fns";
 import { allDeadlines, firstDeadline, isDeadlinePast } from "./event";
@@ -45,7 +44,7 @@ export const startsBefore: (date: Date) => EventFilter = (date) => (e) =>
   hasDate(e.date.start) && dateIsBefore(e.date.start, date);
 
 export const hasYear: (year: number) => EventFilter = (year) => (e) =>
-  hasDate(e.date.start) && getYear(e.date.start) === year;
+  e.year === year;
 
 export const hasFutureDeadline: EventFilter = (e) =>
   allDeadlines(e).some((d) => !isDeadlinePast(d));

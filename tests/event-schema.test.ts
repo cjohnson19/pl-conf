@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { eventKey, eventPath } from "@pl-conf/core";
 import { ScheduledEvent } from "@pl-conf/core/schemas";
 
 const baseEvent = {
@@ -6,6 +7,7 @@ const baseEvent = {
   abbreviation: "TEST",
   type: "conference" as const,
   importantDateUrl: "https://example.com/cfp",
+  year: 2026,
   lastUpdated: "2026-01-01",
   sequence: 0,
 };
@@ -61,6 +63,7 @@ describe("ScheduledEvent schema", () => {
       name: "Empty",
       abbreviation: "EMPTY",
       type: "conference",
+      year: 2026,
       lastUpdated: "2026-01-01",
       sequence: 0,
     });
@@ -72,6 +75,7 @@ describe("ScheduledEvent schema", () => {
       name: "NoUrl",
       abbreviation: "NOURL",
       type: "conference",
+      year: 2026,
       lastUpdated: "2026-01-01",
       sequence: 0,
       rounds: [{ importantDates: { paper: "2026-05-01" } }],
@@ -97,5 +101,29 @@ describe("ScheduledEvent schema", () => {
     });
     expect(parsed.partOf).toEqual(["FLOC"]);
     expect(parsed.colocatedWith).toEqual(["CAV", "FSCD"]);
+  });
+
+  it("keys and routes a TBD-dated event off its declared year", () => {
+    const parsed = ScheduledEvent.parse({
+      ...baseEvent,
+      date: { start: "TBD", end: "TBD" },
+      importantDates: { paper: "2026-07-10" },
+    });
+    expect(eventKey(parsed)).toBe("TEST-2026");
+    expect(eventPath(parsed)).toBe("/event/2026/test/");
+  });
+
+  it("rejects concrete dates falling outside the declared year", () => {
+    const res = ScheduledEvent.safeParse({
+      ...baseEvent,
+      date: { start: "2027-01-15", end: "2027-01-19" },
+    });
+    expect(res.success).toBe(false);
+  });
+
+  it("requires a year", () => {
+    const { year, ...withoutYear } = baseEvent;
+    const res = ScheduledEvent.safeParse(withoutYear);
+    expect(res.success).toBe(false);
   });
 });

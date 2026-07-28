@@ -1,4 +1,3 @@
-import { getYear } from "date-fns";
 import type { DateName, MaybeDate, ScheduledEvent, Tag } from "./schemas";
 
 export const eventTypes = ["conference", "workshop", "symposium"] as const;
@@ -66,9 +65,15 @@ export function tagDisplayName(tag: Tag): string {
 }
 
 export function eventKey(
-  e: Pick<ScheduledEvent, "abbreviation" | "date">
+  e: Pick<ScheduledEvent, "abbreviation" | "year">
 ): string {
-  return `${e.abbreviation}-${getYear(e.date.start)}`;
+  return `${e.abbreviation}-${e.year}`;
+}
+
+// The "’26" suffix the UI hangs off an abbreviation. Read off the edition year
+// so it still renders for events whose exact dates are TBD.
+export function eventYear2(e: Pick<ScheduledEvent, "year">): string {
+  return String(e.year).slice(-2);
 }
 
 export function eventSlug(abbreviation: string): string {
@@ -83,9 +88,9 @@ export function eventPathFromSlug(year: number | string, slug: string): string {
 }
 
 export function eventPath(
-  e: Pick<ScheduledEvent, "abbreviation" | "date">
+  e: Pick<ScheduledEvent, "abbreviation" | "year">
 ): string {
-  return eventPathFromSlug(getYear(e.date.start), eventSlug(e.abbreviation));
+  return eventPathFromSlug(e.year, eventSlug(e.abbreviation));
 }
 
 export function hasConcreteDates(e: Pick<ScheduledEvent, "date">): boolean {
@@ -93,14 +98,14 @@ export function hasConcreteDates(e: Pick<ScheduledEvent, "date">): boolean {
 }
 
 export function icalFileName(
-  e: Pick<ScheduledEvent, "abbreviation" | "date">,
+  e: Pick<ScheduledEvent, "abbreviation" | "year">,
   withDeadlines: boolean
 ): string {
   return `${eventKey(e)}${withDeadlines ? ".dates" : ""}.ics`;
 }
 
 export function icalFeedPath(
-  e: Pick<ScheduledEvent, "abbreviation" | "date">,
+  e: Pick<ScheduledEvent, "abbreviation" | "year">,
   withDeadlines: boolean
 ): string {
   return `/ical/${icalFileName(e, withDeadlines)}`;
@@ -166,7 +171,6 @@ const dateFormatStyles = {
   long: { year: "numeric", month: "long", day: "numeric" },
   short: { year: "numeric", month: "short", day: "numeric" },
   compact: { year: "2-digit", month: "2-digit", day: "2-digit" },
-  year2: { year: "2-digit" },
   "long-with-time": {
     year: "numeric",
     month: "long",
