@@ -21,11 +21,7 @@ import {
 import { useNow } from "./now-provider";
 import { useCounts } from "./counts-context";
 import type { GroupHeading } from "./grouping";
-import {
-  setPrefs,
-  useDisplayPref,
-  usePrefsLoaded,
-} from "../preferences-provider";
+import { setPrefs, useDisplayPref } from "../preferences-provider";
 
 const SESSION_COLLAPSED_KEY = "collapsedDateGroups";
 
@@ -296,9 +292,13 @@ export function CollapsibleGroup({
       return next;
     });
 
-  const prefsLoaded = usePrefsLoaded();
+  // Rendered during SSR (dismissal is only known client-side) so first paint
+  // already includes the tip — waiting for prefs to load inserted it after
+  // hydration and shifted the whole list down. Visitors who dismissed it get
+  // it hidden pre-paint by the layout.tsx script; React unmounts it here once
+  // prefs load, while it's already display:none.
   const collapseHintDismissed = useDisplayPref("collapseHintDismissed");
-  const showHint = isFirstCollapsible && prefsLoaded && !collapseHintDismissed;
+  const showHint = isFirstCollapsible && !collapseHintDismissed;
   const onDismissHint = () =>
     setPrefs((p) => ({
       ...p,
@@ -393,7 +393,10 @@ export function CollapsibleGroup({
 
 function CollapseHint({ onDismiss }: { onDismiss: () => void }) {
   return (
-    <div className="flex items-center justify-between gap-3 border-b border-rule px-5 py-2 text-[11px] italic text-ink-3 md:px-8">
+    <div
+      data-collapse-hint
+      className="flex items-center justify-between gap-3 border-b border-rule px-5 py-2 text-[11px] italic text-ink-3 md:px-8"
+    >
       <span>Tip: tap any heading to hide its events.</span>
       <button
         type="button"

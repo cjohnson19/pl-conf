@@ -208,9 +208,10 @@ export class PlConfStack extends cdk.Stack {
         { name: "web", containerPort: 3000, protocol: ecs.Protocol.TCP },
       ],
       environment: {
+        // PORT/HOSTNAME are owned by the Dockerfile: nginx listens on the
+        // public 3000 and node binds loopback 3001. Overriding them here
+        // makes node fight nginx for 3000 (EADDRINUSE crash loop).
         NODE_ENV: "production",
-        PORT: "3000",
-        HOSTNAME: "0.0.0.0",
         ...(submissionApiUrl
           ? { NEXT_PUBLIC_SUBMISSION_API_URL: submissionApiUrl }
           : {}),
@@ -338,7 +339,10 @@ export class PlConfStack extends cdk.Stack {
       {
         defaultTtl: cdk.Duration.seconds(60),
         minTtl: cdk.Duration.seconds(0),
-        maxTtl: cdk.Duration.seconds(3600),
+        // Must cover s-maxage + the widest stale window from next.config.ts
+        // (60 + stale-if-error=86400): CloudFront clamps the stale windows to
+        // maxTtl and drops the object entirely once it passes.
+        maxTtl: cdk.Duration.days(2),
         enableAcceptEncodingGzip: true,
         enableAcceptEncodingBrotli: true,
         cookieBehavior: cloudfront.CacheCookieBehavior.none(),

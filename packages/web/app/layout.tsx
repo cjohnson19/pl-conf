@@ -24,6 +24,9 @@ var prefs = null;
 try { if (raw) prefs = JSON.parse(raw); } catch (e) {}
 var starredAll = [];
 if (prefs) {
+  // The collapse hint is server-rendered so first paint reserves its space;
+  // dismissed visitors must never see it, so hide it before paint.
+  if (prefs.display && prefs.display.collapseHintDismissed) rules += '[data-collapse-hint]{display:none}';
   var entries = Object.entries(prefs.eventPrefs || {});
   var hidden = entries.filter(function(kv){return kv[1] && kv[1].hidden;}).map(function(kv){return kv[0];});
   hidden.forEach(function(k){rules += '[data-event-key="' + esc(k) + '"]{display:none}';});
@@ -71,7 +74,11 @@ if (starredAll.length > 0) {
 const inter = Inter({
   subsets: ["latin"],
   variable: "--font-inter",
-  display: "swap",
+  // "optional": if Inter isn't ready within the brief block period, the page
+  // keeps the metrics-adjusted fallback for that view instead of swapping
+  // later. A late swap repaints the largest text block, which re-registers
+  // LCP at font-arrival time (~1s late under mobile throttling).
+  display: "optional",
 });
 
 export const metadata: Metadata = {

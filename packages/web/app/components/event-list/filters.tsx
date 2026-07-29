@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useTransition } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import clsx from "clsx";
 import {
@@ -17,6 +17,7 @@ import type { Category, View } from "../../lib/filter-params";
 import { setPrefs, useDisplayPref } from "../preferences-provider";
 import { useCounts } from "./counts-context";
 import { useSearchQuery, useSetSearchQuery } from "./search-provider";
+import { useViewNav } from "./view-nav-provider";
 
 export type Layout = "list" | "grid";
 
@@ -280,9 +281,8 @@ export function ViewTabs({
   trailing?: React.ReactNode;
 }) {
   const { viewCounts: counts } = useCounts();
-  const router = useRouter();
   const searchParams = useSearchParams();
-  const [pending, startTransition] = useTransition();
+  const { pending, navigateView } = useViewNav();
   const rawActive = searchParams.get("view");
   const active: View =
     rawActive && (VIEW_KEYS as string[]).includes(rawActive)
@@ -298,10 +298,7 @@ export function ViewTabs({
     // so they switch with a bare history entry. Archived rows aren't in the DOM
     // at all — entering or leaving the archive needs a real render.
     if (next === "archive" || active === "archive") {
-      // Scrolls to the top, unlike the chips: this swaps the list for a
-      // different set of events, so holding the old offset would drop the
-      // reader into the middle of it with no heading in sight.
-      startTransition(() => router.replace(url));
+      navigateView(url);
     } else {
       window.history.replaceState(null, "", url);
     }

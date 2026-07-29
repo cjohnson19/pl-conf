@@ -36,14 +36,21 @@ RUN pnpm --filter @pl-conf/web run build
 
 FROM node:22-alpine AS run
 WORKDIR /app
+# Node binds loopback only; nginx (docker/nginx.conf) owns the public port
+# 3000, buffering and compressing every response — see the conf header for
+# why Next's own streamed gzip is off.
 ENV NODE_ENV=production \
-    PORT=3000 \
-    HOSTNAME=0.0.0.0 \
+    PORT=3001 \
+    HOSTNAME=127.0.0.1 \
     NEXT_TELEMETRY_DISABLED=1
-RUN apk add --no-cache wget tini && addgroup -S app && adduser -S app -G app
+RUN apk add --no-cache wget tini nginx nginx-mod-http-brotli \
+    && addgroup -S app && adduser -S app -G app \
+    && chown -R app:app /var/lib/nginx /var/log/nginx
 COPY --from=build --chown=app:app /app/packages/web/.next/standalone ./
 COPY --from=build --chown=app:app /app/packages/web/.next/static ./packages/web/.next/static
 COPY --from=build --chown=app:app /app/packages/web/public ./packages/web/public
+COPY --chown=app:app --chmod=755 docker/entrypoint.sh ./entrypoint.sh
+COPY --chown=app:app docker/nginx.conf ./nginx.conf
 USER app
 EXPOSE 3000
 HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 \
@@ -54,4 +61,4 @@ HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 \
 # fragile to future Dockerfile changes (shell-form CMD, ENTRYPOINT scripts).
 STOPSIGNAL SIGTERM
 ENTRYPOINT ["/sbin/tini", "--"]
-CMD ["node", "packages/web/server.js"]
+CMD ["/app/entrypoint.sh"]

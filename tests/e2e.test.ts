@@ -63,32 +63,35 @@ type Fixtures = {
   waitForSettled: () => Promise<void>;
 };
 
+const installFrozenClock = (page: Page) =>
+  page.evaluateOnNewDocument((iso) => {
+    const Real = Date;
+    const FROZEN = Real.parse(iso);
+    class FakeDate extends Real {
+      constructor(...args: ConstructorParameters<typeof Date> | []) {
+        if (args.length === 0) {
+          super(FROZEN);
+        } else {
+          super(...(args as ConstructorParameters<typeof Date>));
+        }
+      }
+      static now() {
+        return FROZEN;
+      }
+    }
+    (FakeDate as unknown as { parse: typeof Real.parse }).parse = Real.parse;
+    (FakeDate as unknown as { UTC: typeof Real.UTC }).UTC = Real.UTC;
+    (globalThis as unknown as { Date: typeof Date }).Date =
+      FakeDate as unknown as typeof Date;
+  }, FROZEN_NOW_ISO);
+
 const test = base.extend<Fixtures>({
   // biome-ignore lint/correctness/noEmptyPattern: vitest fixture signature requires destructuring the fixtures arg even when unused
   page: async ({}, use) => {
     const context = await browser.createBrowserContext();
     const page = await context.newPage();
     await page.setViewport({ width: 1280, height: 800 });
-    await page.evaluateOnNewDocument((iso) => {
-      const Real = Date;
-      const FROZEN = Real.parse(iso);
-      class FakeDate extends Real {
-        constructor(...args: ConstructorParameters<typeof Date> | []) {
-          if (args.length === 0) {
-            super(FROZEN);
-          } else {
-            super(...(args as ConstructorParameters<typeof Date>));
-          }
-        }
-        static now() {
-          return FROZEN;
-        }
-      }
-      (FakeDate as unknown as { parse: typeof Real.parse }).parse = Real.parse;
-      (FakeDate as unknown as { UTC: typeof Real.UTC }).UTC = Real.UTC;
-      (globalThis as unknown as { Date: typeof Date }).Date =
-        FakeDate as unknown as typeof Date;
-    }, FROZEN_NOW_ISO);
+    await installFrozenClock(page);
     await page.goto(URL, { waitUntil: "networkidle2" });
     await use(page);
     await context.close();
@@ -655,6 +658,37 @@ describe("archive view", () => {
     ]);
   });
 
+  test("swaps the list for a skeleton while the archive render is in flight", async ({
+    page,
+    clickButtonStartingWith,
+  }) => {
+    // Slow the flight response down enough to observe the pending state.
+    const cdp = await page.createCDPSession();
+    await cdp.send("Network.enable");
+    await cdp.send("Network.emulateNetworkConditions", {
+      offline: false,
+      latency: 800,
+      downloadThroughput: -1,
+      uploadThroughput: -1,
+    });
+    await clickButtonStartingWith("Archive");
+    await page.waitForSelector("[data-list-skeleton]", { timeout: 5000 });
+    await cdp.send("Network.emulateNetworkConditions", {
+      offline: false,
+      latency: 0,
+      downloadThroughput: -1,
+      uploadThroughput: -1,
+    });
+    // The skeleton resolves into the archive rows once the render lands.
+    await page.waitForFunction(
+      () =>
+        !document.querySelector("[data-list-skeleton]") &&
+        new URLSearchParams(location.search).get("view") === "archive" &&
+        document.querySelectorAll("[data-event-key]").length > 0,
+      { timeout: 8000 }
+    );
+  });
+
   test("heads each group with the month the events took place in", async ({
     page,
     clickButtonStartingWith,
@@ -1059,6 +1093,104 @@ describe("back navigation", () => {
   });
 });
 
+describe("collapse hint", () => {
+  // The tip must ship in the server HTML: inserting it after hydration pushed
+  // every row below it down — a counted layout shift on each first-time
+  // visit. Dismissed visitors instead get it hidden by the pre-paint script
+  // in layout.tsx, which runs before anything renders.
+  const withShiftProbe = async (
+    run: (page: Page) => Promise<void>,
+    { dismissed = false } = {}
+  ) => {
+    const context = await browser.createBrowserContext();
+    try {
+      const page = await context.newPage();
+      await page.setViewport({ width: 1280, height: 800 });
+      await installFrozenClock(page);
+      if (dismissed) {
+        await page.evaluateOnNewDocument(() => {
+          localStorage.setItem(
+            "userPrefsV2",
+            JSON.stringify({ display: { collapseHintDismissed: true } })
+          );
+        });
+      }
+      await page.evaluateOnNewDocument(() => {
+        const shifts: number[] = [];
+        (window as unknown as { __shifts: number[] }).__shifts = shifts;
+        new PerformanceObserver((list) => {
+          list.getEntries().forEach((entry) => {
+            const shift = entry as unknown as {
+              value: number;
+              hadRecentInput: boolean;
+            };
+            if (!shift.hadRecentInput) shifts.push(shift.value);
+          });
+        }).observe({ type: "layout-shift", buffered: true });
+      });
+      // Delay every response so first paint (inline CSS in the document)
+      // lands well before hydration — the window where a client-inserted tip
+      // visibly shifts the list.
+      const cdp = await page.createCDPSession();
+      await cdp.send("Network.enable");
+      await cdp.send("Network.emulateNetworkConditions", {
+        offline: false,
+        latency: 400,
+        downloadThroughput: -1,
+        uploadThroughput: -1,
+      });
+      await page.goto(URL, { waitUntil: "networkidle2", timeout: 30000 });
+      await page.waitForFunction(
+        () => document.documentElement.dataset.plConfHydrated === "1",
+        { timeout: 15000 }
+      );
+      await new Promise((resolve) => setTimeout(resolve, 350));
+      await run(page);
+    } finally {
+      await context.close();
+    }
+  };
+
+  // Ignore sub-threshold noise (the self-hosted font swap registers ~0.0001).
+  const visibleShifts = (page: Page) =>
+    page.evaluate(() =>
+      (window as unknown as { __shifts: number[] }).__shifts.filter(
+        (v) => v >= 0.005
+      )
+    );
+
+  test("ships the tip in the server-rendered HTML", async () => {
+    const res = await fetch(`${URL}/`);
+    const html = await res.text();
+    expect(html).toContain("data-collapse-hint");
+  });
+
+  test("appears for first-time visitors without shifting the list", async () => {
+    await withShiftProbe(async (page) => {
+      const hintVisible = await page.$eval(
+        "[data-collapse-hint]",
+        (el) => (el as HTMLElement).offsetParent !== null
+      );
+      expect(hintVisible).toBe(true);
+      expect(await visibleShifts(page)).toEqual([]);
+    });
+  });
+
+  test("never paints for visitors who dismissed it", async () => {
+    await withShiftProbe(
+      async (page) => {
+        const hintVisible = await page.evaluate(() => {
+          const el = document.querySelector("[data-collapse-hint]");
+          return el !== null && (el as HTMLElement).offsetParent !== null;
+        });
+        expect(hintVisible).toBe(false);
+        expect(await visibleShifts(page)).toEqual([]);
+      },
+      { dismissed: true }
+    );
+  });
+});
+
 describe.concurrent("persistence settle", () => {
   // Storage keys mirror what the app uses today. Any refactor that moves
   // initial-load reads into a coalesced provider must preserve these keys
@@ -1210,7 +1342,7 @@ describe.concurrent("persistence settle", () => {
     });
     await waitForSettled();
     const body = await page.evaluate(() => document.body.innerText);
-    expect(body).not.toMatch(/tap any date heading/i);
+    expect(body).not.toMatch(/tap any heading/i);
   });
 
   test("collapsedDateGroups session entry restores collapsed groups on load", async ({

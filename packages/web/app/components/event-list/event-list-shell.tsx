@@ -16,6 +16,7 @@ import { LastUpdated } from "../last-updated";
 import { HydrationMarker } from "./hydration-marker";
 import { LayoutSwitcher } from "./layout-switcher";
 import { ListDepthAnchor } from "./list-depth-anchor";
+import { ListSkeletonBoundary } from "./list-skeleton";
 import { NowProvider } from "./now-provider";
 import { SearchEmptyState } from "./search-empty-state";
 import { SearchFilterStyle } from "./search-filter-style";
@@ -24,6 +25,7 @@ import { StarDelegate } from "./star-delegate";
 import { StarredCount } from "./starred-count";
 import { StarredEmptyState } from "./starred-empty-state";
 import { UrlTagFilterProvider } from "./url-tag-filter-provider";
+import { ViewNavProvider } from "./view-nav-provider";
 import { NoEventsMessage, NoSubmissionsMessage } from "./view-empty-state";
 import { VisibilityStyle } from "./visibility-style";
 import {
@@ -62,83 +64,91 @@ export function EventListShell({
         <CountsProvider events={countableEvents}>
           <SearchProvider defaultValue={filters.q}>
             <NowProvider initialMs={serverNowMs}>
-              <HydrationMarker />
-              <ListDepthAnchor />
-              <StarDelegate />
-              <VisibilityStyle />
-              <SearchFilterStyle events={displayEvents} />
-              <Hero events={heroEvents} />
+              <ViewNavProvider>
+                <HydrationMarker />
+                <ListDepthAnchor />
+                <StarDelegate />
+                <VisibilityStyle />
+                <SearchFilterStyle events={displayEvents} />
+                <Hero events={heroEvents} />
 
-              <div className="flex flex-col gap-2 px-5 pt-7 sm:flex-row sm:flex-wrap sm:items-center md:px-8">
-                <SearchPill />
-                <div className="flex flex-wrap items-center gap-2">
-                  <FilterChips />
-                  <TagsFilter />
+                <div className="flex flex-col gap-2 px-5 pt-7 sm:flex-row sm:flex-wrap sm:items-center md:px-8">
+                  <SearchPill />
+                  <div className="flex flex-wrap items-center gap-2">
+                    <FilterChips />
+                    <TagsFilter />
+                  </div>
                 </div>
-              </div>
 
-              <ViewTabs
-                starredCountSlot={<StarredCount />}
-                trailing={
-                  <>
-                    <DueThisWeekPhrase />
-                    <LayoutToggle />
-                  </>
-                }
-              />
+                <ViewTabs
+                  starredCountSlot={<StarredCount />}
+                  trailing={
+                    <>
+                      <DueThisWeekPhrase />
+                      <LayoutToggle />
+                    </>
+                  }
+                />
 
-              <LayoutSwitcher
-                events={displayEvents}
-                listChildren={
-                  displayEvents.length > 0 ? (
-                    groups.map((g, gi) => {
-                      // A dated heading already states the deadline, so its
-                      // rows drop their own date. Everywhere else — the archive
-                      // and "Deadlines closed" — the row shows the event date
-                      // rather than a deadline that is already behind us.
-                      const headingDate =
-                        g.heading.kind === "deadline" ? g.heading.date : null;
-                      return (
-                        <CollapsibleGroup
-                          key={g.key}
-                          groupKey={g.key}
-                          heading={g.heading}
-                          groupKeys={g.events.map((e) => eventKey(e))}
-                          isFirst={gi === 0}
-                          isFirstCollapsible={
-                            gi === firstCollapsibleIdx && hasMultipleGroups
-                          }
-                        >
-                          {g.events.map((e, i) => (
-                            <div
-                              key={eventKey(e)}
-                              className={clsx(
-                                "@container/row",
-                                i === 0 && "[&>*]:border-t-0"
-                              )}
+                <ListSkeletonBoundary>
+                  <LayoutSwitcher
+                    events={displayEvents}
+                    listChildren={
+                      displayEvents.length > 0 ? (
+                        groups.map((g, gi) => {
+                          // A dated heading already states the deadline, so its
+                          // rows drop their own date. Everywhere else — the archive
+                          // and "Deadlines closed" — the row shows the event date
+                          // rather than a deadline that is already behind us.
+                          const headingDate =
+                            g.heading.kind === "deadline"
+                              ? g.heading.date
+                              : null;
+                          return (
+                            <CollapsibleGroup
+                              key={g.key}
+                              groupKey={g.key}
+                              heading={g.heading}
+                              groupKeys={g.events.map((e) => eventKey(e))}
+                              isFirst={gi === 0}
+                              isFirstCollapsible={
+                                gi === firstCollapsibleIdx && hasMultipleGroups
+                              }
                             >
-                              <EventRow
-                                event={e}
-                                hideDate={headingDate !== null}
-                                dateAnchor={
-                                  headingDate === null ? "event" : "deadline"
-                                }
-                                now={serverNow}
-                              />
-                            </div>
-                          ))}
-                        </CollapsibleGroup>
-                      );
-                    })
-                  ) : (
-                    <NoEventsMessage />
-                  )
-                }
-              />
+                              {g.events.map((e, i) => (
+                                <div
+                                  key={eventKey(e)}
+                                  className={clsx(
+                                    "@container/row",
+                                    i === 0 && "[&>*]:border-t-0"
+                                  )}
+                                >
+                                  <EventRow
+                                    event={e}
+                                    hideDate={headingDate !== null}
+                                    dateAnchor={
+                                      headingDate === null
+                                        ? "event"
+                                        : "deadline"
+                                    }
+                                    now={serverNow}
+                                  />
+                                </div>
+                              ))}
+                            </CollapsibleGroup>
+                          );
+                        })
+                      ) : (
+                        <NoEventsMessage />
+                      )
+                    }
+                  />
+                </ListSkeletonBoundary>
 
-              <NoSubmissionsMessage />
-              <StarredEmptyState />
-              <SearchEmptyState events={displayEvents} />
+                <NoSubmissionsMessage />
+                <StarredEmptyState />
+                <SearchEmptyState events={displayEvents} />
+              </ViewNavProvider>
             </NowProvider>
           </SearchProvider>
           <footer className="mt-14 flex items-center justify-between gap-4 border-t border-rule px-5 py-6 text-[12px] text-ink-3 md:px-8">
