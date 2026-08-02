@@ -1000,6 +1000,36 @@ describe("event pages", () => {
   });
 });
 
+describe("llms exports", () => {
+  base("llms.txt links the markdown and JSON exports", async () => {
+    const res = await fetch(`${URL}/llms.txt`);
+    expect(res.status).toBe(200);
+    const text = await res.text();
+    expect(text).toContain("/llms-full.txt");
+    expect(text).toContain("/events.json");
+  });
+
+  base("llms-full.txt lists every event with ISO deadlines", async () => {
+    const res = await fetch(`${URL}/llms-full.txt`);
+    expect(res.status).toBe(200);
+    const text = await res.text();
+    Object.values(events).forEach((e) => {
+      expect(text).toContain(`### ${e.abbreviation} ${e.year} — ${e.name}`);
+    });
+    expect(text).toContain("Important dates (Round 1):");
+    expect(text).toContain("- Paper Submission: 2026-04-15");
+  });
+
+  base("events.json covers every event", async () => {
+    const res = await fetch(`${URL}/events.json`);
+    expect(res.status).toBe(200);
+    const exported = (await res.json()) as { key: string }[];
+    expect(new Set(exported.map((e) => e.key))).toEqual(
+      new Set(Object.values(events).map((e) => eventKey(e)))
+    );
+  });
+});
+
 describe("back navigation", () => {
   const clickBackToList = (page: Page) =>
     page.evaluate(() => {

@@ -4,9 +4,9 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "predev": "tsx scripts/build-ical.ts",
+    "predev": "tsx scripts/build-ical.ts && tsx scripts/build-llms.ts",
     "dev": "next dev --turbopack",
-    "prebuild": "tsx scripts/build-ical.ts",
+    "prebuild": "tsx scripts/build-ical.ts && tsx scripts/build-llms.ts",
     "build": "next build",
     "typecheck": "tsc --noEmit"
   },

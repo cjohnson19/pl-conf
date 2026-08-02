@@ -43,6 +43,9 @@ next-env.d.ts
 # Generated files
 packages/data/generated/
 packages/web/public/ical/
+packages/web/public/llms.txt
+packages/web/public/llms-full.txt
+packages/web/public/events.json
 
 # CDK
 cdk.out/
