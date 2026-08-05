@@ -11,6 +11,7 @@ date:
 location: Copenhagen, Denmark
 partOf: ETAPS
 url: "https://etaps.org/2027/conferences/tacas/"
+submissionUrl: "https://easychair.org/conferences/?conf=tacas27"
 importantDateUrl: "https://etaps.org/2027/cfp/"
 importantDates:
   paper: 2026-10-15

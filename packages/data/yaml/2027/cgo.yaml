@@ -16,6 +16,7 @@ rounds:
       paper: 2026-06-11
       rebuttal: 2026-07-23
       notification: 2026-08-03
+      revisions: 2026-09-24
   - name: Round 2
     importantDates:
       paper: 2026-09-10
