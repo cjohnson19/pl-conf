@@ -8,7 +8,7 @@ date:
   start: 2026-08-26
   end: 2026-08-27
 location: Paris, France
-colocatedWith: ICFP
+partOf: FPW
 url: "https://tydeworkshop.org/2026"
 submissionUrl: "https://tyde26.hotcrp.com"
 importantDateUrl: "https://tydeworkshop.org/2026#important-dates"

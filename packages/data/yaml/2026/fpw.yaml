@@ -1,0 +1,12 @@
+name: Functional Programming Workshops
+abbreviation: FPW
+type: "workshop"
+tags:
+  - functional-programming
+date:
+  start: 2026-08-24
+  end: 2026-08-28
+location: Paris, France
+url: "https://fpw26.github.io/"
+notes:
+  - "A week of small co-located functional-programming workshops at INRIA Paris, running the same week as ICFP'26 in Indianapolis"
