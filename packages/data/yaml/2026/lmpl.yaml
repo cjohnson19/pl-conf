@@ -5,18 +5,18 @@ tags:
   - program-analysis
   - program-synthesis
 date:
-  start: TBD
-  end: TBD
+  start: 2026-10-09
+  end: 2026-10-09
 location: Oakland, California
 url: "https://conf.researchr.org/home/splash-issta-2026/lmpl-2026"
 submissionUrl: "https://lmpl26.hotcrp.com/"
 importantDateUrl: "https://conf.researchr.org/home/splash-issta-2026/lmpl-2026"
 importantDates:
   paper: 2026-07-10
-  notification: 2026-08-08
-  camera-ready: 2026-08-21
+  notification: 2026-08-15
+  camera-ready: 2026-08-28
 colocatedWith:
   - SPLASH
   - ISSTA
 notes:
-  - "Co-located with SPLASH/ISSTA 2026; workshop day not yet scheduled"
+  - "Co-located with SPLASH/ISSTA 2026"

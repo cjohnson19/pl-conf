@@ -9,5 +9,13 @@ date:
   end: 2027-06-11
 location: Atlanta, Georgia
 url: "https://pldi27.sigplan.org/"
+importantDateUrl: "https://pldi27.sigplan.org/dates"
+importantDates:
+  paper: 2026-11-12
+  rebuttal: 2027-02-18
+  conditional-acceptance: 2027-03-04
+  revisions: 2027-03-23
+  notification: 2027-04-01
+  camera-ready: 2027-04-15
 notes:
-  - Held as part of FCRC 2027; the call for papers has not been published yet.
+  - Held as part of FCRC 2027
