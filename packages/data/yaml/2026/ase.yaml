@@ -13,6 +13,7 @@ importantDateUrl: "https://conf.researchr.org/track/ase-2026/ase-2026-research-t
 importantDates:
   paper: 2026-03-26
   rebuttal: 2026-05-27
-  notification: 2026-06-18
+  conditional-acceptance: 2026-06-18
   revisions: 2026-07-16
+  notification: 2026-07-29
   camera-ready: 2026-08-03
