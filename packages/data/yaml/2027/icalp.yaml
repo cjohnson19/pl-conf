@@ -1,0 +1,24 @@
+name: EATCS International Colloquium on Automata, Languages, and Programming
+abbreviation: ICALP
+type: "conference"
+tags:
+  - automata
+  - logic
+  - semantics
+date:
+  start: 2027-07-05
+  end: 2027-07-09
+location: Kraków, Poland
+url: "https://icalp.uj.edu.pl/home/"
+importantDateUrl: "https://icalp.uj.edu.pl/track-b/#dates-heading"
+rounds:
+  - name: Track B Round 1
+    importantDates:
+      paper: 2026-09-15
+      rebuttal: 2026-11-09
+      notification: 2026-12-08
+  - name: Track B Round 2 / Track A
+    importantDates:
+      paper: TBD
+notes:
+  - "Track B (Automata, Logic, Semantics, and Theory of Programming) uses a two-round process; Track A has a single round sharing the Round 2 deadlines"
