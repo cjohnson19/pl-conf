@@ -17,7 +17,9 @@ rounds:
     importantDates:
       paper: 2026-06-21
       notification: 2026-08-17
+      camera-ready: 2026-08-28
   - name: Phase 2
     importantDates:
       paper: 2026-07-17
       notification: 2026-08-17
+      camera-ready: 2026-08-28
