@@ -1,0 +1,20 @@
+name: International Workshop on the Implementation of Logics
+abbreviation: IWIL
+type: "workshop"
+tags:
+  - theorem-proving
+  - logic
+date:
+  start: 2026-10-25
+  end: 2026-10-25
+location: Spetses, Greece
+colocatedWith: LPAR
+url: "https://eprover.org/EVENTS/IWIL-2026.html"
+submissionUrl: "https://easychair.org/conferences/?conf=iwil2026"
+importantDateUrl: "https://eprover.org/EVENTS/IWIL-2026.html#dates"
+importantDates:
+  paper: 2026-08-18
+  notification: 2026-09-03
+  camera-ready: 2026-09-17
+notes:
+  - "16th edition, in conjunction with LPAR-26"

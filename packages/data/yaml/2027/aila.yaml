@@ -1,0 +1,21 @@
+name: International Conference on Artificial Intelligence Logic and Applications
+abbreviation: AILA
+type: "conference"
+tags:
+  - logic
+  - formal-methods
+date:
+  start: 2027-04-08
+  end: 2027-04-10
+location: Belfast, UK
+url: "http://ailasym.com/AILA2027/AILA2027.html"
+submissionUrl: "https://easychair.org/conferences/?conf=aila2027"
+importantDateUrl: "http://ailasym.com/AILA2027/AILA2027.html#dates"
+importantDates:
+  abstract: 2026-10-31
+  paper: 2026-11-07
+  notification: 2027-01-10
+  camera-ready: 2027-01-25
+notes:
+  - "6th edition"
+  - "Site is HTTP-only; server refuses HTTPS connections"
