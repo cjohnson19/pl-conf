@@ -16,7 +16,10 @@ export default defineConfig({
   },
   test: {
     globalSetup: "tests/global-setup.ts",
-    include: ["tests/**/*.test.ts"],
+    // Lambda tests live next to their handlers so `vi.mock` of the AWS SDK
+    // resolves to the same installation the handler imports (pnpm gives each
+    // package its own node_modules; a mock registered from tests/ would miss).
+    include: ["tests/**/*.test.ts", "packages/functions/**/*.test.ts"],
     testTimeout: 30_000,
     hookTimeout: 30_000,
     // A test that stubs a global and fails mid-body would otherwise leak it
