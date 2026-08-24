@@ -1,0 +1,17 @@
+name: Computer Aided Verification
+abbreviation: CAV
+date:
+  start: 2027-07-19
+  end: 2027-07-23
+location: Amsterdam, Netherlands
+url: "https://conferences.i-cav.org/2027/"
+importantDateUrl: "https://conferences.i-cav.org/2027/cfp/#key-dates"
+type: "conference"
+tags:
+  - verification
+  - model-checking
+importantDates:
+  paper: 2027-01-20
+  rebuttal: 2027-04-08
+  notification: 2027-04-23
+  camera-ready: 2027-05-18
