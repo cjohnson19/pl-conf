@@ -414,6 +414,80 @@ export class PlConfStack extends cdk.Stack {
       },
     });
 
+    // CloudFront standard logging (v2) via CloudWatch vended log delivery.
+    // The Cfn resources must live in us-east-1 (this stack's region).
+    // No slashes in the log group name: delivery destinations only accept [\w-].
+    const accessLogGroup = new logs.LogGroup(this, "AccessLogGroup", {
+      logGroupName: `pl-conf-${stage}-cloudfront-access-logs`,
+      retention: logs.RetentionDays.TWO_YEARS,
+      removalPolicy: isProduction
+        ? cdk.RemovalPolicy.RETAIN
+        : cdk.RemovalPolicy.DESTROY,
+    });
+
+    const accessLogDeliveryPolicy = new logs.ResourcePolicy(
+      this,
+      "AccessLogDeliveryPolicy",
+      {
+        policyStatements: [
+          new iam.PolicyStatement({
+            sid: "AllowCloudFrontAccessLogDelivery",
+            principals: [
+              new iam.ServicePrincipal("delivery.logs.amazonaws.com"),
+            ],
+            actions: ["logs:CreateLogStream", "logs:PutLogEvents"],
+            resources: [accessLogGroup.logGroupArn],
+            conditions: {
+              StringEquals: { "aws:SourceAccount": this.account },
+              ArnLike: {
+                "aws:SourceArn": `arn:aws:logs:${this.region}:${this.account}:delivery-source:*`,
+              },
+            },
+          }),
+        ],
+      }
+    );
+
+    const accessLogDeliverySource = new logs.CfnDeliverySource(
+      this,
+      "AccessLogDeliverySource",
+      {
+        name: `pl-conf-${stage}-access-logs`,
+        resourceArn: distribution.distributionArn,
+        logType: "ACCESS_LOGS",
+      }
+    );
+
+    const accessLogDeliveryDestination = new logs.CfnDeliveryDestination(
+      this,
+      "AccessLogDeliveryDestination",
+      {
+        name: `pl-conf-${stage}-access-logs-cwl`,
+        destinationResourceArn: accessLogGroup.logGroupArn,
+        outputFormat: "json",
+      }
+    );
+
+    const accessLogDelivery = new logs.CfnDelivery(this, "AccessLogDelivery", {
+      deliverySourceName: accessLogDeliverySource.name,
+      deliveryDestinationArn: accessLogDeliveryDestination.attrArn,
+      recordFields: [
+        "date",
+        "time",
+        "c-ip",
+        "c-country",
+        "asn",
+        "cs-method",
+        "cs-uri-stem",
+        "sc-status",
+        "cs(Referer)",
+        "cs(User-Agent)",
+        "x-edge-result-type",
+      ],
+    });
+    accessLogDelivery.addDependency(accessLogDeliverySource);
+    accessLogDelivery.node.addDependency(accessLogDeliveryPolicy);
+
     if (isProduction && hostedZone) {
       new route53.ARecord(this, "AliasRecord", {
         zone: hostedZone,
