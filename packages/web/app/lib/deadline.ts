@@ -1,10 +1,10 @@
 import {
   type DateName,
-  type MaybeDate,
   type ScheduledEvent,
-  allDeadlines,
   isDeadline,
   isDeadlinePast,
+  roundDeadlines,
+  roundEntries,
   toAoeInstant,
 } from "./event";
 
@@ -27,20 +27,16 @@ export function findNextDeadline(
   let upcoming: NextDeadline | null = null;
   let fallback: NextDeadline | null = null;
   e.rounds.forEach((r, roundIdx) => {
-    (Object.entries(r.importantDates) as Array<[DateName, MaybeDate]>).forEach(
-      ([name, date]) => {
-        if (date === "TBD" || date === undefined) return;
-        const instant = toAoeInstant(date);
-        if (!instant) return;
-        const time = instant.getTime();
-        const candidate = { roundIdx, name, date, time };
-        if (time > nowTime) {
-          if (!upcoming || time < upcoming.time) upcoming = candidate;
-        } else if (options.fallbackToPast) {
-          if (!fallback || time > fallback.time) fallback = candidate;
-        }
+    roundEntries(r).forEach(([name, date]) => {
+      if (date === "TBD") return;
+      const time = toAoeInstant(date)!.getTime();
+      const candidate = { roundIdx, name, date, time };
+      if (time > nowTime) {
+        if (!upcoming || time < upcoming.time) upcoming = candidate;
+      } else if (options.fallbackToPast) {
+        if (!fallback || time > fallback.time) fallback = candidate;
       }
-    );
+    });
   });
   return upcoming ?? fallback;
 }
@@ -52,15 +48,11 @@ export function findAllUpcomingDeadlines(
   const nowTime = now.getTime();
   const out: NextDeadline[] = [];
   e.rounds.forEach((r, roundIdx) => {
-    (Object.entries(r.importantDates) as Array<[DateName, MaybeDate]>).forEach(
-      ([name, date]) => {
-        if (date === "TBD" || date === undefined) return;
-        const instant = toAoeInstant(date);
-        if (!instant) return;
-        const time = instant.getTime();
-        if (time > nowTime) out.push({ roundIdx, name, date, time });
-      }
-    );
+    roundEntries(r).forEach(([name, date]) => {
+      if (date === "TBD") return;
+      const time = toAoeInstant(date)!.getTime();
+      if (time > nowTime) out.push({ roundIdx, name, date, time });
+    });
   });
   out.sort((a, b) => a.time - b.time);
   return out;
@@ -69,16 +61,12 @@ export function findAllUpcomingDeadlines(
 export function isDueThisWeek(e: DeadlineEvent, now: Date): boolean {
   const weekMs = 7 * 86_400_000;
   return e.rounds.some((r) =>
-    (Object.entries(r.importantDates) as Array<[DateName, MaybeDate]>).some(
-      ([name, date]) => {
-        if (!isDeadline(name)) return false;
-        if (date === "TBD" || date === undefined) return false;
-        const instant = toAoeInstant(date);
-        if (!instant) return false;
-        const diff = instant.getTime() - now.getTime();
-        return diff > 0 && diff <= weekMs;
-      }
-    )
+    roundEntries(r).some(([name, date]) => {
+      if (!isDeadline(name)) return false;
+      if (date === "TBD") return false;
+      const diff = toAoeInstant(date)!.getTime() - now.getTime();
+      return diff > 0 && diff <= weekMs;
+    })
   );
 }
 
@@ -87,9 +75,7 @@ export function findNextStart(
   now: Date
 ): { date: string; time: number } | null {
   if (e.date.start === "TBD") return null;
-  const instant = toAoeInstant(e.date.start);
-  if (!instant) return null;
-  const time = instant.getTime();
+  const time = toAoeInstant(e.date.start)!.getTime();
   if (time <= now.getTime()) return null;
   return { date: e.date.start, time };
 }
@@ -102,7 +88,7 @@ export type RoundSlotStatus = "done" | "active" | "next";
 // is done, otherwise "next". TBD counts as pending, never as passed.
 export function roundStatuses(e: DeadlineEvent, now: Date): RoundSlotStatus[] {
   const facts = e.rounds.map((r) => {
-    const dates = allDeadlines({ rounds: [r] });
+    const dates = roundDeadlines(r);
     return {
       hasPassed: dates.some((d) => isDeadlinePast(d, now)),
       done: dates.length > 0 && dates.every((d) => isDeadlinePast(d, now)),
@@ -116,7 +102,7 @@ export function roundStatuses(e: DeadlineEvent, now: Date): RoundSlotStatus[] {
 }
 
 export function isMidMultiRound(e: DeadlineEvent, now: Date): boolean {
-  const dates = allDeadlines(e).filter((d) => d !== "TBD");
+  const dates = e.rounds.flatMap(roundDeadlines).filter((d) => d !== "TBD");
   return (
     e.rounds.length > 1 &&
     dates.some((d) => isDeadlinePast(d, now)) &&

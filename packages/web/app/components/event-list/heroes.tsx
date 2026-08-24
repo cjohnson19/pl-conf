@@ -24,15 +24,13 @@ import {
   DropdownMenuTrigger,
 } from "../ui/dropdown-menu";
 import {
-  setPrefs,
   useDisplayPref,
   useEventPrefs,
   usePrefsLoaded,
 } from "../preferences-provider";
-import {
-  stringSetCodec,
-  useSessionStorage,
-} from "../../hooks/use-session-storage";
+import { setPrefs } from "../../lib/preferences-store";
+import { collectStarredKeys } from "../../lib/user-prefs";
+import { useSessionStorageStringSet } from "../../hooks/use-session-storage";
 import { useNow } from "./now-provider";
 
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
@@ -48,21 +46,15 @@ export function Hero({ events }: { events: HeroEvent[] }) {
   const permanentlyHiddenEventHeroes = useDisplayPref(
     "permanentlyHiddenEventHeroes"
   );
+  // Excludes `hidden` events even if starred — VisibilityStyle hides them
+  // from the grid, so popping them up in the Hero is jarring.
   const starredKeys = useMemo(
-    () =>
-      new Set(
-        Object.entries(eventPrefs)
-          // Exclude `hidden` events even if starred — VisibilityStyle hides
-          // them from the grid, so popping them up in the Hero is jarring.
-          .filter(([, v]) => v?.favorite && !v?.hidden)
-          .map(([k]) => k)
-      ),
+    () => collectStarredKeys(eventPrefs),
     [eventPrefs]
   );
-  const [sessionDismissed, setSessionDismissed] = useSessionStorage(
+  const [sessionDismissed, setSessionDismissed] = useSessionStorageStringSet(
     SESSION_DISMISSED_KEY,
-    new Set<string>(),
-    stringSetCodec
+    new Set()
   );
   const dismissThisSession = (key: string) =>
     setSessionDismissed((prev) => new Set(prev).add(key));
@@ -144,10 +136,7 @@ export function Hero({ events }: { events: HeroEvent[] }) {
                 {pick.event.abbreviation} {deadlineKindWord(pick.name)}
               </span>{" "}
               {deadline ? "is due " : ""}
-              <em style={{ fontStyle: "normal" }}>
-                {humanCountdown(pick.date, now)}
-              </em>
-              .
+              <em className="not-italic">{humanCountdown(pick.date, now)}</em>.
             </>
           }
           footer={localDeadlineString(pick.date)}
@@ -171,13 +160,7 @@ export function Hero({ events }: { events: HeroEvent[] }) {
           <>
             <span className="font-semibold">{pick.event.abbreviation}</span>{" "}
             {pick.event.type} starts{" "}
-            <em
-              style={{
-                fontStyle: "normal",
-                color: "var(--accent)",
-                fontWeight: 600,
-              }}
-            >
+            <em className="not-italic font-semibold text-accent">
               {humanCountdown(pick.date, now)}
             </em>
             .
@@ -262,10 +245,7 @@ function HeroShell({
   }[];
 }) {
   return (
-    <section
-      className="relative mx-5 border border-rule p-5 sm:p-7 md:mx-8"
-      style={{ background: "var(--card)" }}
-    >
+    <section className="relative mx-5 border border-rule bg-card p-5 sm:p-7 md:mx-8">
       {(onDismissOnce || (menuItems && menuItems.length > 0)) && (
         <div className="absolute right-3 top-3 flex items-center gap-0.5">
           {menuItems && menuItems.length > 0 && (
@@ -280,14 +260,13 @@ function HeroShell({
               <DropdownMenuContent
                 align="end"
                 sideOffset={4}
-                className="max-w-[280px] border-rule text-ink shadow-pop"
-                style={{ background: "var(--card)" }}
+                className="max-w-[280px]"
               >
                 {menuItems.map((item) => (
                   <DropdownMenuItem
                     key={item.label}
                     onSelect={item.onSelect}
-                    className="flex cursor-pointer flex-col items-start gap-0.5 rounded-sm text-[13px] text-ink focus:bg-paper-2 focus:text-ink"
+                    className="flex cursor-pointer flex-col items-start gap-0.5 rounded-sm text-[13px] text-ink"
                   >
                     <span className="font-medium text-ink">{item.label}</span>
                     {item.description && (
@@ -317,7 +296,7 @@ function HeroShell({
       <h1 className="pr-20">{headline}</h1>
       {footer && (
         <div
-          className="mt-4 font-mono text-[11px] uppercase tracking-[0.04em] text-ink-3"
+          className="mt-4 font-mono text-[11px] tracking-[0.04em] text-ink-3"
           title={footerTitle}
           suppressHydrationWarning
         >

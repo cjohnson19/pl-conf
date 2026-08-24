@@ -1,11 +1,4 @@
-body {
-  font-family: var(--font-ui);
-  font-size: 14px;
-  line-height: 1.5;
-}
-
-h1,
-.h1 {
+h1 {
   font-family: var(--font-ui);
   font-weight: 500;
   font-size: clamp(26px, 6.5vw, 50px);
@@ -14,8 +7,7 @@ h1,
   margin: 0;
 }
 
-h2,
-.h2 {
+h2 {
   font-family: var(--font-ui);
   font-weight: 500;
   font-size: 13px;
@@ -25,18 +17,7 @@ h2,
   margin: 0;
 }
 
-h3,
-.h3 {
-  font-family: var(--font-ui);
-  font-weight: 600;
-  font-size: 22px;
-  line-height: 1;
-  letter-spacing: -0.015em;
-  margin: 0;
-}
-
-p,
-.p {
+p {
   font-family: var(--font-ui);
   font-size: 14px;
   line-height: 1.55;
@@ -51,8 +32,7 @@ a {
 }
 
 code,
-kbd,
-.mono {
+kbd {
   font-family: var(--font-mono);
   font-feature-settings:
     "tnum" 1,
@@ -63,29 +43,10 @@ code {
   font-size: 0.95em;
 }
 
-.display-numeral {
-  font-family: var(--font-display);
-  font-weight: 400;
-  font-size: 112px;
-  line-height: 0.9;
-  letter-spacing: -0.04em;
-  color: var(--hot);
-}
-
 .label-cap {
   font-family: var(--font-mono);
   font-weight: 500;
   font-size: 11px;
   letter-spacing: 0.08em;
   color: var(--ink-3);
-}
-
-.muted {
-  color: var(--ink-2);
-}
-.subtle {
-  color: var(--ink-3);
-}
-.tabular {
-  font-variant-numeric: tabular-nums;
 }

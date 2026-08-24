@@ -4,8 +4,8 @@ import { useRef, useState } from "react";
 import clsx from "clsx";
 import { ChevronDown, X } from "lucide-react";
 import {
+  isDeadlinePast,
   isDeadlineUrgent,
-  toAoeInstant,
   toCalendarDate,
 } from "../../lib/event";
 import { humanCountdown } from "../../lib/countdown";
@@ -14,23 +14,85 @@ import {
   monthLongFmt,
   weekdayLongFmt,
 } from "../../lib/date-formatters";
-import {
-  stringSetCodec,
-  useSessionStorage,
-} from "../../hooks/use-session-storage";
+import { setPrefs } from "../../lib/preferences-store";
+import { useSessionStorageStringSet } from "../../hooks/use-session-storage";
 import { useNow } from "./now-provider";
 import { useCounts } from "./counts-context";
 import type { GroupHeading } from "./grouping";
-import { setPrefs, useDisplayPref } from "../preferences-provider";
+import { useDisplayPref } from "../preferences-provider";
 
 const SESSION_COLLAPSED_KEY = "collapsedDateGroups";
 
 function EventCount({ count }: { count: number }) {
   return (
-    <div className="font-mono text-[11px] uppercase tracking-[0.04em] text-ink-3">
+    <div className="font-mono text-[11px] tracking-[0.04em] text-ink-3">
       <b className="font-medium text-ink-2">{count}</b> event
       {count === 1 ? "" : "s"}
     </div>
+  );
+}
+
+// The sticky chrome every group header shares; renders as a disclosure button
+// when the group can collapse and as a plain strip otherwise.
+function GroupHeaderShell({
+  label,
+  isFirst,
+  collapsed,
+  onToggle,
+  controlsId,
+  children,
+}: {
+  label: string;
+  isFirst: boolean;
+  collapsed?: boolean;
+  onToggle?: () => void;
+  controlsId?: string;
+  children: React.ReactNode;
+}) {
+  const layout = clsx(
+    "flex items-end justify-between gap-4 px-5 pb-3 pt-4 md:px-8",
+    "border-b-2 border-rule",
+    !isFirst && "border-t-2"
+  );
+  return (
+    <div className="sticky top-0 z-10 bg-paper">
+      {onToggle ? (
+        <button
+          type="button"
+          onClick={onToggle}
+          aria-expanded={!collapsed}
+          aria-controls={controlsId}
+          aria-label={
+            collapsed ? `Show events for ${label}` : `Hide events for ${label}`
+          }
+          className={clsx(
+            layout,
+            "w-full text-left transition-colors hover:bg-paper-2"
+          )}
+          // The label carries a locale-formatted date, which the server and
+          // the viewer's browser can disagree on.
+          suppressHydrationWarning
+        >
+          {children}
+        </button>
+      ) : (
+        <div className={layout}>{children}</div>
+      )}
+    </div>
+  );
+}
+
+function CollapseChevron({ collapsed }: { collapsed?: boolean }) {
+  return (
+    <ChevronDown
+      aria-hidden
+      size={16}
+      strokeWidth={1.75}
+      className={clsx(
+        "shrink-0 text-ink-3 transition-transform duration-200 ease-out",
+        collapsed && "-rotate-90"
+      )}
+    />
   );
 }
 
@@ -52,13 +114,18 @@ function MonthGroupHeader({
 }) {
   const [y, m] = month.split("-").map(Number);
   const cal = y && m ? new Date(y, m - 1, 1) : null;
-  const label = cal ? `${monthLongFmt.format(cal)} ${y}` : "Date unknown";
-  const inner = (
-    <>
+  const monthName = cal ? monthLongFmt.format(cal) : "Date unknown";
+  const label = cal ? `${monthName} ${y}` : "Date unknown";
+  return (
+    <GroupHeaderShell
+      label={label}
+      isFirst={isFirst}
+      collapsed={collapsed}
+      onToggle={onToggle}
+      controlsId={controlsId}
+    >
       <h2 className="flex items-baseline gap-2.5 font-ui text-[18px] font-semibold leading-none tracking-[-0.02em] text-ink-2 sm:text-[22px]">
-        <span suppressHydrationWarning>
-          {cal ? monthLongFmt.format(cal) : "Date unknown"}
-        </span>{" "}
+        <span suppressHydrationWarning>{monthName}</span>{" "}
         {cal && (
           <span className="font-mono text-[12px] font-medium tracking-[0.06em] text-ink-3">
             {y}
@@ -67,50 +134,9 @@ function MonthGroupHeader({
       </h2>
       <div className="flex items-end gap-3">
         <EventCount count={count} />
-        {onToggle && (
-          <ChevronDown
-            aria-hidden
-            size={16}
-            strokeWidth={1.75}
-            className={clsx(
-              "shrink-0 text-ink-3 transition-transform duration-200 ease-out",
-              collapsed && "-rotate-90"
-            )}
-          />
-        )}
+        {onToggle && <CollapseChevron collapsed={collapsed} />}
       </div>
-    </>
-  );
-  const layout = clsx(
-    "flex items-end justify-between gap-4 px-5 pb-3 pt-4 md:px-8",
-    "border-b-2 border-rule",
-    !isFirst && "border-t-2"
-  );
-  return (
-    <div className="sticky top-0 z-10" style={{ background: "var(--paper)" }}>
-      {onToggle ? (
-        <button
-          type="button"
-          onClick={onToggle}
-          aria-expanded={!collapsed}
-          aria-controls={controlsId}
-          aria-label={
-            collapsed ? `Show events for ${label}` : `Hide events for ${label}`
-          }
-          className={clsx(
-            layout,
-            "w-full text-left transition-colors hover:bg-paper-2"
-          )}
-          // The label carries a locale-formatted month, which the server and
-          // the viewer's browser can disagree on.
-          suppressHydrationWarning
-        >
-          {inner}
-        </button>
-      ) : (
-        <div className={layout}>{inner}</div>
-      )}
-    </div>
+    </GroupHeaderShell>
   );
 }
 
@@ -131,56 +157,48 @@ function DeadlineGroupHeader({
   onToggle?: () => void;
   controlsId?: string;
 }) {
-  const borderClasses = clsx(
-    "border-b-2 border-rule",
-    !isFirst && "border-t-2"
-  );
   if (date === null) {
     return (
-      <div className="sticky top-0 z-10" style={{ background: "var(--paper)" }}>
-        <div
-          className={clsx(
-            "flex items-end justify-between gap-4 px-5 pb-3 pt-4 md:px-8",
-            borderClasses
-          )}
-        >
-          <h2 className="font-ui text-[18px] font-semibold leading-none tracking-[-0.02em] text-ink-2 sm:text-[22px]">
-            Deadlines closed
-            <span className="font-normal text-ink-3"> · event ahead</span>
-          </h2>
-          <EventCount count={count} />
-        </div>
-      </div>
+      <GroupHeaderShell label="Deadlines closed" isFirst={isFirst}>
+        <h2 className="font-ui text-[18px] font-semibold leading-none tracking-[-0.02em] text-ink-2 sm:text-[22px]">
+          Deadlines closed
+          <span className="font-normal text-ink-3"> · event ahead</span>
+        </h2>
+        <EventCount count={count} />
+      </GroupHeaderShell>
     );
   }
   const cal = toCalendarDate(date);
   if (!cal) return null;
   const urgent = isDeadlineUrgent(date, now);
-  const instant = toAoeInstant(date);
-  const past = instant ? instant.getTime() < now.getTime() : false;
-  const collapsible = onToggle !== undefined;
-  const dateLabel = monDayYearFmt.format(cal);
-  const innerContent = (
-    <>
+  const past = isDeadlinePast(date, now);
+  return (
+    <GroupHeaderShell
+      label={monDayYearFmt.format(cal)}
+      isFirst={isFirst}
+      collapsed={collapsed}
+      onToggle={onToggle}
+      controlsId={controlsId}
+    >
       <h2 className="flex items-end gap-3 font-ui">
         <span
           className={clsx(
             "font-semibold leading-[0.8] tracking-[-0.025em] tabular-nums",
             "text-[30px] sm:text-[36px]",
-            urgent ? "text-hot" : "text-[color:var(--accent)]"
+            urgent ? "text-hot" : "text-accent"
           )}
         >
           {cal.getDate()}
         </span>
         <span className="flex flex-col gap-1 leading-none">
           <span
-            className="font-mono text-[12px] font-medium uppercase tracking-[0.08em] text-ink sm:text-[13px]"
+            className="font-mono text-[12px] font-medium tracking-[0.08em] text-ink sm:text-[13px]"
             suppressHydrationWarning
           >
             {monthLongFmt.format(cal)} {cal.getFullYear()}
           </span>
           <span
-            className="font-mono text-[10px] uppercase tracking-[0.06em] text-ink-3 sm:text-[11px]"
+            className="font-mono text-[10px] tracking-[0.06em] text-ink-3 sm:text-[11px]"
             suppressHydrationWarning
           >
             {weekdayLongFmt.format(cal)}
@@ -188,68 +206,22 @@ function DeadlineGroupHeader({
         </span>
       </h2>
       <div className="flex items-end gap-3">
-        <div className="flex flex-col items-end gap-1 font-mono text-[11px] uppercase tracking-[0.04em] text-ink-3">
+        <div className="flex flex-col items-end gap-1 font-mono text-[11px] tracking-[0.04em] text-ink-3">
           {!past && (
             <span
               className={clsx(
                 "font-medium",
-                urgent ? "text-hot" : "text-[color:var(--accent)]"
+                urgent ? "text-hot" : "text-accent"
               )}
             >
               {humanCountdown(date, now)}
             </span>
           )}
-          <span>
-            <b className="font-medium text-ink-2">{count}</b> event
-            {count === 1 ? "" : "s"}
-          </span>
+          <EventCount count={count} />
         </div>
-        {collapsible && (
-          <ChevronDown
-            aria-hidden
-            size={16}
-            strokeWidth={1.75}
-            className={clsx(
-              "shrink-0 text-ink-3 transition-transform duration-200 ease-out",
-              collapsed && "-rotate-90"
-            )}
-          />
-        )}
+        {onToggle && <CollapseChevron collapsed={collapsed} />}
       </div>
-    </>
-  );
-  return (
-    <div className="sticky top-0 z-10" style={{ background: "var(--paper)" }}>
-      {collapsible ? (
-        <button
-          type="button"
-          onClick={onToggle}
-          aria-expanded={!collapsed}
-          aria-controls={controlsId}
-          aria-label={
-            collapsed
-              ? `Show events for ${dateLabel}`
-              : `Hide events for ${dateLabel}`
-          }
-          className={clsx(
-            "flex w-full items-end justify-between gap-4 px-5 pb-3 pt-4 text-left transition-colors md:px-8 hover:bg-paper-2",
-            borderClasses
-          )}
-          suppressHydrationWarning
-        >
-          {innerContent}
-        </button>
-      ) : (
-        <div
-          className={clsx(
-            "flex items-end justify-between gap-4 px-5 pb-3 pt-4 md:px-8",
-            borderClasses
-          )}
-        >
-          {innerContent}
-        </div>
-      )}
-    </div>
+    </GroupHeaderShell>
   );
 }
 
@@ -277,10 +249,9 @@ export function CollapsibleGroup({
   // the catch-all "Deadlines closed" group has nothing unique to key on.
   const collapseId =
     heading.kind === "month" ? heading.month : (heading.date ?? null);
-  const [collapsedDates, setCollapsedDates] = useSessionStorage(
+  const [collapsedDates, setCollapsedDates] = useSessionStorageStringSet(
     SESSION_COLLAPSED_KEY,
-    new Set<string>(),
-    stringSetCodec
+    new Set()
   );
   const collapsed = collapseId !== null && collapsedDates.has(collapseId);
   const toggleCollapsed = () =>

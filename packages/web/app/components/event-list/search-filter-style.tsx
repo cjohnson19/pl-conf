@@ -6,14 +6,8 @@ import {
   buildSearchHaystack,
   type DisplayEvent,
 } from "../../lib/event-list-view";
+import { eventKeySelector } from "../../lib/row-css";
 import { useSearchQuery } from "./search-provider";
-
-// Mirrors the prepaint script in app/layout.tsx — works in both SSR and
-// browser, unlike CSS.escape which is browser-only. Event keys only contain
-// alphanumerics plus a few separators, so escaping \ and " is sufficient.
-function escapeAttr(s: string): string {
-  return s.replace(/[\\"]/g, "\\$&");
-}
 
 export function SearchFilterStyle({ events }: { events: DisplayEvent[] }) {
   const query = useSearchQuery();
@@ -27,9 +21,7 @@ export function SearchFilterStyle({ events }: { events: DisplayEvent[] }) {
     if (matching.length === 0) {
       return "[data-event-key]{display:none}[data-group-keys]{display:none}";
     }
-    const sel = matching
-      .map((k) => `[data-event-key="${escapeAttr(k)}"]`)
-      .join(",");
+    const sel = matching.map(eventKeySelector).join(",");
     return (
       `[data-event-key]:not(${sel}){display:none}` +
       `[data-group-keys]:not(:has(${sel})){display:none}`

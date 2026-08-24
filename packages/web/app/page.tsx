@@ -19,7 +19,7 @@ export default async function Home({
   });
   return (
     <EventListShell
-      filters={filters}
+      defaultQuery={filters.q}
       view={view}
       serverNowMs={serverNow.getTime()}
     />

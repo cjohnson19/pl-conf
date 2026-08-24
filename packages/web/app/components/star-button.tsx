@@ -1,4 +1,5 @@
 import { Star } from "lucide-react";
+import { rowIconButtonClass } from "./icon-button";
 
 export function StarButton({ prefKey }: { prefKey: string }) {
   return (
@@ -10,7 +11,7 @@ export function StarButton({ prefKey }: { prefKey: string }) {
       aria-label={`Star ${prefKey}`}
       aria-pressed="false"
       title="Star"
-      className="grid h-11 w-11 shrink-0 place-items-center border-0 bg-transparent text-ink-3 transition-colors hover:text-ink sm:h-8 sm:w-8"
+      className={`${rowIconButtonClass} text-ink-3 hover:text-ink`}
     >
       <Star size={18} strokeWidth={1.75} fill="none" />
     </button>

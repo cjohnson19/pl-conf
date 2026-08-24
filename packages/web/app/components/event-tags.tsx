@@ -7,6 +7,7 @@ import { type Tag, tagDisplayName } from "../lib/event";
 type TagFilter = {
   activeTags: ReadonlySet<Tag>;
   onToggle: (tag: Tag) => void;
+  onClear: () => void;
 };
 
 const TagFilterContext = createContext<TagFilter | null>(null);
@@ -25,22 +26,19 @@ export function TagFilterProvider({
   );
 }
 
-export function ConnectedEventTags({
-  tags,
-  className,
-}: {
-  tags: Tag[];
-  className?: string;
-}) {
+export function ConnectedEventTags({ tags }: { tags: Tag[] }) {
   const ctx = useContext(TagFilterContext);
   return (
     <EventTags
       tags={tags}
       activeTags={ctx?.activeTags}
       onToggle={ctx?.onToggle}
-      className={className}
     />
   );
+}
+
+export function useTagFilter(): TagFilter | null {
+  return useContext(TagFilterContext);
 }
 
 export function EventTags({
@@ -56,7 +54,7 @@ export function EventTags({
 }) {
   if (tags.length === 0) return null;
   const base =
-    "inline-flex h-[18px] items-center rounded-xs border px-1.5 font-mono text-[10px] font-medium uppercase leading-none tracking-[0.06em]";
+    "inline-flex h-[18px] items-center rounded-xs border px-1.5 font-mono text-[10px] font-medium leading-none tracking-[0.06em]";
   return (
     <ul
       className={clsx("flex flex-wrap items-center gap-1", className)}

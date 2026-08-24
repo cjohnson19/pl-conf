@@ -1,11 +1,11 @@
 import { spawn, spawnSync } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
+import { assembleStandalone } from "./lib/standalone";
 
 const ROOT = path.resolve(import.meta.dirname, "..");
 const WEB = path.join(ROOT, "packages", "web");
-const NEXT_DIR = path.join(WEB, ".next");
-const STANDALONE_WEB = path.join(NEXT_DIR, "standalone", "packages", "web");
+const STANDALONE_WEB = path.join(WEB, ".next", "standalone", "packages", "web");
 const SERVER_ENTRY = path.join(STANDALONE_WEB, "server.js");
 
 if (process.env.SKIP_BUILD !== "1") {
@@ -21,25 +21,7 @@ if (!fs.existsSync(SERVER_ENTRY)) {
   process.exit(1);
 }
 
-// next build's standalone output ships server.js without the static/public
-// assets — copy them next to the server so /_next/static/* and /public files
-// resolve. Mirrors the layout the ECS image deploys.
-fs.rmSync(path.join(STANDALONE_WEB, ".next", "static"), {
-  recursive: true,
-  force: true,
-});
-fs.rmSync(path.join(STANDALONE_WEB, "public"), {
-  recursive: true,
-  force: true,
-});
-fs.cpSync(
-  path.join(NEXT_DIR, "static"),
-  path.join(STANDALONE_WEB, ".next", "static"),
-  { recursive: true }
-);
-fs.cpSync(path.join(WEB, "public"), path.join(STANDALONE_WEB, "public"), {
-  recursive: true,
-});
+assembleStandalone(WEB, ".next");
 
 const port = process.env.PORT ?? "3000";
 const hostname = process.env.HOSTNAME ?? "127.0.0.1";

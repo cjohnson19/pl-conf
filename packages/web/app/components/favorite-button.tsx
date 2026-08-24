@@ -2,7 +2,8 @@
 
 import clsx from "clsx";
 import { Star } from "lucide-react";
-import { useFavorite } from "../lib/use-favorite";
+import { useFavorite } from "../hooks/use-favorite";
+import { rowIconButtonClass } from "./icon-button";
 
 export function FavoriteButton({ prefKey }: { prefKey: string }) {
   const { on, toggle } = useFavorite(prefKey);
@@ -18,10 +19,8 @@ export function FavoriteButton({ prefKey }: { prefKey: string }) {
         toggle();
       }}
       className={clsx(
-        "grid h-11 w-11 shrink-0 place-items-center border-0 bg-transparent transition-colors sm:h-8 sm:w-8",
-        on
-          ? "text-[color:var(--accent)] hover:text-[color:var(--accent)]"
-          : "text-ink-3 hover:text-ink"
+        rowIconButtonClass,
+        on ? "text-accent hover:text-accent" : "text-ink-3 hover:text-ink"
       )}
     >
       <Star size={18} strokeWidth={1.75} fill={on ? "currentColor" : "none"} />

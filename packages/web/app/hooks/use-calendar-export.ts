@@ -1,16 +1,17 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   hasConcreteDates,
   icalFeedPath,
   icalFileName,
   toGoogleCalendarLink,
-} from "./event";
-import type { DisplayEvent } from "./event-list-view";
-import { setPrefs, useDisplayPref } from "@/components/preferences-provider";
+} from "../lib/event";
+import type { DisplayEvent } from "../lib/event-list-view";
+import { setPrefs } from "../lib/preferences-store";
+import { useDisplayPref } from "@/components/preferences-provider";
 
-export type SubscribeUrls = {
+type SubscribeUrls = {
   httpsUrl: string;
   webcalUrl: string;
   googleSubscribeUrl: string;
@@ -30,11 +31,14 @@ export type CalendarExport = {
 
 export function useCalendarExport(event: DisplayEvent): CalendarExport {
   const includeDeadlines = useDisplayPref("includeCalendarDeadlines");
-  const setIncludeDeadlines = (v: boolean) =>
-    setPrefs((prev) => ({
-      ...prev,
-      display: { ...prev.display, includeCalendarDeadlines: v },
-    }));
+  const setIncludeDeadlines = useCallback(
+    (v: boolean) =>
+      setPrefs((prev) => ({
+        ...prev,
+        display: { ...prev.display, includeCalendarDeadlines: v },
+      })),
+    []
+  );
   const [copied, setCopied] = useState(false);
   const datesTBD = !hasConcreteDates(event);
 

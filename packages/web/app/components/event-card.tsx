@@ -6,9 +6,9 @@ import {
   eventKey,
   eventPath,
   eventYear2,
-  firstDeadline,
   formatDateRange,
-  isDeadlinePast,
+  hasOpenSubmissionAt,
+  roundsWithDates,
 } from "../lib/event";
 import type { DisplayEvent } from "../lib/event-list-view";
 import { FavoriteButton } from "./favorite-button";
@@ -30,13 +30,10 @@ function EventCardImpl({ event: e }: { event: DisplayEvent }) {
       ? formatDateRange(e.date.start, e.date.end, "short")
       : null;
 
-  const deadlineRounds = e.rounds.filter(
-    (r) => Object.keys(r.importantDates).length > 0
-  );
+  const deadlineRounds = roundsWithDates(e.rounds);
   const hasRelationships =
     e.partOfLinks.length > 0 || e.colocatedLinks.length > 0;
-  const firstDl = firstDeadline(e);
-  const openSubmission = firstDl !== undefined && !isDeadlinePast(firstDl, now);
+  const openSubmission = hasOpenSubmissionAt(now)(e);
 
   return (
     <div
@@ -49,11 +46,11 @@ function EventCardImpl({ event: e }: { event: DisplayEvent }) {
         <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1">
           <Link
             href={eventPath(e)}
-            className="font-ui text-[19px] font-bold leading-tight tracking-[-0.015em] text-ink no-underline transition-colors hover:text-[color:var(--accent)]"
+            className="font-ui text-[19px] font-bold leading-tight tracking-[-0.015em] text-ink no-underline transition-colors hover:text-accent"
           >
             {e.abbreviation} &rsquo;{year2}
           </Link>
-          {e.tags.length > 0 && <ConnectedEventTags tags={e.tags} />}
+          <ConnectedEventTags tags={e.tags} />
         </div>
         <div className="-my-2 -mr-1 flex shrink-0 items-center gap-0.5 [&_button]:h-8 [&_button]:w-8">
           <FavoriteButton prefKey={eventKey(e)} />

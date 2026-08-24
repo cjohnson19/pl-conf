@@ -29,8 +29,7 @@ function aoeDaysUntil(date: string, now: Date): number {
 
 export function shortCountdown(date: MaybeDate, now: Date): string {
   if (date === "TBD") return "TBD";
-  const instant = toAoeInstant(date);
-  if (!instant) return "TBD";
+  const instant = toAoeInstant(date)!;
   const days = aoeDaysUntil(date, now);
   if (days <= 0) {
     const ms = instant.getTime() - now.getTime();

@@ -6,9 +6,8 @@ import {
   eventKey,
   eventPath,
   eventYear2,
-  firstDeadline,
   formatDateRange,
-  isDeadlinePast,
+  hasOpenSubmissionAt,
   isDeadlineUrgent,
 } from "../lib/event";
 import type { DisplayEvent } from "../lib/event-list-view";
@@ -46,9 +45,7 @@ export function EventRow({
   const anchorDate: MaybeDate =
     dateAnchor === "event"
       ? e.date.start
-      : (leadDate ??
-        allDeadlines(e).find((d) => d !== undefined) ??
-        e.date.start);
+      : (leadDate ?? allDeadlines(e).at(0) ?? e.date.start);
 
   const urgent =
     dateAnchor === "deadline" && leadDate
@@ -59,8 +56,7 @@ export function EventRow({
   const showMultiRound = isMidMultiRound(e, now);
 
   const year2 = eventYear2(e);
-  const firstDl = firstDeadline(e);
-  const openSubmission = firstDl !== undefined && !isDeadlinePast(firstDl, now);
+  const openSubmission = hasOpenSubmissionAt(now)(e);
 
   return (
     <div
@@ -89,7 +85,7 @@ export function EventRow({
             {dayNum(anchorDate)}
           </div>
           <div
-            className="font-mono text-[11px] font-medium uppercase leading-none tracking-[0.08em] text-ink-2"
+            className="font-mono text-[11px] font-medium leading-none tracking-[0.08em] text-ink-2"
             suppressHydrationWarning
           >
             {monthShort(anchorDate)}
@@ -107,7 +103,7 @@ export function EventRow({
         <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1 font-ui text-[22px] font-bold leading-none tracking-[-0.015em]">
           <Link
             href={eventPath(e)}
-            className="text-ink no-underline decoration-1 underline-offset-[3px] transition-colors hover:text-[color:var(--accent)] hover:underline hover:decoration-[color:var(--accent)]"
+            className="text-ink no-underline decoration-1 underline-offset-[3px] transition-colors hover:text-accent hover:underline hover:decoration-accent"
           >
             {e.abbreviation}
           </Link>
@@ -116,13 +112,13 @@ export function EventRow({
           </span>
           {showMultiRound && (
             <span
-              className="inline-flex h-[18px] items-center rounded-xs border px-1.5 font-mono text-[10px] font-medium uppercase tracking-[0.06em] text-[color:var(--accent)]"
+              className="inline-flex h-[18px] items-center rounded-xs border px-1.5 font-mono text-[10px] font-medium tracking-[0.06em] text-accent"
               style={{ borderColor: "currentColor" }}
             >
               Round {(lead?.roundIdx ?? totalRounds - 1) + 1} / {totalRounds}
             </span>
           )}
-          {e.tags.length > 0 && <ConnectedEventTags tags={e.tags} />}
+          <ConnectedEventTags tags={e.tags} />
         </div>
         <EventNameLink event={e} />
         <RowMetadata event={e} />
@@ -187,7 +183,7 @@ function RowMetadata({ event: e }: { event: DisplayEvent }) {
       wideOnly: true,
     });
   return (
-    <div className="flex flex-wrap items-center gap-x-3 gap-y-1 whitespace-nowrap font-mono text-[11px] uppercase tracking-[0.04em] text-ink-3">
+    <div className="flex flex-wrap items-center gap-x-3 gap-y-1 whitespace-nowrap font-mono text-[11px] tracking-[0.04em] text-ink-3">
       {items.flatMap((item, i) => {
         const nodes: React.ReactNode[] = [];
         if (i > 0) {
@@ -198,7 +194,7 @@ function RowMetadata({ event: e }: { event: DisplayEvent }) {
               aria-hidden
               className={clsx(
                 "text-ink-3/60",
-                item.wideOnly && "hidden min-[1280px]:inline"
+                item.wideOnly && "hidden xl:inline"
               )}
             >
               ·
@@ -209,7 +205,7 @@ function RowMetadata({ event: e }: { event: DisplayEvent }) {
           <span
             // biome-ignore lint/suspicious/noArrayIndexKey: items list is built fresh each render with no preserved state
             key={`item-${i}`}
-            className={clsx(item.wideOnly && "hidden min-[1280px]:inline")}
+            className={clsx(item.wideOnly && "hidden xl:inline")}
           >
             {item.node}
           </span>

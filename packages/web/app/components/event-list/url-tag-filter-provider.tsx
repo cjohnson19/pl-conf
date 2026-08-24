@@ -2,20 +2,9 @@
 
 import { useCallback, useMemo, useTransition } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { type Tag, tagValues } from "../../lib/event";
+import type { Tag } from "../../lib/event";
+import { parseTagsParam } from "../../lib/filter-params";
 import { TagFilterProvider } from "../event-tags";
-
-const knownTags = new Set<string>(tagValues);
-
-function parseTags(raw: string | null): Set<Tag> {
-  if (!raw) return new Set();
-  return new Set(
-    raw
-      .split(",")
-      .map((t) => t.trim())
-      .filter((t): t is Tag => knownTags.has(t))
-  );
-}
 
 export function UrlTagFilterProvider({
   children,
@@ -27,15 +16,12 @@ export function UrlTagFilterProvider({
   const [, startTransition] = useTransition();
 
   const activeTags = useMemo(
-    () => parseTags(searchParams.get("tags")),
+    () => parseTagsParam(searchParams.get("tags")),
     [searchParams]
   );
 
-  const toggleTag = useCallback(
-    (tag: Tag) => {
-      const next = new Set(activeTags);
-      if (next.has(tag)) next.delete(tag);
-      else next.add(tag);
+  const writeTags = useCallback(
+    (next: Set<Tag>) => {
       // Read live URL, not the React snapshot, so we don't lose `q` written
       // by SearchProvider's debounced history.replaceState.
       const sp =
@@ -46,15 +32,27 @@ export function UrlTagFilterProvider({
       else sp.set("tags", Array.from(next).sort().join(","));
       const qs = sp.toString();
       startTransition(() => {
-        router.replace(qs ? `?${qs}` : "?");
+        router.replace(qs ? `?${qs}` : "?", { scroll: false });
       });
     },
-    [activeTags, searchParams, router]
+    [searchParams, router]
   );
 
+  const toggleTag = useCallback(
+    (tag: Tag) => {
+      const next = new Set(activeTags);
+      if (next.has(tag)) next.delete(tag);
+      else next.add(tag);
+      writeTags(next);
+    },
+    [activeTags, writeTags]
+  );
+
+  const clearTags = useCallback(() => writeTags(new Set()), [writeTags]);
+
   const value = useMemo(
-    () => ({ activeTags, onToggle: toggleTag }),
-    [activeTags, toggleTag]
+    () => ({ activeTags, onToggle: toggleTag, onClear: clearTags }),
+    [activeTags, toggleTag, clearTags]
   );
 
   return <TagFilterProvider value={value}>{children}</TagFilterProvider>;

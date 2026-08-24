@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1.7
 # Multi-stage build for the @pl-conf/web Next.js app running in SSR/standalone mode.
-# Used by the experiment CDK stack (packages/cdk/lib/pl-conf-experiment-stack.ts).
+# Used by the CDK stack (packages/cdk/lib/pl-conf-stack.ts).
 
 FROM node:22-alpine AS deps
 WORKDIR /app

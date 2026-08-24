@@ -12,6 +12,7 @@ import {
   eventYear2,
   formatDateRange,
   hasConcreteDates,
+  roundsWithDates,
 } from "../../../lib/event";
 import { toDisplayEvent } from "../../../lib/event-list-view";
 import {
@@ -23,6 +24,7 @@ import { BackToList } from "../../../components/event-page/back-to-list";
 import { EventActions } from "../../../components/event-page/event-actions";
 import { EventDeadlines } from "../../../components/event-page/event-deadlines";
 import { EventTags } from "../../../components/event-tags";
+import { hoverUnderlineClass } from "../../../components/event-row/shared";
 import { LastUpdated } from "../../../components/last-updated";
 
 const allEvents = Object.values(events);
@@ -81,8 +83,7 @@ export default async function EventPage({ params }: { params: Params }) {
   const dates = dateRange(e);
   const relations = resolveRelations(e, allEvents);
   const hasDeadlines =
-    e.importantDateUrl !== undefined ||
-    e.rounds.some((r) => Object.keys(r.importantDates).length > 0);
+    e.importantDateUrl !== undefined || roundsWithDates(e.rounds).length > 0;
 
   return (
     <article className="mx-auto max-w-[760px] px-5 pb-24 pt-10 md:px-8">
@@ -106,7 +107,9 @@ export default async function EventPage({ params }: { params: Params }) {
               rel="noopener"
               className="group/url inline-flex w-fit items-baseline gap-1.5 text-[16px] text-ink-2 no-underline"
             >
-              <span className="underline decoration-rule decoration-1 underline-offset-[3px] transition-[text-decoration-color] duration-200 ease-out group-hover/url:decoration-ink">
+              <span
+                className={`${hoverUnderlineClass} group-hover/url:decoration-ink`}
+              >
                 {e.name}
               </span>
               <ArrowUpRight
@@ -121,7 +124,7 @@ export default async function EventPage({ params }: { params: Params }) {
           )}
         </div>
 
-        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 font-mono text-[12px] uppercase tracking-[0.04em] text-ink-3">
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 font-mono text-[12px] tracking-[0.04em] text-ink-3">
           {e.location && <span className="text-ink-2">{e.location}</span>}
           {e.location && dates && (
             <span aria-hidden className="text-ink-3/60">
@@ -137,7 +140,7 @@ export default async function EventPage({ params }: { params: Params }) {
           {e.format && <span className="text-ink-2">{e.format}</span>}
         </div>
 
-        {e.tags.length > 0 && <EventTags tags={e.tags} />}
+        <EventTags tags={e.tags} />
 
         <EventActions event={toDisplayEvent(e)} prefKey={eventKey(e)} />
       </header>
@@ -153,7 +156,9 @@ export default async function EventPage({ params }: { params: Params }) {
                 rel="noopener"
                 className="group/src inline-flex shrink-0 items-center gap-1 text-[12px] text-ink-3 no-underline transition-colors hover:text-ink"
               >
-                <span className="underline decoration-rule decoration-1 underline-offset-[3px] transition-[text-decoration-color] duration-200 ease-out group-hover/src:decoration-ink">
+                <span
+                  className={`${hoverUnderlineClass} group-hover/src:decoration-ink`}
+                >
                   Official page
                 </span>
                 <ArrowUpRight
@@ -198,7 +203,7 @@ export default async function EventPage({ params }: { params: Params }) {
         parentLocation={e.location}
       />
 
-      <p className="mt-8 font-mono text-[11px] uppercase tracking-[0.04em] text-ink-3">
+      <p className="mt-8 font-mono text-[11px] tracking-[0.04em] text-ink-3">
         Last updated <LastUpdated date={e.lastUpdated} />
       </p>
     </article>
@@ -254,7 +259,7 @@ function RelationRow({
       className="group/rel flex items-baseline gap-x-4 gap-y-1 py-3 no-underline"
     >
       <span className="flex min-w-0 flex-1 flex-wrap items-baseline gap-x-2.5 gap-y-0.5">
-        <span className="font-ui text-[15px] font-bold tracking-[-0.015em] text-ink transition-colors group-hover/rel:text-[color:var(--accent)]">
+        <span className="font-ui text-[15px] font-bold tracking-[-0.015em] text-ink transition-colors group-hover/rel:text-accent">
           {r.abbreviation}
         </span>
         <span className="text-[14px] leading-[1.5] text-ink-2">{r.name}</span>
@@ -270,7 +275,7 @@ function RelationRow({
             </span>
           )}
           {location && (
-            <span className="font-mono text-[11px] uppercase tracking-[0.04em] text-ink-3">
+            <span className="font-mono text-[11px] tracking-[0.04em] text-ink-3">
               {location}
             </span>
           )}

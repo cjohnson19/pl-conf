@@ -7,10 +7,11 @@ import {
   type Round,
   isDeadlinePast,
   isDeadlineUrgent,
+  roundEntries,
 } from "../../lib/event";
 import type { DisplayEvent, RelatedLink } from "../../lib/event-list-view";
 
-export type ChipKind = "past" | "next" | "default";
+type ChipKind = "past" | "next" | "default";
 
 export type RailRow = {
   name: DateName;
@@ -19,20 +20,30 @@ export type RailRow = {
   urgent?: boolean;
 };
 
+// Base classes for the animated hover underline; compose with the caller's
+// group-hover/<name>:decoration-ink variant.
+export const hoverUnderlineClass =
+  "underline decoration-rule decoration-1 underline-offset-[3px] transition-[text-decoration-color] duration-200 ease-out";
+
+export function deadlineToneClass(r: Pick<RailRow, "kind" | "urgent">): string {
+  if (r.kind !== "next") return "text-ink-3";
+  return r.urgent ? "text-hot" : "text-accent";
+}
+
+export function roundLabel(round: Round, idx: number): string {
+  return round.name ?? `Round ${idx + 1}`;
+}
+
 export function buildRoundRows(
   round: Round,
   now: Date,
   highlightNext = true
 ): RailRow[] {
-  const entries = (
-    Object.entries(round.importantDates) as Array<[DateName, MaybeDate]>
-  )
-    .filter(([, d]) => d !== undefined)
-    .sort(([, a], [, b]) => {
-      if (a === "TBD") return 1;
-      if (b === "TBD") return -1;
-      return a < b ? -1 : 1;
-    });
+  const entries = roundEntries(round).sort(([, a], [, b]) => {
+    if (a === "TBD") return 1;
+    if (b === "TBD") return -1;
+    return a < b ? -1 : 1;
+  });
   const nextName = highlightNext
     ? entries.find(([, d]) => d !== "TBD" && !isDeadlinePast(d, now))?.[0]
     : undefined;
@@ -51,23 +62,10 @@ export function buildRoundRows(
   });
 }
 
-export function EventNameLink({
-  event: e,
-  className,
-  iconSize = 11,
-}: {
-  event: DisplayEvent;
-  className?: string;
-  iconSize?: number;
-}) {
+export function EventNameLink({ event: e }: { event: DisplayEvent }) {
   if (!e.url) {
     return (
-      <div
-        className={
-          className ??
-          "overflow-hidden text-ellipsis whitespace-nowrap text-[13px] text-ink-2"
-        }
-      >
+      <div className="overflow-hidden text-ellipsis whitespace-nowrap text-[13px] text-ink-2">
         {e.name}
       </div>
     );
@@ -77,17 +75,16 @@ export function EventNameLink({
       href={e.url}
       target="_blank"
       aria-label={`Open ${e.abbreviation} website`}
-      className={
-        className ??
-        "group/url flex w-fit min-w-0 max-w-full items-baseline gap-1.5 text-[13px] text-ink-2 no-underline"
-      }
+      className="group/url flex w-fit min-w-0 max-w-full items-baseline gap-1.5 text-[13px] text-ink-2 no-underline"
       rel="noopener"
     >
-      <span className="min-w-0 truncate underline decoration-rule decoration-1 underline-offset-[3px] transition-[text-decoration-color] duration-200 ease-out group-hover/url:decoration-ink">
+      <span
+        className={`min-w-0 truncate ${hoverUnderlineClass} group-hover/url:decoration-ink`}
+      >
         {e.name}
       </span>
       <ArrowUpRight
-        size={iconSize}
+        size={11}
         strokeWidth={1.75}
         className="shrink-0 self-center text-ink-3 transition-all duration-200 ease-out group-hover/url:translate-x-0.5 group-hover/url:-translate-y-0.5 group-hover/url:text-ink"
         aria-hidden
@@ -127,7 +124,9 @@ export function DatesDeadlinesLink({ href }: { href: string }) {
       className="group/dates inline-flex items-center gap-1 self-start text-[12px] font-medium text-ink no-underline"
       rel="noopener"
     >
-      <span className="underline decoration-rule decoration-1 underline-offset-[3px] transition-[text-decoration-color] duration-200 ease-out group-hover/dates:decoration-ink">
+      <span
+        className={`${hoverUnderlineClass} group-hover/dates:decoration-ink`}
+      >
         Dates &amp; Deadlines
       </span>
       <ArrowUpRight

@@ -2,6 +2,10 @@
 
 import dynamic from "next/dynamic";
 import { HelpCircle, Plus, Settings } from "lucide-react";
+import {
+  headerIconButtonClass,
+  headerOutlinedIconButtonClass,
+} from "./icon-button";
 
 const HelpPopover = dynamic(
   () => import("./help-popover").then((m) => ({ default: m.HelpPopover })),
@@ -11,7 +15,7 @@ const HelpPopover = dynamic(
       <button
         type="button"
         aria-label="How this site works"
-        className="grid h-11 w-11 place-items-center rounded-pill text-ink-2 sm:h-[34px] sm:w-[34px]"
+        className={headerIconButtonClass}
       >
         <HelpCircle size={17} strokeWidth={1.75} />
       </button>
@@ -31,7 +35,7 @@ const SubmitEventPopover = dynamic(
         type="button"
         aria-label="Submit event"
         title="Submit event"
-        className="grid h-11 w-11 shrink-0 place-items-center rounded-pill border border-rule text-ink-2 sm:h-[34px] sm:w-[34px]"
+        className={headerOutlinedIconButtonClass}
       >
         <Plus size={16} strokeWidth={1.75} />
       </button>
@@ -48,7 +52,7 @@ const SettingsPopover = dynamic(
       <button
         type="button"
         aria-label="Display settings"
-        className="grid h-11 w-11 place-items-center rounded-pill text-ink-2 sm:h-[34px] sm:w-[34px]"
+        className={headerIconButtonClass}
       >
         <Settings size={17} strokeWidth={1.75} />
       </button>

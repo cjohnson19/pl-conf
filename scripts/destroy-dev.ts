@@ -5,38 +5,18 @@
 // images are tagged by content hash and shared across stacks, so we capture
 // the tags this stack referenced *before* destroying, then delete them after.
 
-import { execSync } from "node:child_process";
-import * as path from "node:path";
-import { fileURLToPath } from "node:url";
+import { CDK_DIR, run, stackName, tryExec } from "./lib/exec";
 
-const ROOT_DIR = path.join(path.dirname(fileURLToPath(import.meta.url)), "..");
-const CDK_DIR = path.join(ROOT_DIR, "packages", "cdk");
-const STACK_NAME = "PlConf-dev";
-
-function run(command: string, options?: { cwd?: string }) {
-  console.log(`\n$ ${command}\n`);
-  execSync(command, { stdio: "inherit", cwd: options?.cwd ?? ROOT_DIR });
-}
-
-function tryExec(command: string): string | undefined {
-  try {
-    return execSync(command, {
-      encoding: "utf-8",
-      stdio: ["pipe", "pipe", "pipe"],
-    }).trim();
-  } catch {
-    return undefined;
-  }
-}
+const STACK_NAME = stackName("dev");
 
 interface AssetImage {
   repository: string;
   tag: string;
 }
 
-function getAssetImages(stackName: string): AssetImage[] {
+function getAssetImages(stack: string): AssetImage[] {
   const template = tryExec(
-    `aws cloudformation get-template --stack-name ${stackName} --query TemplateBody --output json`
+    `aws cloudformation get-template --stack-name ${stack} --query TemplateBody --output json`
   );
   if (!template) return [];
 

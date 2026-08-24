@@ -8,8 +8,6 @@ import {
 } from "@/lib/user-prefs";
 import { preferencesStore, setPrefs } from "@/lib/preferences-store";
 
-export { setPrefs };
-
 export function PreferencesProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     preferencesStore.hydrateFromStorage();
@@ -27,12 +25,7 @@ export function usePreferences() {
     preferencesStore.getPrefs,
     getServerPrefs
   );
-  const prefsLoaded = useSyncExternalStore(
-    preferencesStore.subscribe,
-    preferencesStore.isLoaded,
-    returnFalse
-  );
-  return { prefs, setPrefs, prefsLoaded };
+  return { prefs, setPrefs, prefsLoaded: usePrefsLoaded() };
 }
 
 export function useEventPrefs() {

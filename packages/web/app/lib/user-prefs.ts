@@ -26,3 +26,17 @@ export const defaultPreferences: PreferenceCollection = {
     layout: "list",
   },
 };
+
+// Starred keys usually exclude hidden events — a hidden event's star shouldn't
+// count toward badges or heroes. `includeHidden` is for consumers that operate
+// on the row itself (star toggling, per-row CSS), where hidden rows still exist.
+export function collectStarredKeys(
+  eventPrefs: PreferenceCollection["eventPrefs"],
+  options: { includeHidden?: boolean } = {}
+): Set<string> {
+  return new Set(
+    Object.entries(eventPrefs)
+      .filter(([, v]) => v?.favorite && (options.includeHidden || !v.hidden))
+      .map(([k]) => k)
+  );
+}

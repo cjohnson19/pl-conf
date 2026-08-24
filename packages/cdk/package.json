@@ -5,9 +5,7 @@
   "type": "module",
   "scripts": {
     "typecheck": "tsc --noEmit",
-    "cdk": "cdk",
     "synth": "cdk synth",
-    "deploy": "cdk deploy",
     "diff": "cdk diff"
   },
   "dependencies": {

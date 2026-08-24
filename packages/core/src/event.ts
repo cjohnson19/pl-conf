@@ -1,4 +1,10 @@
-import type { DateName, MaybeDate, ScheduledEvent, Tag } from "./schemas";
+import type {
+  DateName,
+  MaybeDate,
+  Round,
+  ScheduledEvent,
+  Tag,
+} from "./schemas";
 
 export const eventTypes = ["conference", "workshop", "symposium"] as const;
 
@@ -32,7 +38,6 @@ export type {
   EventType,
   Round,
   ScheduledEvent,
-  SubmissionSchema,
   Tag,
 } from "./schemas";
 
@@ -111,8 +116,20 @@ export function icalFeedPath(
   return `/ical/${icalFileName(e, withDeadlines)}`;
 }
 
+export function roundsWithDates(rounds: Round[]): Round[] {
+  return rounds.filter((r) => Object.keys(r.importantDates).length > 0);
+}
+
+export function roundEntries(r: Round): Array<[DateName, MaybeDate]> {
+  return Object.entries(r.importantDates) as Array<[DateName, MaybeDate]>;
+}
+
+export function roundDeadlines(r: Round): MaybeDate[] {
+  return Object.values(r.importantDates);
+}
+
 export function allDeadlines(e: Pick<ScheduledEvent, "rounds">): MaybeDate[] {
-  return e.rounds.flatMap((r) => Object.values(r.importantDates));
+  return e.rounds.flatMap(roundDeadlines);
 }
 
 export function firstDeadline(
@@ -122,10 +139,6 @@ export function firstDeadline(
   return dates.length === 0
     ? undefined
     : dates.reduce((min, d) => (d < min ? d : min));
-}
-
-export function hasMultipleRounds(e: Pick<ScheduledEvent, "rounds">): boolean {
-  return e.rounds.length > 1 || e.rounds.some((r) => r.name !== undefined);
 }
 
 export function isDeadline(name: DateName): boolean {
@@ -240,7 +253,7 @@ export function isDeadlinePast(
 }
 
 // 14 days
-export const URGENT_WINDOW_MS = 14 * 86_400_000;
+const URGENT_WINDOW_MS = 14 * 86_400_000;
 
 export function isDeadlineUrgent(
   date: MaybeDate,
@@ -276,7 +289,7 @@ export function formatDate(
   if (date === "TBD") return "TBD";
   const instant = timeBearingStyles.has(style)
     ? toAoeInstant(date)!
-    : new Date(date);
+    : toCalendarDate(date)!;
   return getFormatter(style, locale).format(instant);
 }
 
@@ -288,8 +301,8 @@ export function formatDateRange(
 ): string {
   if (start === "TBD" || end === "TBD") return "TBD";
   return getFormatter(style, locale).formatRange(
-    new Date(start),
-    new Date(end)
+    toCalendarDate(start)!,
+    toCalendarDate(end)!
   );
 }
 

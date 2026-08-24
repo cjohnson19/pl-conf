@@ -1,17 +1,19 @@
 "use client";
 
 import clsx from "clsx";
-import type { Round } from "../../lib/event";
+import { type Round, roundsWithDates } from "../../lib/event";
 import { dateNameShort, roundShortDate } from "../../lib/date-formatters";
 import { shortCountdown } from "../../lib/countdown";
 import { useNow } from "../event-list/now-provider";
-import { buildRoundRows } from "../event-row/shared";
+import {
+  buildRoundRows,
+  deadlineToneClass,
+  roundLabel,
+} from "../event-row/shared";
 
 export function EventDeadlines({ rounds }: { rounds: Round[] }) {
   const now = useNow();
-  const deadlineRounds = rounds.filter(
-    (r) => Object.keys(r.importantDates).length > 0
-  );
+  const deadlineRounds = roundsWithDates(rounds);
   if (deadlineRounds.length === 0) return null;
 
   return (
@@ -23,7 +25,7 @@ export function EventDeadlines({ rounds }: { rounds: Round[] }) {
           <div key={round.name ?? idx} className="flex flex-col gap-3">
             {deadlineRounds.length > 1 && (
               <div className="font-mono text-[11px] font-medium tracking-[0.06em] text-ink-3">
-                {round.name ?? `Round ${idx + 1}`}
+                {roundLabel(round, idx)}
               </div>
             )}
             <ul className="flex flex-col">
@@ -55,7 +57,7 @@ export function EventDeadlines({ rounds }: { rounds: Round[] }) {
                       )}
                       suppressHydrationWarning
                     >
-                      {r.date === "TBD" ? "TBD" : roundShortDate(r.date)}
+                      {roundShortDate(r.date)}
                     </span>
                     <span className="flex w-20 shrink-0 items-baseline gap-2">
                       {r.date !== "TBD" && (
@@ -67,11 +69,7 @@ export function EventDeadlines({ rounds }: { rounds: Round[] }) {
                           <span
                             className={clsx(
                               "whitespace-nowrap font-mono text-[11px]",
-                              next
-                                ? r.urgent
-                                  ? "text-hot"
-                                  : "text-[color:var(--accent)]"
-                                : "text-ink-3"
+                              deadlineToneClass(r)
                             )}
                             suppressHydrationWarning
                           >

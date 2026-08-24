@@ -3,7 +3,7 @@ import type { DisplayEvent } from "../../lib/event-list-view";
 import { roundStatuses } from "../../lib/deadline";
 import { dateNameShort, roundShortDate } from "../../lib/date-formatters";
 import { type RoundSlot, pickMultiRoundSlots } from "./rail-slots";
-import { type RailRow, buildRoundRows } from "./shared";
+import { type RailRow, buildRoundRows, deadlineToneClass } from "./shared";
 
 export function RoundRail({
   event: e,
@@ -50,17 +50,10 @@ function DateRow({ row: r }: { row: RailRow }) {
     >
       <span>{dateNameShort(r.name)}</span>
       <span
-        className={clsx(
-          "font-mono text-[11px]",
-          r.kind === "next"
-            ? r.urgent
-              ? "text-hot"
-              : "text-[color:var(--accent)]"
-            : "text-ink-3"
-        )}
+        className={clsx("font-mono text-[11px]", deadlineToneClass(r))}
         suppressHydrationWarning
       >
-        {r.date === "TBD" ? "TBD" : roundShortDate(r.date)}
+        {roundShortDate(r.date)}
       </span>
     </div>
   );
@@ -90,8 +83,8 @@ function RoundColumn({
   const active = slot.status === "active";
   const rows = buildRoundRows(round, now, active);
   const urgent = active && rows.some((r) => r.kind === "next" && r.urgent);
-  const accentClass = urgent ? "text-hot" : "text-[color:var(--accent)]";
-  const borderClass = urgent ? "border-hot" : "border-[color:var(--accent)]";
+  const accentClass = urgent ? "text-hot" : "text-accent";
+  const borderClass = urgent ? "border-hot" : "border-accent";
   return (
     <div
       className={clsx(
@@ -101,7 +94,7 @@ function RoundColumn({
     >
       <div
         className={clsx(
-          "flex items-baseline gap-2 font-mono text-[10px] font-medium uppercase tracking-[0.08em]",
+          "flex items-baseline gap-2 font-mono text-[10px] font-medium tracking-[0.08em]",
           active ? accentClass : "text-ink-3"
         )}
       >

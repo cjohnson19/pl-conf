@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo } from "react";
 import { useSearchParams } from "next/navigation";
+import { eventKeySelector } from "../../lib/row-css";
 import { useEventPrefs, usePrefsLoaded } from "../preferences-provider";
 
 const PREPAINT_STYLE_ID = "pl-prepaint-visibility";
@@ -23,16 +24,12 @@ export function VisibilityStyle() {
     const entries = Object.entries(eventPrefs);
     const hidden = entries.filter(([, v]) => v?.hidden).map(([k]) => k);
     const starred = entries.filter(([, v]) => v?.favorite).map(([k]) => k);
-    css += hidden
-      .map((k) => `[data-event-key="${CSS.escape(k)}"]{display:none}`)
-      .join("");
+    css += hidden.map((k) => `${eventKeySelector(k)}{display:none}`).join("");
     if (view === "starred") {
       if (starred.length === 0) {
         css += "[data-event-key]{display:none}[data-group-keys]{display:none}";
       } else {
-        const sel = starred
-          .map((k) => `[data-event-key="${CSS.escape(k)}"]`)
-          .join(",");
+        const sel = starred.map(eventKeySelector).join(",");
         css += `[data-event-key]:not(${sel}){display:none}`;
         css += `[data-group-keys]:not(:has(${sel})){display:none}`;
       }

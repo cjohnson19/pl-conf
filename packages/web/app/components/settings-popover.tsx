@@ -1,6 +1,7 @@
 "use client";
 
 import { RotateCcw, Settings } from "lucide-react";
+import { headerIconButtonClass } from "./icon-button";
 import { Popover, PopoverTrigger, PopoverContent } from "./ui/popover";
 import { usePreferences } from "./preferences-provider";
 import clsx from "clsx";
@@ -33,16 +34,14 @@ function ToggleRow({
       <span
         aria-hidden
         className={clsx(
-          "mt-0.5 inline-flex h-5 w-9 shrink-0 items-center rounded-pill border transition-colors",
-          checked ? "border-ink bg-ink" : "border-rule bg-[color:var(--paper)]"
+          "mt-0.5 inline-flex h-5 w-9 shrink-0 items-center rounded-full border transition-colors",
+          checked ? "border-ink bg-ink" : "border-rule bg-paper"
         )}
       >
         <span
           className={clsx(
-            "ml-0.5 inline-block h-4 w-4 rounded-pill transition-transform",
-            checked
-              ? "translate-x-4 bg-paper"
-              : "translate-x-0 bg-[color:var(--ink-3)]"
+            "ml-0.5 inline-block h-4 w-4 rounded-full transition-transform",
+            checked ? "translate-x-4 bg-paper" : "translate-x-0 bg-ink-3"
           )}
         />
       </span>
@@ -76,7 +75,7 @@ export function SettingsPopover() {
           type="button"
           aria-label="Display settings"
           title="Display settings"
-          className="grid h-11 w-11 place-items-center rounded-pill text-ink-2 transition-colors hover:bg-paper-2 hover:text-ink data-[state=open]:bg-paper-2 data-[state=open]:text-ink sm:h-[34px] sm:w-[34px]"
+          className={headerIconButtonClass}
         >
           <Settings size={17} strokeWidth={1.75} />
         </button>
@@ -84,8 +83,7 @@ export function SettingsPopover() {
       <PopoverContent
         align="end"
         sideOffset={8}
-        className="w-[min(320px,calc(100vw-2rem))] border-rule p-4 shadow-pop"
-        style={{ background: "var(--card)" }}
+        className="w-[min(320px,calc(100vw-2rem))]"
       >
         <p className="label-cap mb-3">Deadline alerts</p>
 
@@ -106,7 +104,7 @@ export function SettingsPopover() {
             type="button"
             onClick={clearAllHidden}
             disabled={hiddenCount === 0}
-            className="inline-flex h-8 items-center gap-1.5 rounded-pill border border-rule bg-transparent px-3 text-[12px] font-medium text-ink-2 transition-colors hover:border-ink hover:text-ink disabled:cursor-not-allowed disabled:border-rule disabled:text-ink-3 disabled:hover:border-rule"
+            className="inline-flex h-8 items-center gap-1.5 rounded-full border border-rule bg-transparent px-3 text-[12px] font-medium text-ink-2 transition-colors hover:border-ink hover:text-ink disabled:cursor-not-allowed disabled:border-rule disabled:text-ink-3 disabled:hover:border-rule"
           >
             <RotateCcw size={12} strokeWidth={1.75} />
             Reset hidden

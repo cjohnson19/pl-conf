@@ -7,6 +7,7 @@ import {
   type DisplayEvent,
 } from "../../lib/event-list-view";
 import { useCounts } from "./counts-context";
+import { EmptyNote } from "./empty-note";
 import { useSearchQuery } from "./search-provider";
 
 export function SearchEmptyState({ events }: { events: DisplayEvent[] }) {
@@ -27,9 +28,5 @@ export function SearchEmptyState({ events }: { events: DisplayEvent[] }) {
   }, [needle, events, matchesActiveView]);
 
   if (needle === "" || anyMatch) return null;
-  return (
-    <div className="px-5 py-8 text-[13px] text-ink-3 md:px-8">
-      No events match “{query}”.
-    </div>
-  );
+  return <EmptyNote>No events match “{query}”.</EmptyNote>;
 }

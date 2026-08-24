@@ -1,27 +1,24 @@
 "use client";
 
 import { useEffect } from "react";
-import { preferencesStore, setPrefs } from "@/lib/preferences-store";
+import { preferencesStore, toggleFavorite } from "@/lib/preferences-store";
+import { starSelector } from "@/lib/row-css";
+import { collectStarredKeys } from "@/lib/user-prefs";
 
 const SELECTOR = "[data-pl-star]";
 const STYLE_ID = "pl-stars";
 const PREPAINT_STYLE_ID = "pl-prepaint-stars";
 
-function buildSelector(key: string): string {
-  return `[data-pl-star][data-pref-key="${CSS.escape(key)}"]`;
-}
-
 function findButton(key: string): HTMLElement | null {
-  return document.querySelector<HTMLElement>(buildSelector(key));
+  return document.querySelector<HTMLElement>(starSelector(key));
 }
 
+// Hidden rows still render their star button, so the style must cover hidden
+// favorites too — unlike badge counts, which exclude them.
 function collectStarred(): Set<string> {
-  const out = new Set<string>();
-  const eventPrefs = preferencesStore.getPrefs().eventPrefs;
-  for (const [k, v] of Object.entries(eventPrefs)) {
-    if (v?.favorite) out.add(k);
-  }
-  return out;
+  return collectStarredKeys(preferencesStore.getPrefs().eventPrefs, {
+    includeHidden: true,
+  });
 }
 
 // Replaces ~97 hydrated FavoriteButton islands with a single click listener
@@ -55,7 +52,7 @@ export function StarDelegate() {
       if (next.size === 0) {
         styleEl.textContent = "";
       } else {
-        const sel = Array.from(next).map(buildSelector).join(",");
+        const sel = Array.from(next).map(starSelector).join(",");
         styleEl.textContent = `${sel}{color:var(--accent)}${sel} svg{fill:currentColor}`;
       }
       prev = next;
@@ -68,16 +65,7 @@ export function StarDelegate() {
       const key = btn.dataset.prefKey;
       if (!key) return;
       e.stopPropagation();
-      setPrefs((p) => ({
-        ...p,
-        eventPrefs: {
-          ...p.eventPrefs,
-          [key]: {
-            ...p.eventPrefs[key],
-            favorite: !(p.eventPrefs[key]?.favorite ?? false),
-          },
-        },
-      }));
+      toggleFavorite(key);
     };
 
     document.addEventListener("click", onClick);

@@ -26,5 +26,4 @@ new PlConfStack(app, `PlConf-${stage}`, {
   domainName,
   submissionApiUrl,
   env,
-  crossRegionReferences: true,
 });

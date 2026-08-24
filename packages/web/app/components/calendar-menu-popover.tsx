@@ -16,11 +16,10 @@ import {
   ExportOptions,
   ExportRowContent,
 } from "./export-options";
-import { useCalendarExport } from "../lib/use-calendar-export";
+import { useCalendarExport } from "../hooks/use-calendar-export";
 import type { DisplayEvent } from "../lib/event-list-view";
 
-const itemClass =
-  "cursor-pointer rounded-md px-3 py-2.5 text-[13px] text-ink focus:bg-paper-2 focus:text-ink";
+const itemClass = "cursor-pointer rounded-md px-3 py-2.5 text-[13px] text-ink";
 
 function MenuItem({ href, download, icon, title, sub }: ExportItemProps) {
   return (
@@ -54,7 +53,7 @@ function MenuCopyItem({ onSelect, icon, title, sub }: CopyItemProps) {
 }
 
 function MenuSeparator() {
-  return <DropdownMenuSeparator className="mx-1.5 bg-rule" />;
+  return <DropdownMenuSeparator className="mx-1.5" />;
 }
 
 export function CalendarMenuPopover({
@@ -81,8 +80,7 @@ export function CalendarMenuPopover({
       <DropdownMenuContent
         align="end"
         sideOffset={6}
-        className="w-[280px] rounded-lg border border-rule p-1 shadow-pop"
-        style={{ background: "var(--card)" }}
+        className="w-[280px] rounded-lg p-1"
       >
         <ExportOptions
           variant="menu"

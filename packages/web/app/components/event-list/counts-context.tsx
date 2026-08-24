@@ -8,27 +8,17 @@ import {
   useMemo,
 } from "react";
 import { useSearchParams } from "next/navigation";
-import { type Tag, tagValues } from "../../lib/event";
-import type { Category, View } from "../../lib/filter-params";
-import type { CountableEvent, ViewCounts } from "../../lib/event-list-view";
+import { computeCounts, type Counts } from "../../lib/counts";
+import type { CountableEvent } from "../../lib/event-list-view";
+import {
+  parseCategoryParam,
+  parseTagsParam,
+  parseViewParam,
+} from "../../lib/filter-params";
+import { collectStarredKeys } from "../../lib/user-prefs";
 import { useEventPrefs, usePrefsLoaded } from "../preferences-provider";
 
-const CATEGORY_KEYS: Category[] = [
-  "all",
-  "conference",
-  "workshop",
-  "symposium",
-  "school",
-];
-const VIEW_KEYS: View[] = ["starred", "all", "submissions", "archive"];
-const KNOWN_TAGS = new Set<string>(tagValues);
-
-type CountsContextValue = {
-  categoryCounts: Record<Category, number>;
-  tagCounts: Record<Tag, number>;
-  viewCounts: ViewCounts;
-  totalActive: number;
-  dueThisWeek: number;
+type CountsContextValue = Counts & {
   // Count events in a date group that are still visible under the active view
   // (starred / submissions / all) AND not user-hidden. Used by per-group
   // headers so e.g. "May 30 · 5 events" matches the number of rows the user
@@ -53,15 +43,18 @@ export function CountsProvider({
   const eventPrefs = useEventPrefs();
   const prefsLoaded = usePrefsLoaded();
   const searchParams = useSearchParams();
-  const category = readCategory(searchParams.get("c"));
-  const activeTags = readTags(searchParams.get("tags"));
-  const view = readView(searchParams.get("view"));
+  const category = parseCategoryParam(searchParams.get("c"));
+  const activeTags = parseTagsParam(searchParams.get("tags"));
+  const view = parseViewParam(searchParams.get("view"));
 
   const keyMap = useMemo(
     () => new Map(events.map((e) => [e.key, e])),
     [events]
   );
-  const starredKeys = useMemo(() => collectStarred(eventPrefs), [eventPrefs]);
+  const starredKeys = useMemo(
+    () => collectStarredKeys(eventPrefs),
+    [eventPrefs]
+  );
 
   const matchesActiveView = useCallback(
     (key: string): boolean => {
@@ -91,64 +84,14 @@ export function CountsProvider({
     // same shape as the SSR counts. After hydration, hidden events drop out
     // and counts shift to reflect what's visible on screen.
     const visible = events.filter((e) => !eventPrefs[e.key]?.hidden);
-    const visibleActive = visible.filter((e) => !e.archived);
-    const visibleArchived = visible.filter((e) => e.archived);
-    // Mirrors computeEventListView: the chips and tag counts describe whichever
-    // pool the list is showing, while the tabs always report on both.
-    const listed = view === "archive" ? visibleArchived : visibleActive;
-
-    const categoryCounts: Record<Category, number> = {
-      all: listed.length,
-      conference: 0,
-      workshop: 0,
-      symposium: 0,
-      school: 0,
-    };
-    listed.forEach((e) => {
-      categoryCounts[e.category] = (categoryCounts[e.category] ?? 0) + 1;
-    });
-
-    const byChips = (list: CountableEvent[]) =>
-      list
-        .filter((e) => category === "all" || e.category === category)
-        .filter(
-          (e) => activeTags.size === 0 || e.tags.some((t) => activeTags.has(t))
-        );
-
-    const preTagFiltered =
-      category === "all"
-        ? listed
-        : listed.filter((e) => e.category === category);
-    const tagCounts = Object.fromEntries(
-      tagValues.map((t) => [t, 0])
-    ) as Record<Tag, number>;
-    preTagFiltered.forEach((e) => {
-      e.tags.forEach((t) => {
-        tagCounts[t] += 1;
-      });
-    });
-
-    const activeFiltered = byChips(visibleActive);
-
-    const viewCounts: ViewCounts = {
-      // Match prior SSR semantics: until prefs hydrate, "Starred" count is
-      // unknown, so suppress the badge instead of showing a misleading 0.
-      starred: prefsLoaded
-        ? activeFiltered.filter((e) => starredKeys.has(e.key)).length
-        : null,
-      all: activeFiltered.length,
-      submissions: activeFiltered.filter((e) => e.hasOpenSubmission).length,
-      archive: byChips(visibleArchived).length,
-    };
-
-    const dueThisWeek = activeFiltered.filter((e) => e.dueThisWeek).length;
-
     return {
-      categoryCounts,
-      tagCounts,
-      viewCounts,
-      totalActive: visibleActive.length,
-      dueThisWeek,
+      ...computeCounts(visible, {
+        category,
+        tags: activeTags,
+        view,
+        starredKeys,
+        starredLoaded: prefsLoaded,
+      }),
       countGroup,
       matchesActiveView,
     };
@@ -199,37 +142,4 @@ export function DueThisWeekPhrase() {
       {dueThisWeek === 1 ? "" : "s"} this week
     </span>
   );
-}
-
-function readCategory(raw: string | null): Category {
-  return raw && (CATEGORY_KEYS as string[]).includes(raw)
-    ? (raw as Category)
-    : "all";
-}
-
-function readView(raw: string | null): View {
-  return raw && (VIEW_KEYS as string[]).includes(raw) ? (raw as View) : "all";
-}
-
-function readTags(raw: string | null): Set<Tag> {
-  if (!raw) return new Set();
-  return new Set(
-    raw
-      .split(",")
-      .map((t) => t.trim())
-      .filter((t): t is Tag => KNOWN_TAGS.has(t))
-  );
-}
-
-function collectStarred(
-  eventPrefs: Record<
-    string,
-    { favorite?: boolean; hidden?: boolean } | undefined
-  >
-): Set<string> {
-  const out = new Set<string>();
-  Object.entries(eventPrefs).forEach(([k, v]) => {
-    if (v?.favorite && !v?.hidden) out.add(k);
-  });
-  return out;
 }

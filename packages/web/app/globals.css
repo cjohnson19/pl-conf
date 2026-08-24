@@ -19,44 +19,15 @@
     --ink-2: #54514a;
     --ink-3: #6e6b62;
     --rule: #d9d3c5;
-    --rule-strong: #b3ac9b;
 
     /* Accents (used sparingly) */
     --accent: #26221a;
     --hot: #763ebd;
-    --past: #b3ac9b;
-
-    /* Radii */
-    --r-xs: 2px;
-    --r-sm: 4px;
-    --r-md: 6px;
-    --r-lg: 8px;
-    --r-pill: 9999px;
-    --radius: 0.5rem;
 
     /* Shadow */
     --shadow-sm: 0 1px 2px rgba(20, 19, 15, 0.04);
     --shadow-md: 0 4px 16px rgba(20, 19, 15, 0.06);
     --shadow-pop: 0 8px 32px rgba(20, 19, 15, 0.1);
-
-    /* shadcn aliases — kept so untouched primitives still resolve */
-    --background: 44 33% 94%;
-    --foreground: 45 9% 7%;
-    --card-foreground: 45 9% 7%;
-    --popover: 48 35% 97%;
-    --popover-foreground: 45 9% 7%;
-    --primary: 45 9% 7%;
-    --primary-foreground: 44 33% 94%;
-    --secondary: 40 25% 88%;
-    --secondary-foreground: 45 9% 7%;
-    --muted: 40 25% 88%;
-    --muted-foreground: 42 7% 31%;
-    --accent-foreground: 0 0% 100%;
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 40 30% 81%;
-    --input: 40 30% 81%;
-    --ring: 45 9% 7%;
   }
 
   .dark {
@@ -70,13 +41,14 @@
 
     --accent: #e8e2d4;
     --hot: #b191ea;
-    --past: #4a463b;
 
     --shadow-sm: 0 0 0 transparent;
     --shadow-md: 0 0 0 transparent;
     --shadow-pop: 0 0 0 transparent;
   }
 
+  /* Referenced only from an inline style string in
+     event-list/list-skeleton.tsx, so it is invisible to class scanning. */
   @keyframes skeleton-in {
     from {
       opacity: 0;
@@ -88,18 +60,20 @@
 }
 
 @layer base {
-  * {
-    border-color: var(--rule);
-  }
   body {
     background: var(--paper);
     color: var(--ink);
+    font-family: var(--font-ui);
+    font-size: 14px;
+    line-height: 1.5;
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
   }
 }
 
 @layer utilities {
+  /* Design guard: this palette sets everything in mixed case — neutralize
+     Tailwind's `uppercase` so a stray class can't reintroduce it. */
   .uppercase {
     text-transform: none;
   }
@@ -142,7 +116,6 @@
   }
   @container row (min-width: 420px) {
     .event-row-grid--no-date {
-      grid-template-columns: 1fr 44px;
       gap: 0.75rem;
     }
   }
@@ -158,18 +131,5 @@
       grid-template-columns: minmax(0, 1.6fr) minmax(0, 2fr) 104px;
       gap: 1.75rem;
     }
-  }
-
-  .pill {
-    font:
-      500 11px var(--font-mono),
-      ui-monospace,
-      monospace;
-    letter-spacing: 0.04em;
-    color: var(--ink-3);
-    border: 1px solid var(--rule);
-    padding: 2px 8px;
-    border-radius: 2px;
-    display: inline-block;
   }
 }

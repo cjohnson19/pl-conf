@@ -2,7 +2,7 @@
 
 import clsx from "clsx";
 import { Star } from "lucide-react";
-import { useFavorite } from "../../lib/use-favorite";
+import { useFavorite } from "../../hooks/use-favorite";
 import type { DisplayEvent } from "../../lib/event-list-view";
 import { CalendarMenu } from "../calendar-menu";
 
@@ -26,7 +26,7 @@ export function EventActions({
         className={clsx(
           "inline-flex h-9 items-center gap-2 rounded-xs border bg-transparent px-3 font-ui text-[13px] font-medium outline-none transition-colors",
           on
-            ? "border-[color:var(--accent)] text-[color:var(--accent)]"
+            ? "border-accent text-accent"
             : "border-rule text-ink-2 hover:border-ink hover:text-ink"
         )}
       >

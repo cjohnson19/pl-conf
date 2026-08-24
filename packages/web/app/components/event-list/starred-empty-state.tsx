@@ -1,6 +1,7 @@
 "use client";
 
 import { useSearchParams } from "next/navigation";
+import { collectStarredKeys } from "../../lib/user-prefs";
 import { useEventPrefs, usePrefsLoaded } from "../preferences-provider";
 import { useCounts } from "./counts-context";
 
@@ -13,9 +14,7 @@ export function StarredEmptyState() {
   if (!prefsLoaded) return null;
   // Filter hidden so "Nothing starred yet" doesn't include hidden favorites in
   // its count of starred entries.
-  const starredCount = Object.values(eventPrefs).filter(
-    (p) => p?.favorite && !p?.hidden
-  ).length;
+  const starredCount = collectStarredKeys(eventPrefs).size;
   const hasOthers = totalActive > starredCount;
   if (starredCount > 0 && !hasOthers) return null;
   const goAll = () => {
@@ -45,7 +44,7 @@ export function StarredEmptyState() {
       <button
         type="button"
         onClick={goAll}
-        className="inline-flex h-[38px] flex-shrink-0 items-center gap-2 rounded-pill bg-ink px-4 text-[13px] font-medium text-paper transition-colors hover:bg-[color:var(--accent)]"
+        className="inline-flex h-[38px] flex-shrink-0 items-center gap-2 rounded-full bg-ink px-4 text-[13px] font-medium text-paper transition-colors hover:bg-accent"
       >
         Browse all events →
       </button>

@@ -5,11 +5,11 @@ import {
   toCalendarDate,
 } from "./event";
 
-export const dowFmt = new Intl.DateTimeFormat(undefined, { weekday: "short" });
-export const monthShortFmt = new Intl.DateTimeFormat(undefined, {
+const dowFmt = new Intl.DateTimeFormat(undefined, { weekday: "short" });
+const monthShortFmt = new Intl.DateTimeFormat(undefined, {
   month: "short",
 });
-export const monthDayFmt = new Intl.DateTimeFormat(undefined, {
+const monthDayFmt = new Intl.DateTimeFormat(undefined, {
   month: "short",
   day: "numeric",
 });
@@ -25,34 +25,30 @@ export const weekdayLongFmt = new Intl.DateTimeFormat(undefined, {
 export const monthLongFmt = new Intl.DateTimeFormat(undefined, {
   month: "long",
 });
-export const timeFmt = new Intl.DateTimeFormat(undefined, {
+const timeFmt = new Intl.DateTimeFormat(undefined, {
   hour: "2-digit",
   minute: "2-digit",
 });
-export const tzFmt = new Intl.DateTimeFormat(undefined, {
+const tzFmt = new Intl.DateTimeFormat(undefined, {
   timeZoneName: "short",
 });
 
 export function monthShort(date: MaybeDate): string {
-  if (date === "TBD") return "TBD";
   const cal = toCalendarDate(date);
   return cal ? monthShortFmt.format(cal) : "TBD";
 }
 
 export function dayNum(date: MaybeDate): string {
-  if (date === "TBD") return "—";
   const cal = toCalendarDate(date);
   return cal ? cal.getDate().toString() : "—";
 }
 
 export function yearNum(date: MaybeDate): string {
-  if (date === "TBD") return "";
   const cal = toCalendarDate(date);
   return cal ? cal.getFullYear().toString() : "";
 }
 
 export function roundShortDate(date: MaybeDate): string {
-  if (date === "TBD") return "TBD";
   const cal = toCalendarDate(date);
   return cal ? monthDayFmt.format(cal) : "TBD";
 }

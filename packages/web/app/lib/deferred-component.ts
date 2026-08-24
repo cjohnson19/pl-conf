@@ -1,4 +1,4 @@
-import type { ComponentType } from "react";
+import { type ComponentType, useState } from "react";
 
 // Guarantees the preload still runs in a tab that never goes idle — a
 // background tab defers idle callbacks until it is foregrounded.
@@ -30,6 +30,30 @@ export function anyVisible(selector: string): boolean {
   return Array.from(document.querySelectorAll<HTMLElement>(selector)).some(
     (el) => el.offsetParent !== null
   );
+}
+
+/**
+ * Mounts a deferred component on demand: `open` swaps it in (immediately when
+ * the chunk is already resolved, keeping the interaction out of Suspense) and
+ * `warm` starts the fetch on the events that precede activation.
+ */
+export function useDeferred<P>(d: DeferredComponent<P>): {
+  Component: ComponentType<P> | undefined;
+  open: () => void;
+  warm: () => void;
+} {
+  const [Component, setComponent] = useState<ComponentType<P> | undefined>(
+    undefined
+  );
+  const open = () => {
+    const ready = d.loaded();
+    if (ready) setComponent(() => ready);
+    else
+      void d.load().then((c) => {
+        if (c) setComponent(() => c);
+      });
+  };
+  return { Component, open, warm: () => void d.load() };
 }
 
 export function deferredComponent<P>(

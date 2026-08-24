@@ -2,6 +2,7 @@ import { type ChildProcess, spawn, spawnSync } from "node:child_process";
 import fs from "node:fs";
 import net from "node:net";
 import path from "node:path";
+import { assembleStandalone } from "../scripts/lib/standalone";
 import { FROZEN_NOW_MS } from "./frozen-now";
 
 const PORT =
@@ -98,20 +99,9 @@ function buildFixtureSite() {
     throw new Error("Fixture build failed");
   }
 
-  // The standalone bundle ships server.js + a minimal distDir, but Next
-  // expects us to copy static assets and public/ next to the server.
   // The distDir is .next-test (next.config.ts isTestFixture branch), so the
   // server resolves /_next/static/* against .next-test/static/, not .next/static/.
-  fs.cpSync(
-    path.join(NEXT_TEST_DIR, "static"),
-    path.join(STANDALONE_WEB_DIR, ".next-test", "static"),
-    { recursive: true }
-  );
-  fs.cpSync(
-    path.join(WEB_DIR, "public"),
-    path.join(STANDALONE_WEB_DIR, "public"),
-    { recursive: true }
-  );
+  assembleStandalone(WEB_DIR, ".next-test");
 
   // The fixture build's prebuild step rm -rf'd public/ical and refilled it
   // with MOCK feeds. Those are now safely inside the standalone bundle above,
@@ -170,8 +160,18 @@ export async function setup() {
 }
 
 export async function teardown() {
-  if (serverProcess) {
-    console.log("Stopping server");
-    serverProcess.kill("SIGTERM");
-  }
+  const child = serverProcess;
+  if (!child) return;
+  console.log("Stopping server");
+  child.kill("SIGTERM");
+  if (child.exitCode !== null || child.signalCode !== null) return;
+  // Wait for the port to actually free up so the next run's setup doesn't
+  // find it still held; give up after a short timeout rather than hang.
+  await new Promise<void>((resolve) => {
+    const timer = setTimeout(resolve, 5000);
+    child.once("exit", () => {
+      clearTimeout(timer);
+      resolve();
+    });
+  });
 }

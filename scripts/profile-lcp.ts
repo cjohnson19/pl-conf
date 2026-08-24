@@ -3,7 +3,7 @@ import { mkdir, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import puppeteer, { type Browser } from "puppeteer";
 
-const URL = process.env.PROFILE_URL ?? "http://localhost:4321";
+const URL = process.env.PROFILE_URL ?? "http://localhost:3000";
 const OUT_DIR = process.env.PROFILE_OUT ?? join(process.cwd(), "tmp");
 const CPU_THROTTLE = Number(process.env.CPU_THROTTLE ?? "8");
 const QUIESCENCE_MS = 4000;
@@ -14,33 +14,25 @@ type Seed = {
   session?: Record<string, unknown>;
 };
 
+const STARRED_LOCAL: Record<string, unknown> = {
+  userPrefsV2: {
+    eventPrefs: {
+      "POPL-2026": { favorite: true },
+      "PLDI-2026": { favorite: true },
+      "ICFP-2026": { favorite: true },
+    },
+  },
+};
+
 const SEEDS: Seed[] = [
   { name: "EMPTY" },
   {
     name: "STARRED",
-    local: {
-      userPrefsV2: {
-        eventPrefs: {
-          "POPL-2026": { favorite: true },
-          "PLDI-2026": { favorite: true },
-          "ICFP-2026": { favorite: true },
-        },
-        display: { introHeroDismissed: true },
-      },
-    },
+    local: STARRED_LOCAL,
   },
   {
     name: "STARRED_SESSION",
-    local: {
-      userPrefsV2: {
-        eventPrefs: {
-          "POPL-2026": { favorite: true },
-          "PLDI-2026": { favorite: true },
-          "ICFP-2026": { favorite: true },
-        },
-        display: { introHeroDismissed: true },
-      },
-    },
+    local: STARRED_LOCAL,
     session: {
       view: "starred",
       collapsedDateGroups: ["2026/06/01"],
@@ -53,6 +45,7 @@ type PerfEntry = {
   startTime: number;
   duration: number;
   name?: string;
+  value?: number;
   attribution?: Array<{
     name?: string;
     containerType?: string;
@@ -81,7 +74,6 @@ type ScenarioResult = {
   layoutShifts: PerfEntry[];
   paintEntries: PerfEntry[];
   cpuProfilePath: string;
-  prefsLoadedAt: number | null;
   firstEventListRenderAt: number | null;
   heroAppearedAt: number | null;
   totalNav: number;
@@ -222,7 +214,7 @@ async function runScenario(
           type: "layout-shift",
           startTime: ls.startTime,
           duration: ls.duration,
-          name: String(ls.value ?? 0),
+          value: ls.value ?? 0,
         });
       }
     });
@@ -235,13 +227,7 @@ async function runScenario(
       }
     };
 
-    const start = performance.now();
-    void start;
-
     const heroObserver = new MutationObserver(() => {
-      if (document.querySelector('[data-hero-slot="intro"]')) {
-        mark("introHeroAppeared");
-      }
       const heroes = document.querySelectorAll("section");
       for (const s of Array.from(heroes)) {
         if (s.textContent?.includes("Your next deadline")) {
@@ -310,13 +296,9 @@ async function runScenario(
     layoutShifts: perf.layoutShifts,
     paintEntries: perf.paintEntries,
     cpuProfilePath,
-    prefsLoadedAt: perf.marks.prefsLoaded ?? null,
     firstEventListRenderAt: perf.marks.firstEventRowRendered ?? null,
     heroAppearedAt:
-      perf.marks.deadlineHeroAppeared ??
-      perf.marks.upNextHeroAppeared ??
-      perf.marks.introHeroAppeared ??
-      null,
+      perf.marks.deadlineHeroAppeared ?? perf.marks.upNextHeroAppeared ?? null,
     totalNav,
   };
 }
@@ -417,7 +399,7 @@ void (async () => {
     }
     lines.push(
       `- CLS contributions: ${r.layoutShifts.length} entries, sum ${r.layoutShifts
-        .reduce((a, b) => a + Number(b.name ?? "0"), 0)
+        .reduce((a, b) => a + (b.value ?? 0), 0)
         .toFixed(4)}`
     );
     lines.push("");

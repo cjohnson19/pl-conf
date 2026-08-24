@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import { Plus } from "lucide-react";
+import { headerOutlinedIconButtonClass } from "./icon-button";
 import { Popover, PopoverTrigger, PopoverContent } from "./ui/popover";
 import { cn } from "../lib/utils";
 
@@ -64,7 +65,7 @@ export function SubmitEventPopover() {
           type="button"
           aria-label="Submit event"
           title="Submit event"
-          className="grid h-11 w-11 shrink-0 place-items-center rounded-pill border border-rule text-ink-2 transition-colors hover:border-ink hover:text-ink data-[state=open]:border-ink data-[state=open]:text-ink sm:h-[34px] sm:w-[34px]"
+          className={headerOutlinedIconButtonClass}
         >
           <Plus size={16} strokeWidth={1.75} />
         </button>
@@ -72,7 +73,7 @@ export function SubmitEventPopover() {
       <PopoverContent
         align="end"
         sideOffset={8}
-        className="w-[min(360px,calc(100vw-2rem))] border-rule bg-card p-5 shadow-pop"
+        className="w-[min(360px,calc(100vw-2rem))] p-5"
         onOpenAutoFocus={(e) => {
           e.preventDefault();
           inputRef.current?.focus();
@@ -101,7 +102,7 @@ export function SubmitEventPopover() {
           <button
             type="submit"
             disabled={status.kind === "submitting" || url.trim().length === 0}
-            className="inline-flex h-9 w-full items-center justify-center gap-2 rounded-pill bg-ink px-3 text-[13px] font-medium text-paper transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
+            className="inline-flex h-9 w-full items-center justify-center gap-2 rounded-full bg-ink px-3 text-[13px] font-medium text-paper transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
           >
             {status.kind === "submitting" ? "Submitting…" : "Submit"}
           </button>
@@ -112,9 +113,7 @@ export function SubmitEventPopover() {
             role="status"
             className={cn(
               "mt-3 text-[12px] leading-[1.5]",
-              status.kind === "success"
-                ? "text-ink-2"
-                : "text-[color:var(--hot)]"
+              status.kind === "success" ? "text-ink-2" : "text-hot"
             )}
           >
             {status.kind === "success"

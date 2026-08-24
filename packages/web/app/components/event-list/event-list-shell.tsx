@@ -2,7 +2,6 @@ import { Suspense } from "react";
 import clsx from "clsx";
 import { Github } from "lucide-react";
 import { eventKey } from "../../lib/event";
-import type { FilterParams } from "../../lib/filter-params";
 import type { EventListView } from "../../lib/event-list-view";
 import {
   CountsProvider,
@@ -37,11 +36,11 @@ import {
 } from "./filters";
 
 export function EventListShell({
-  filters,
+  defaultQuery,
   view,
   serverNowMs,
 }: {
-  filters: FilterParams;
+  defaultQuery: string;
   view: EventListView;
   serverNowMs: number;
 }) {
@@ -62,7 +61,7 @@ export function EventListShell({
     <Suspense>
       <UrlTagFilterProvider>
         <CountsProvider events={countableEvents}>
-          <SearchProvider defaultValue={filters.q}>
+          <SearchProvider defaultValue={defaultQuery}>
             <NowProvider initialMs={serverNowMs}>
               <ViewNavProvider>
                 <HydrationMarker />

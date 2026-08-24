@@ -5,26 +5,14 @@ const STORAGE_KEY = "userPrefsV2";
 
 type Listener = () => void;
 
-function isObject(item: unknown): item is Record<string, unknown> {
-  return !!item && typeof item === "object" && !Array.isArray(item);
-}
-
-function mergeDeep<T extends Record<string, unknown>>(
-  target: T,
-  source: Record<string, unknown>
-): T {
-  if (!isObject(target) || !isObject(source)) return target;
-  const out: Record<string, unknown> = { ...target };
-  for (const key in source) {
-    const sourceVal = source[key];
-    const targetVal = out[key];
-    if (isObject(sourceVal) && isObject(targetVal)) {
-      out[key] = mergeDeep(targetVal, sourceVal);
-    } else if (sourceVal !== undefined) {
-      out[key] = sourceVal;
-    }
-  }
-  return out as T;
+// The storage key is versioned, so anything under it has this exact two-level
+// shape; a future shape change means a new key, not a smarter merge.
+function parseStored(raw: string): PreferenceCollection {
+  const stored = JSON.parse(raw) as Partial<PreferenceCollection>;
+  return {
+    eventPrefs: { ...defaultPreferences.eventPrefs, ...stored.eventPrefs },
+    display: { ...defaultPreferences.display, ...stored.display },
+  };
 }
 
 let prefs: PreferenceCollection = defaultPreferences;
@@ -48,7 +36,7 @@ if (typeof window !== "undefined") {
       prefs = defaultPreferences;
     } else {
       try {
-        prefs = mergeDeep(defaultPreferences, JSON.parse(e.newValue));
+        prefs = parseStored(e.newValue);
       } catch {
         return;
       }
@@ -79,7 +67,7 @@ export const preferencesStore = {
     try {
       const item = window?.localStorage.getItem(STORAGE_KEY);
       if (item) {
-        prefs = mergeDeep(defaultPreferences, JSON.parse(item));
+        prefs = parseStored(item);
       }
     } catch (error) {
       console.error(`Error reading localStorage key "${STORAGE_KEY}":`, error);
@@ -111,3 +99,16 @@ export const setPrefs: Dispatch<SetStateAction<PreferenceCollection>> = (
   }
   notify();
 };
+
+export function toggleFavorite(prefKey: string): void {
+  setPrefs((prev) => ({
+    ...prev,
+    eventPrefs: {
+      ...prev.eventPrefs,
+      [prefKey]: {
+        ...prev.eventPrefs[prefKey],
+        favorite: !(prev.eventPrefs[prefKey]?.favorite ?? false),
+      },
+    },
+  }));
+}

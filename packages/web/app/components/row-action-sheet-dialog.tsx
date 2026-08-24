@@ -5,14 +5,15 @@ import * as Dialog from "@radix-ui/react-dialog";
 import { MoreHorizontal, Star, X } from "lucide-react";
 import clsx from "clsx";
 import type { DisplayEvent } from "../lib/event-list-view";
-import { useCalendarExport } from "../lib/use-calendar-export";
-import { useFavorite } from "../lib/use-favorite";
+import { useCalendarExport } from "../hooks/use-calendar-export";
+import { useFavorite } from "../hooks/use-favorite";
 import {
   type CopyItemProps,
   type ExportItemProps,
   ExportOptions,
   ExportRowContent,
 } from "./export-options";
+import { triggerClass } from "./row-action-sheet";
 
 const itemClass =
   "flex items-center gap-3 rounded-md px-3 py-2.5 no-underline hover:bg-paper-2";
@@ -65,10 +66,7 @@ export function RowActionSheetDialog({
       <Dialog.Trigger
         aria-label={`Actions for ${event.abbreviation}`}
         title="Actions"
-        className={clsx(
-          "grid h-11 w-11 shrink-0 place-items-center rounded-pill border border-rule bg-transparent text-ink-2 transition-colors",
-          "hover:border-ink hover:bg-ink hover:text-paper data-[state=open]:border-ink data-[state=open]:bg-ink data-[state=open]:text-paper"
-        )}
+        className={triggerClass}
       >
         <MoreHorizontal size={16} strokeWidth={1.75} />
       </Dialog.Trigger>
@@ -82,18 +80,17 @@ export function RowActionSheetDialog({
         <Dialog.Content
           aria-describedby={undefined}
           className={clsx(
-            "fixed inset-x-0 bottom-0 z-50 max-h-[85vh] overflow-y-auto rounded-t-2xl border-t border-rule p-2 pb-[max(env(safe-area-inset-bottom),0.5rem)] shadow-pop",
+            "fixed inset-x-0 bottom-0 z-50 max-h-[85vh] overflow-y-auto rounded-t-2xl border-t border-rule bg-card p-2 pb-[max(env(safe-area-inset-bottom),0.5rem)] shadow-pop",
             "data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:slide-out-to-bottom data-[state=open]:slide-in-from-bottom duration-200"
           )}
-          style={{ background: "var(--card)" }}
         >
           <div className="flex items-center justify-between px-3 py-2">
             <Dialog.Title asChild>
               <div className="flex min-w-0 flex-1 flex-col gap-1">
-                <div className="font-ui text-[18px] font-bold normal-case leading-none tracking-[-0.015em] text-ink">
+                <div className="font-ui text-[18px] font-bold leading-none tracking-[-0.015em] text-ink">
                   {event.abbreviation}
                 </div>
-                <div className="truncate text-[12px] font-normal normal-case tracking-normal text-ink-2">
+                <div className="truncate text-[12px] font-normal text-ink-2">
                   {event.name}
                 </div>
               </div>
@@ -113,10 +110,9 @@ export function RowActionSheetDialog({
           >
             <span
               className={clsx(
-                "grid h-9 w-9 place-items-center rounded-sm",
-                starred ? "text-[color:var(--accent)]" : "text-ink-3"
+                "grid h-9 w-9 place-items-center rounded-sm bg-paper-2",
+                starred ? "text-accent" : "text-ink-3"
               )}
-              style={{ background: "var(--paper-2)" }}
             >
               <Star
                 size={18}

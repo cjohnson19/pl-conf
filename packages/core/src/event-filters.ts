@@ -4,11 +4,11 @@ import {
   startOfDay,
 } from "date-fns";
 import { allDeadlines, firstDeadline, isDeadlinePast } from "./event";
-import type { EventType, MaybeDate, ScheduledEvent, Tag } from "./schemas";
+import type { MaybeDate, ScheduledEvent } from "./schemas";
 
 export type EventFilter = (event: ScheduledEvent) => boolean;
 
-export function hasDate(s: MaybeDate): s is string {
+function hasDate(s: MaybeDate): s is string {
   return s !== "TBD";
 }
 
@@ -30,68 +30,21 @@ export const hasEndedAt =
   (e) =>
     hasDate(e.date.end) && dateIsBefore(e.date.end, startOfDay(now));
 
-export const hasEnded: EventFilter = (e) => hasEndedAt(new Date())(e);
-
-export const isType: (t: EventType) => EventFilter = (t) => (e) => e.type === t;
-
-export const hasTag: (tag: Tag) => EventFilter = (tag) => (e) =>
-  e.tags.includes(tag);
-
-export const startsAfter: (date: Date) => EventFilter = (date) => (e) =>
-  hasDate(e.date.start) && dateIsAfter(e.date.start, date);
-
-export const startsBefore: (date: Date) => EventFilter = (date) => (e) =>
-  hasDate(e.date.start) && dateIsBefore(e.date.start, date);
-
-export const hasYear: (year: number) => EventFilter = (year) => (e) =>
-  e.year === year;
-
 export const hasFutureDeadline: EventFilter = (e) =>
   allDeadlines(e).some((d) => !isDeadlinePast(d));
 
-export const hasFutureDeadlineAt =
-  (now: Date): EventFilter =>
-  (e) =>
-    allDeadlines(e).some((d) => !isDeadlinePast(d, now));
-
-export const hasOpenSubmission: EventFilter = (e) => {
+export const hasOpenSubmission = (
+  e: Pick<ScheduledEvent, "rounds">
+): boolean => {
   const first = firstDeadline(e);
   if (first === undefined) return false;
   return !isDeadlinePast(first);
 };
 
 export const hasOpenSubmissionAt =
-  (now: Date): EventFilter =>
-  (e) => {
+  (now: Date) =>
+  (e: Pick<ScheduledEvent, "rounds">): boolean => {
     const first = firstDeadline(e);
     if (first === undefined) return false;
     return !isDeadlinePast(first, now);
   };
-
-export const startsBetween: (range: { from?: Date; to?: Date }) => EventFilter =
-  ({ from, to }) =>
-  (e) =>
-    hasDate(e.date.start) &&
-    hasDate(e.date.end) &&
-    from !== undefined &&
-    dateIsAfter(e.date.start, from) &&
-    to !== undefined &&
-    dateIsBefore(e.date.start, to);
-
-export const matchesText: (text: string) => EventFilter = (text) => {
-  const t = text.toLowerCase().trim();
-  return (e) =>
-    t === "" ||
-    e.name.toLowerCase().includes(t) ||
-    e.abbreviation.toLowerCase().includes(t) ||
-    e.location?.toLowerCase().includes(t) ||
-    e.format?.toLowerCase().includes(t) ||
-    e.tags.some((tag) => tag.toLowerCase().includes(t));
-};
-
-export function applyFilters(
-  events: ScheduledEvent[],
-  filters: EventFilter[]
-): ScheduledEvent[] {
-  return events.filter((e) => filters.every((f) => f(e)));
-}

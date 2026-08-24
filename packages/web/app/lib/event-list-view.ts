@@ -1,11 +1,14 @@
 import {
   type DateName,
+  type EventType,
   type ScheduledEvent,
   type Tag,
   eventKey,
   eventPathFromSlug,
   eventSlug,
-  tagValues,
+  hasEndedAt,
+  hasOpenSubmissionAt,
+  isActiveAt,
   toCalendarDate,
 } from "./event";
 import {
@@ -14,20 +17,12 @@ import {
   findNextStart,
   isDueThisWeek,
 } from "./deadline";
-import { hasEndedAt, isActiveAt, openToNewSubmissions } from "./event-filter";
-import type { Category, FilterParams } from "./filter-params";
+import type { FilterParams } from "./filter-params";
 import {
   type Group,
   buildArchiveGroups,
   buildGroups,
 } from "../components/event-list/grouping";
-
-export type ViewCounts = {
-  starred: number | null;
-  all: number;
-  submissions: number;
-  archive: number;
-};
 
 export type HeroEvent = {
   key: string;
@@ -103,10 +98,10 @@ export function toDisplayEvent(
 // Slim projection of every event — active and archived — shipped to the client
 // so chip/tab/footer counts can be re-derived after subtracting hidden events.
 // `hasOpenSubmission` and `dueThisWeek` are computed once at SSR — they don't
-// tick — but that's the same approximation the SSR counts already make.
+// tick — but that's an acceptable approximation for badge counts.
 export type CountableEvent = {
   key: string;
-  category: Category;
+  category: EventType;
   tags: Tag[];
   hasOpenSubmission: boolean;
   dueThisWeek: boolean;
@@ -114,27 +109,14 @@ export type CountableEvent = {
 };
 
 export type EventListView = {
-  activeEvents: ScheduledEvent[];
-  archivedEvents: ScheduledEvent[];
-  // True when the archive view is active: `displayEvents` and `groups` then
-  // describe finished events instead of the live list.
-  isArchive: boolean;
   displayEvents: DisplayEvent[];
   heroEvents: HeroEvent[];
   groups: Group[];
   countableEvents: CountableEvent[];
-  categoryCounts: Record<Category, number>;
-  tagCounts: Record<Tag, number>;
-  viewCounts: ViewCounts;
-  dueThisWeek: number;
-  totalActive: number;
   lastUpdatedDate: string | undefined;
 };
 
-export function buildHeroEvents(
-  events: ScheduledEvent[],
-  now: Date
-): HeroEvent[] {
+function buildHeroEvents(events: ScheduledEvent[], now: Date): HeroEvent[] {
   return events.flatMap((e) => {
     const deadlines = findAllUpcomingDeadlines(e, now);
     const start = findNextStart(e, now);
@@ -157,7 +139,6 @@ export function buildHeroEvents(
 }
 
 type ComputeOptions = {
-  starredKeys?: Set<string>;
   validEventPaths?: Set<string>;
 };
 
@@ -183,8 +164,7 @@ function sortArchived(events: ScheduledEvent[]): ScheduledEvent[] {
 }
 
 function startTime(e: ScheduledEvent): number {
-  const cal = e.date.start === "TBD" ? null : toCalendarDate(e.date.start);
-  return cal ? cal.getTime() : Number.NEGATIVE_INFINITY;
+  return toCalendarDate(e.date.start)?.getTime() ?? Number.NEGATIVE_INFINITY;
 }
 
 function sortByNextDeadline(
@@ -193,14 +173,12 @@ function sortByNextDeadline(
 ): ScheduledEvent[] {
   const decorated = events.map((e) => ({
     e,
-    time: findNextDeadline(e, now)?.time,
+    time: findNextDeadline(e, now)?.time ?? Number.POSITIVE_INFINITY,
   }));
-  decorated.sort((a, b) => {
-    if (a.time !== undefined && b.time !== undefined) return a.time - b.time;
-    if (a.time !== undefined) return -1;
-    if (b.time !== undefined) return 1;
-    return a.e.abbreviation.localeCompare(b.e.abbreviation);
-  });
+  decorated.sort(
+    (a, b) =>
+      a.time - b.time || a.e.abbreviation.localeCompare(b.e.abbreviation)
+  );
   return decorated.map((d) => d.e);
 }
 
@@ -210,26 +188,13 @@ export function computeEventListView(
   now: Date,
   options: ComputeOptions = {}
 ): EventListView {
-  const { starredKeys, validEventPaths } = options;
-  const hasOpenSubmission = openToNewSubmissions(true, now);
+  const { validEventPaths } = options;
+  const hasOpenSubmission = hasOpenSubmissionAt(now);
   const isArchive = filters.view === "archive";
 
   const activeEvents = events.filter(isActiveAt(now));
   const archivedEvents = events.filter(hasEndedAt(now));
-  // The archive view swaps which pool the list, the chips, and the tag counts
-  // describe; the tab counts always report on both.
   const listed = isArchive ? archivedEvents : activeEvents;
-
-  const categoryCounts: Record<Category, number> = {
-    all: listed.length,
-    conference: 0,
-    workshop: 0,
-    symposium: 0,
-    school: 0,
-  };
-  listed.forEach((e) => {
-    categoryCounts[e.type] = (categoryCounts[e.type] ?? 0) + 1;
-  });
 
   const byCategory = (list: ScheduledEvent[]) =>
     filters.category === "all"
@@ -240,34 +205,7 @@ export function computeEventListView(
       ? list
       : list.filter((e) => e.tags.some((t) => filters.tags.has(t)));
 
-  const preTagFiltered = byCategory(listed);
-
-  const tagCounts = Object.fromEntries(tagValues.map((t) => [t, 0])) as Record<
-    Tag,
-    number
-  >;
-  preTagFiltered.forEach((e) => {
-    e.tags.forEach((t) => {
-      tagCounts[t] += 1;
-    });
-  });
-
-  const baseFiltered = byTags(preTagFiltered);
-  const activeFiltered = isArchive
-    ? byTags(byCategory(activeEvents))
-    : baseFiltered;
-  const archivedFiltered = isArchive
-    ? baseFiltered
-    : byTags(byCategory(archivedEvents));
-
-  const viewCounts: ViewCounts = {
-    starred: starredKeys
-      ? activeFiltered.filter((e) => starredKeys.has(eventKey(e))).length
-      : null,
-    all: activeFiltered.length,
-    submissions: activeFiltered.filter(hasOpenSubmission).length,
-    archive: archivedFiltered.length,
-  };
+  const baseFiltered = byTags(byCategory(listed));
 
   const sorted = isArchive
     ? sortArchived(baseFiltered)
@@ -277,17 +215,13 @@ export function computeEventListView(
   const groups = isArchive
     ? buildArchiveGroups(displayEvents)
     : buildGroups(displayEvents, now);
-  const dueThisWeek = activeFiltered.filter((e) =>
-    isDueThisWeek(e, now)
-  ).length;
 
-  const lastUpdatedDates = events
+  const lastUpdatedDate = events
     .map((e) => e.lastUpdated)
-    .filter((d): d is string => typeof d === "string");
-  const lastUpdatedDate =
-    lastUpdatedDates.length === 0
-      ? undefined
-      : lastUpdatedDates.reduce((max, d) => (d > max ? d : max));
+    .reduce<string | undefined>(
+      (max, d) => (max === undefined || d > max ? d : max),
+      undefined
+    );
 
   const toCountable = (
     e: ScheduledEvent,
@@ -306,18 +240,10 @@ export function computeEventListView(
   ];
 
   return {
-    activeEvents,
-    archivedEvents,
-    isArchive,
     displayEvents,
     heroEvents: buildHeroEvents(activeEvents, now),
     groups,
     countableEvents,
-    categoryCounts,
-    tagCounts,
-    viewCounts,
-    dueThisWeek,
-    totalActive: activeEvents.length,
     lastUpdatedDate,
   };
 }

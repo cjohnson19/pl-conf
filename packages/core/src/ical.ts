@@ -4,8 +4,9 @@ import {
   eventKey,
   hasConcreteDates,
   parseDateParts,
+  roundEntries,
 } from "./event";
-import type { DateName, ScheduledEvent } from "./schemas";
+import type { ScheduledEvent } from "./schemas";
 
 const UID_DOMAIN = "pl-conferences.com";
 
@@ -68,12 +69,12 @@ export function toICal(e: ICalEvent, includeDates: boolean = false): string {
       ...(!includeDates
         ? []
         : e.rounds.flatMap((round, roundIdx) =>
-            Object.entries(round.importantDates).flatMap(([type, date]) => {
+            roundEntries(round).flatMap(([type, date]) => {
               if (date === "TBD") {
                 return [];
               }
               const [dy, dm, dd] = ymdParts(date);
-              const readable = dateNameToReadable(type as DateName);
+              const readable = dateNameToReadable(type);
               const roundLabel = round.name ? `${round.name} – ` : "";
               return [
                 {

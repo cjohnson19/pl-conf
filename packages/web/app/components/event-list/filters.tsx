@@ -12,26 +12,37 @@ import {
   Tags as TagsIcon,
 } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
-import { type Tag, tagDisplayName, tagValues } from "../../lib/event";
-import type { Category, View } from "../../lib/filter-params";
-import { setPrefs, useDisplayPref } from "../preferences-provider";
+import { tagDisplayName, tagValues } from "../../lib/event";
+import {
+  type Category,
+  type View,
+  parseCategoryParam,
+  parseViewParam,
+} from "../../lib/filter-params";
+import { setPrefs } from "../../lib/preferences-store";
+import type { DisplayPreferences } from "../../lib/user-prefs";
+import { useTagFilter } from "../event-tags";
+import { useDisplayPref } from "../preferences-provider";
 import { useCounts } from "./counts-context";
 import { useSearchQuery, useSetSearchQuery } from "./search-provider";
 import { useViewNav } from "./view-nav-provider";
 
-export type Layout = "list" | "grid";
+type Layout = DisplayPreferences["layout"];
 
 const CATEGORY_CHIPS: { key: Category; label: string }[] = [
   { key: "all", label: "All" },
   { key: "conference", label: "Conferences" },
   { key: "workshop", label: "Workshops" },
   { key: "symposium", label: "Symposia" },
-  { key: "school", label: "Schools" },
 ];
 
-const CATEGORY_KEYS: Category[] = CATEGORY_CHIPS.map((c) => c.key);
-const VIEW_KEYS: View[] = ["starred", "all", "submissions", "archive"];
-const KNOWN_TAGS = new Set<string>(tagValues);
+const chipClass = (on: boolean) =>
+  clsx(
+    "inline-flex h-8 items-center gap-1.5 rounded-full border px-3.5 text-[13px] transition-colors",
+    on
+      ? "border-ink bg-ink text-paper"
+      : "border-rule bg-transparent text-ink-2 hover:text-ink"
+  );
 
 function replaceSearchParam(
   searchParams: URLSearchParams,
@@ -81,12 +92,12 @@ export function SearchPill() {
         value={value}
         onChange={(e) => setValue(e.target.value)}
         placeholder="Search events…"
-        className="h-[38px] w-full rounded-pill border border-rule bg-[color:var(--card)] pl-[38px] pr-12 text-[14px] text-ink outline-none transition-colors placeholder:text-ink-3 focus:border-ink"
+        className="h-[38px] w-full rounded-full border border-rule bg-card pl-[38px] pr-12 text-[14px] text-ink outline-none transition-colors placeholder:text-ink-3 focus:border-ink"
         aria-keyshortcuts="Meta+K Control+K"
       />
       <kbd
         aria-hidden
-        className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 hidden select-none items-center gap-0.5 rounded-pill bg-paper-2 px-1.5 py-[3px] font-mono text-[10px] font-medium text-ink-2 sm:inline-flex"
+        className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 hidden select-none items-center gap-0.5 rounded-full bg-paper-2 px-1.5 py-[3px] font-mono text-[10px] font-medium text-ink-2 sm:inline-flex"
       >
         <Command size={10} className="hidden os-mac:inline" />
         <span className="os-mac:hidden">Ctrl</span>
@@ -100,11 +111,7 @@ export function FilterChips() {
   const { categoryCounts: counts } = useCounts();
   const router = useRouter();
   const searchParams = useSearchParams();
-  const rawActive = searchParams.get("c");
-  const active: Category =
-    rawActive && (CATEGORY_KEYS as string[]).includes(rawActive)
-      ? (rawActive as Category)
-      : "all";
+  const active = parseCategoryParam(searchParams.get("c"));
   const select = useCallback(
     (key: Category) => {
       router.replace(
@@ -116,71 +123,36 @@ export function FilterChips() {
   );
   return (
     <>
-      {CATEGORY_CHIPS.map(({ key, label }) => {
-        const on = key === active;
-        const count = counts[key];
-        if (key === "school" && count === 0) return null;
-        return (
-          <button
-            key={key}
-            type="button"
-            onClick={() => select(key)}
-            className={clsx(
-              "inline-flex h-8 items-center gap-1.5 rounded-pill border px-3.5 text-[13px] transition-colors",
-              on
-                ? "border-ink bg-ink text-paper"
-                : "border-rule bg-transparent text-ink-2 hover:text-ink"
-            )}
-          >
-            {label}
-            <span className="font-mono text-[10px] opacity-90">{count}</span>
-          </button>
-        );
-      })}
+      {CATEGORY_CHIPS.map(({ key, label }) => (
+        <button
+          key={key}
+          type="button"
+          onClick={() => select(key)}
+          className={chipClass(key === active)}
+        >
+          {label}
+          <span className="font-mono text-[10px] opacity-90">
+            {counts[key]}
+          </span>
+        </button>
+      ))}
     </>
   );
 }
 
 export function TagsFilter() {
   const { tagCounts } = useCounts();
-  const router = useRouter();
-  const searchParams = useSearchParams();
-  const rawTags = searchParams.get("tags") ?? "";
-  const activeTags = new Set<Tag>(
-    rawTags
-      .split(",")
-      .map((t) => t.trim())
-      .filter((t): t is Tag => KNOWN_TAGS.has(t))
-  );
+  const tagFilter = useTagFilter();
+  if (!tagFilter) return null;
+  const { activeTags, onToggle, onClear } = tagFilter;
   const activeCount = activeTags.size;
-  const writeTags = useCallback(
-    (next: Set<Tag>) => {
-      const value = next.size === 0 ? null : Array.from(next).sort().join(",");
-      router.replace(replaceSearchParam(searchParams, "tags", value), {
-        scroll: false,
-      });
-    },
-    [router, searchParams]
-  );
-  const onToggle = (tag: Tag) => {
-    const next = new Set(activeTags);
-    if (next.has(tag)) next.delete(tag);
-    else next.add(tag);
-    writeTags(next);
-  };
-  const onClear = () => writeTags(new Set());
   return (
     <Popover>
       <PopoverTrigger asChild>
         <button
           type="button"
           aria-label="Filter by tags"
-          className={clsx(
-            "inline-flex h-8 items-center gap-1.5 rounded-pill border px-3.5 text-[13px] transition-colors",
-            activeCount > 0
-              ? "border-ink bg-ink text-paper"
-              : "border-rule bg-transparent text-ink-2 hover:text-ink"
-          )}
+          className={chipClass(activeCount > 0)}
         >
           <TagsIcon size={13} strokeWidth={1.75} />
           Tags
@@ -194,8 +166,7 @@ export function TagsFilter() {
       <PopoverContent
         align="start"
         sideOffset={8}
-        className="w-[min(320px,calc(100vw-2rem))] border-rule p-0 shadow-pop"
-        style={{ background: "var(--card)" }}
+        className="w-[min(320px,calc(100vw-2rem))] p-0"
       >
         <div className="flex items-center justify-between gap-3 border-b border-rule px-4 py-3">
           <p className="label-cap">Filter by tags</p>
@@ -283,11 +254,7 @@ export function ViewTabs({
   const { viewCounts: counts } = useCounts();
   const searchParams = useSearchParams();
   const { pending, navigateView } = useViewNav();
-  const rawActive = searchParams.get("view");
-  const active: View =
-    rawActive && (VIEW_KEYS as string[]).includes(rawActive)
-      ? (rawActive as View)
-      : "all";
+  const active = parseViewParam(searchParams.get("view"));
   const select = (next: View) => {
     const url = replaceSearchParam(
       searchParams,
@@ -401,7 +368,7 @@ export function LayoutToggle() {
     },
   ];
   return (
-    <div className="inline-flex items-center rounded-pill border border-rule p-0.5">
+    <div className="inline-flex items-center rounded-full border border-rule p-0.5">
       {options.map((o) => {
         const on = o.key === layout;
         return (
@@ -413,7 +380,7 @@ export function LayoutToggle() {
             aria-pressed={on}
             title={o.label}
             className={clsx(
-              "grid h-7 w-8 place-items-center rounded-pill transition-colors",
+              "grid h-7 w-8 place-items-center rounded-full transition-colors",
               on
                 ? "bg-ink text-paper"
                 : "bg-transparent text-ink-3 hover:text-ink"

@@ -1,11 +1,15 @@
 "use client";
 
-import { type ComponentType, useState } from "react";
 import { Calendar } from "lucide-react";
 import clsx from "clsx";
-import { anyVisible, deferredComponent } from "../lib/deferred-component";
+import {
+  anyVisible,
+  deferredComponent,
+  useDeferred,
+} from "../lib/deferred-component";
 import { hasConcreteDates } from "../lib/event";
 import type { DisplayEvent } from "../lib/event-list-view";
+import { rowIconButtonClass } from "./icon-button";
 
 type PopoverProps = { event: DisplayEvent; label?: string };
 
@@ -22,8 +26,8 @@ const TRIGGER_SELECTOR =
 popover.preloadWhenIdle(() => anyVisible(TRIGGER_SELECTOR));
 
 export const triggerClass = clsx(
-  "grid h-11 w-11 shrink-0 place-items-center border-0 bg-transparent text-ink-3 outline-none transition-colors sm:h-8 sm:w-8",
-  "hover:text-ink data-[state=open]:text-ink"
+  rowIconButtonClass,
+  "text-ink-3 outline-none hover:text-ink data-[state=open]:text-ink"
 );
 
 export const labeledTriggerClass = clsx(
@@ -38,9 +42,7 @@ export function CalendarMenu({
   event: DisplayEvent;
   label?: string;
 }) {
-  const [Popover, setPopover] = useState<
-    ComponentType<PopoverProps> | undefined
-  >(undefined);
+  const { Component: Popover, open, warm } = useDeferred(popover);
 
   if (!hasConcreteDates(event)) {
     return (
@@ -63,19 +65,6 @@ export function CalendarMenu({
   }
 
   if (Popover) return <Popover event={event} label={label} />;
-
-  const open = () => {
-    const ready = popover.loaded();
-    if (ready) setPopover(() => ready);
-    else
-      void popover.load().then((c) => {
-        if (c) setPopover(() => c);
-      });
-  };
-
-  // Warm on the events that precede activation, covering the cases the
-  // once-evaluated idle predicate misses (rotation, resize, layout switch).
-  const warm = () => void popover.load();
 
   return (
     <button

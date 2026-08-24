@@ -1,12 +1,3 @@
 {
-  "files": [],
-  "references": [
-    { "path": "./scripts" },
-    { "path": "./tests" },
-    { "path": "./packages/core" },
-    { "path": "./packages/data" },
-    { "path": "./packages/functions" },
-    { "path": "./packages/web" },
-    { "path": "./packages/cdk" }
-  ]
+  "files": []
 }

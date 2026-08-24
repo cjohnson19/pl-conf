@@ -40,12 +40,7 @@ export function anchorListDepth(): void {
 
 export function resolveEventDepth(): number | undefined {
   const stored = storedDepth();
-  const depth =
-    stored !== undefined
-      ? stored
-      : lastDepth !== undefined
-        ? lastDepth + 1
-        : undefined;
+  const depth = stored ?? (lastDepth !== undefined ? lastDepth + 1 : undefined);
 
   if (depth !== stored && depth !== undefined) stamp(depth);
   lastDepth = depth;

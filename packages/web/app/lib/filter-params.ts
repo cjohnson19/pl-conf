@@ -1,16 +1,11 @@
 import { eventTypes, type Tag, tagValues } from "./event";
 
-export type Category =
-  | "all"
-  | "conference"
-  | "workshop"
-  | "symposium"
-  | "school";
+export type Category = "all" | (typeof eventTypes)[number];
 export type View = "starred" | "all" | "submissions" | "archive";
 
-const categories = new Set<string>(["all", ...eventTypes, "school"]);
+const categories = new Set<string>(["all", ...eventTypes]);
 const views = new Set<string>(["starred", "all", "submissions", "archive"]);
-const tags = new Set<string>(tagValues);
+const knownTags = new Set<string>(tagValues);
 
 export type FilterParams = {
   q: string;
@@ -32,32 +27,29 @@ function firstValue(v: string | string[] | undefined): string | undefined {
   return Array.isArray(v) ? v[0] : v;
 }
 
-export function parseFilterParams(sp: RawSearchParams): FilterParams {
-  const q = (firstValue(sp.q) ?? "").trim();
-
-  const catRaw = firstValue(sp.c);
-  const category: Category =
-    catRaw && categories.has(catRaw) ? (catRaw as Category) : "all";
-
-  const viewRaw = firstValue(sp.view);
-  const view: View = viewRaw && views.has(viewRaw) ? (viewRaw as View) : "all";
-
-  const tagsRaw = firstValue(sp.tags) ?? "";
-  const parsedTags = new Set<Tag>(
-    tagsRaw
-      .split(",")
-      .map((t) => t.trim())
-      .filter((t): t is Tag => tags.has(t))
-  );
-
-  return { q, category, view, tags: parsedTags };
+export function parseCategoryParam(raw: string | null | undefined): Category {
+  return raw && categories.has(raw) ? (raw as Category) : "all";
 }
 
-export function serializeFilterParams(p: FilterParams): URLSearchParams {
-  const sp = new URLSearchParams();
-  if (p.q) sp.set("q", p.q);
-  if (p.category !== "all") sp.set("c", p.category);
-  if (p.view !== "all") sp.set("view", p.view);
-  if (p.tags.size > 0) sp.set("tags", [...p.tags].sort().join(","));
-  return sp;
+export function parseViewParam(raw: string | null | undefined): View {
+  return raw && views.has(raw) ? (raw as View) : "all";
+}
+
+export function parseTagsParam(raw: string | null | undefined): Set<Tag> {
+  if (!raw) return new Set();
+  return new Set(
+    raw
+      .split(",")
+      .map((t) => t.trim())
+      .filter((t): t is Tag => knownTags.has(t))
+  );
+}
+
+export function parseFilterParams(sp: RawSearchParams): FilterParams {
+  return {
+    q: (firstValue(sp.q) ?? "").trim(),
+    category: parseCategoryParam(firstValue(sp.c)),
+    view: parseViewParam(firstValue(sp.view)),
+    tags: parseTagsParam(firstValue(sp.tags)),
+  };
 }

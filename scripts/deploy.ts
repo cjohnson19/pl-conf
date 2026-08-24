@@ -12,32 +12,14 @@
 // On subsequent deploys the URL is already known (read from existing stack
 // outputs) and we deploy in a single pass.
 
-import { execSync } from "node:child_process";
-import * as path from "node:path";
-import { fileURLToPath } from "node:url";
+import { CDK_DIR, run, stackName, tryExec } from "./lib/exec";
 
-const ROOT_DIR = path.join(path.dirname(fileURLToPath(import.meta.url)), "..");
-const CDK_DIR = path.join(ROOT_DIR, "packages", "cdk");
-
-function run(
-  command: string,
-  options?: { cwd?: string; env?: Partial<NodeJS.ProcessEnv> }
-) {
-  console.log(`\n$ ${command}\n`);
-  execSync(command, {
-    stdio: "inherit",
-    cwd: options?.cwd ?? ROOT_DIR,
-    env: { ...process.env, ...options?.env },
-  });
-}
-
-function getStackOutputs(stackName: string): Record<string, string> {
+function getStackOutputs(stack: string): Record<string, string> {
+  const output = tryExec(
+    `aws cloudformation describe-stacks --stack-name ${stack} --query "Stacks[0].Outputs" --output json`
+  );
   try {
-    const output = execSync(
-      `aws cloudformation describe-stacks --stack-name ${stackName} --query "Stacks[0].Outputs" --output json`,
-      { encoding: "utf-8", stdio: ["pipe", "pipe", "pipe"] }
-    ).trim();
-    const outputs = JSON.parse(output) as Array<{
+    const outputs = JSON.parse(output ?? "") as Array<{
       OutputKey: string;
       OutputValue: string;
     }>;
@@ -75,26 +57,23 @@ async function main() {
 
   const stage = process.env.STAGE || "dev";
   const domainName = stage === "production" ? "pl-conferences.com" : undefined;
-  const stackName = `PlConf-${stage}`;
+  const stack = stackName(stage);
 
   console.log("=".repeat(60));
   console.log(`Deploying stage: ${stage}`);
   console.log("=".repeat(60));
 
-  console.log("\nGenerating events data...");
-  run("pnpm run generate");
-
   console.log("\nBuilding lambdas...");
   run("pnpm run build:lambdas");
 
-  let submissionApiUrl = getStackOutputs(stackName).SubmissionApiUrl;
+  let submissionApiUrl = getStackOutputs(stack).SubmissionApiUrl;
 
   if (!submissionApiUrl) {
     console.log(
       "\nNo existing SubmissionApiUrl found — running bootstrap deploy to create the API..."
     );
     cdkDeploy({ stage, notificationEmail, domainName });
-    submissionApiUrl = getStackOutputs(stackName).SubmissionApiUrl;
+    submissionApiUrl = getStackOutputs(stack).SubmissionApiUrl;
     if (!submissionApiUrl) {
       console.error(
         "Bootstrap deploy completed but SubmissionApiUrl is still missing from stack outputs."
@@ -109,7 +88,7 @@ async function main() {
   );
   cdkDeploy({ stage, notificationEmail, domainName, submissionApiUrl });
 
-  const outputs = getStackOutputs(stackName);
+  const outputs = getStackOutputs(stack);
   const distributionId = outputs.DistributionId;
 
   if (distributionId) {

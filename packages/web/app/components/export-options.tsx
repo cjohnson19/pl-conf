@@ -2,9 +2,9 @@
 
 import clsx from "clsx";
 import { Calendar, Check, Copy, Download, Rss } from "lucide-react";
-import type { useCalendarExport } from "../lib/use-calendar-export";
+import type { CalendarExport } from "../hooks/use-calendar-export";
 
-export type ExportVariant = "sheet" | "menu";
+type ExportVariant = "sheet" | "menu";
 
 export type ExportItemProps = {
   href: string;
@@ -21,13 +21,11 @@ export type CopyItemProps = {
   sub: string;
 };
 
-export type ExportSlots = {
+type ExportSlots = {
   Item: React.ComponentType<ExportItemProps>;
   CopyItem: React.ComponentType<CopyItemProps>;
   Separator: React.ComponentType;
 };
-
-type ExportData = ReturnType<typeof useCalendarExport>;
 
 export function ExportRowContent({
   variant,
@@ -44,10 +42,9 @@ export function ExportRowContent({
     <>
       <span
         className={clsx(
-          "grid shrink-0 place-items-center rounded-sm",
+          "grid shrink-0 place-items-center rounded-sm bg-paper-2",
           variant === "sheet" ? "h-9 w-9 text-ink-3" : "h-[22px] w-[22px]"
         )}
-        style={{ background: "var(--paper-2)" }}
       >
         {icon}
       </span>
@@ -74,7 +71,7 @@ export function ExportOptions({
   slots,
 }: {
   variant: ExportVariant;
-  data: ExportData;
+  data: CalendarExport;
   slots: ExportSlots;
 }) {
   const {
@@ -215,7 +212,7 @@ function SectionHeading({
   return (
     <div
       className={clsx(
-        "px-3 pb-1 font-mono text-[11px] uppercase tracking-[0.06em] text-ink-3",
+        "px-3 pb-1 font-mono text-[11px] tracking-[0.06em] text-ink-3",
         variant === "sheet" ? "pt-3" : "pt-2"
       )}
     >

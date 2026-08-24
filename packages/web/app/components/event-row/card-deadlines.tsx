@@ -2,7 +2,12 @@ import clsx from "clsx";
 import type { Round } from "../../lib/event";
 import { dateNameShort, roundShortDate } from "../../lib/date-formatters";
 import { shortCountdown } from "../../lib/countdown";
-import { type RailRow, buildRoundRows } from "./shared";
+import {
+  type RailRow,
+  buildRoundRows,
+  deadlineToneClass,
+  roundLabel,
+} from "./shared";
 
 export function CardDeadlineTable({
   round,
@@ -21,7 +26,7 @@ export function CardDeadlineTable({
     <div className="flex flex-col gap-1">
       {showRoundLabel && (
         <div className="text-[10px] font-medium tracking-[0.06em] text-ink-3">
-          {round.name ?? `Round ${roundIndex + 1}`}
+          {roundLabel(round, roundIndex)}
         </div>
       )}
       <table className="w-full border-collapse text-[12px]">
@@ -54,16 +59,12 @@ function CardDeadlineRow({ row: r, now }: { row: RailRow; now: Date }) {
         )}
         suppressHydrationWarning
       >
-        {r.date === "TBD" ? "TBD" : roundShortDate(r.date)}
+        {roundShortDate(r.date)}
       </td>
       <td
         className={clsx(
           "py-1 text-right align-baseline whitespace-nowrap font-mono text-[11px]",
-          next
-            ? r.urgent
-              ? "text-hot"
-              : "text-[color:var(--accent)]"
-            : "text-ink-3"
+          deadlineToneClass(r)
         )}
       >
         {r.date === "TBD" ? "" : shortCountdown(r.date, now)}

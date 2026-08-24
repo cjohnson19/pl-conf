@@ -4,6 +4,7 @@ import clsx from "clsx";
 import type { ReactNode } from "react";
 import { Skeleton } from "../ui/skeleton";
 import { useDisplayPref, usePrefsLoaded } from "../preferences-provider";
+import { cardGridClass } from "./layout-switcher";
 import { useViewNav } from "./view-nav-provider";
 
 // Rows per placeholder group, widths varied so the sheet reads as content
@@ -99,7 +100,7 @@ function SkeletonRow({
 
 function GridSkeleton() {
   return (
-    <div className="mt-4 grid grid-cols-1 gap-3 px-5 md:grid-cols-2 md:px-8 xl:grid-cols-3">
+    <div className={cardGridClass}>
       {CARDS.map((card) => (
         <div
           key={card}

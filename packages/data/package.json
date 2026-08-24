@@ -19,7 +19,6 @@
     "typescript": "^5.7.2"
   },
   "exports": {
-    ".": "./src/index.ts",
-    "./events": "./generated/events.ts"
+    ".": "./src/index.ts"
   }
 }
