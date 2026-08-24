@@ -53,10 +53,10 @@ Changes are reviewed manually, and I hope to update the pages quickly.
 
 This project is a pnpm monorepo. All packages live under `packages/`:
 
-- `packages/web/` — Next.js 16 frontend (static export to `packages/web/out/`)
+- `packages/web/` — Next.js 16 frontend (standalone SSR server bundle in `.next/standalone/`)
 - `packages/core/` — Shared Zod schemas, date utilities, iCal generation
 - `packages/data/` — Conference YAML source and the generator that produces `generated/events.{ts,json}`
-- `packages/functions/` — AWS Lambda functions (form submission, drift detection)
+- `packages/functions/` — AWS Lambda functions (event submission form)
 - `packages/cdk/` — AWS CDK infrastructure
 
 ### Prerequisites
@@ -75,18 +75,20 @@ The development server starts at `http://localhost:3000`. `pnpm run dev` regener
 
 ### Available scripts
 
-| Script                   | Description                                                        |
-| ------------------------ | ------------------------------------------------------------------ |
-| `pnpm run dev`           | Generate events, then start Next.js dev server                     |
-| `pnpm run build`         | Generate events, then build the static site to `packages/web/out/` |
-| `pnpm run build:lambdas` | Generate events, then bundle Lambda functions                      |
-| `pnpm run build:all`     | Generate once, then build both the site and Lambdas                |
-| `pnpm run generate`      | Regenerate `packages/data/generated/events.ts` from YAML           |
-| `pnpm run typecheck`     | Run `tsc --noEmit` across all packages                             |
-| `pnpm run lint`          | Run Biome (lint + format check) across the repo                    |
-| `pnpm run format`        | Apply Biome formatting fixes in place                              |
-| `pnpm run test`          | Run vitest (schema, AOE, countdown, and Puppeteer e2e tests)       |
-| `pnpm run deploy`        | Deploy via `scripts/deploy.ts <notification-email>`                |
+| Script                   | Description                                                                              |
+| ------------------------ | ---------------------------------------------------------------------------------------- |
+| `pnpm run dev`           | Generate events, then start Next.js dev server                                           |
+| `pnpm run build`         | Generate events, then build the standalone SSR bundle (`packages/web/.next/standalone/`) |
+| `pnpm run start`         | Build, assemble the standalone bundle, and run the SSR server locally                    |
+| `pnpm run build:lambdas` | Generate events, then bundle Lambda functions                                            |
+| `pnpm run build:all`     | Generate once, then build both the site and Lambdas                                      |
+| `pnpm run generate`      | Regenerate `packages/data/generated/events.ts` from YAML                                 |
+| `pnpm run typecheck`     | Run `tsc --noEmit` across all packages                                                   |
+| `pnpm run lint`          | Run Biome (lint + format check) across the repo                                          |
+| `pnpm run format`        | Apply Biome formatting fixes in place                                                    |
+| `pnpm run test`          | Run vitest (schema, AOE, countdown, and Puppeteer e2e tests)                             |
+| `pnpm run deploy`        | Deploy via `scripts/deploy.ts <notification-email>`                                      |
+| `pnpm run destroy:dev`   | Destroy the `PlConf-dev` stack and clean up its ECR asset images                         |
 
 ### Code quality
 

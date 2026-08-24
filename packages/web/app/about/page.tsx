@@ -1,6 +1,4 @@
-import Link from "next/link";
-
-export default async function About() {
+export default function About() {
   return (
     <article className="mx-auto max-w-[640px] px-5 pb-24 pt-14 md:px-8">
       <p className="label-cap mb-3">About</p>
@@ -21,23 +19,27 @@ export default async function About() {
         </p>
         <p>
           The source lives on{" "}
-          <Link
+          <a
             href="https://github.com/cjohnson19/pl-conf"
+            target="_blank"
+            rel="noopener"
             className="text-ink underline underline-offset-[3px]"
           >
             GitHub
-          </Link>
+          </a>
           . PRs against the <code className="font-mono text-ink">data</code>{" "}
           folder are welcome — so are issues for features or corrections.
         </p>
         <p>
           For anything else, you can find my contact info at{" "}
-          <Link
+          <a
             href="https://chasej.dev"
+            target="_blank"
+            rel="noopener"
             className="text-ink underline underline-offset-[3px]"
           >
             chasej.dev
-          </Link>
+          </a>
           .
         </p>
       </div>
@@ -46,7 +48,7 @@ export default async function About() {
 
       <section>
         <p className="label-cap mb-3">FAQ</p>
-        <h2 className="mb-8 font-display text-[28px] font-normal leading-[1.15] tracking-[-0.01em] text-ink normal-case">
+        <h2 className="mb-8 font-display text-[28px] font-normal leading-[1.15] tracking-[-0.01em] text-ink">
           Questions
         </h2>
 
@@ -69,15 +71,9 @@ export default async function About() {
 
           <FaqItem q="How do I know this information is accurate?">
             You should <b className="font-medium text-ink">always</b> check the
-            linked website to confirm dates. That said, every day a{" "}
-            <Link
-              href="https://github.com/cjohnson19/pl-conf/tree/main/packages/functions/drift/index.ts"
-              className="text-ink underline underline-offset-[3px]"
-            >
-              small job
-            </Link>{" "}
-            checks each conference site for changes, so drift usually gets
-            caught within a day.
+            linked website to confirm dates. That said, I regularly run an
+            automated review that cross-references each conference&apos;s site
+            against the data here, so drift usually gets caught quickly.
           </FaqItem>
         </dl>
       </section>

@@ -1,13 +1,10 @@
 import * as cdk from "aws-cdk-lib";
-import * as s3 from "aws-cdk-lib/aws-s3";
 import * as cloudfront from "aws-cdk-lib/aws-cloudfront";
 import * as origins from "aws-cdk-lib/aws-cloudfront-origins";
 import * as lambda from "aws-cdk-lib/aws-lambda";
 import * as apigateway from "aws-cdk-lib/aws-apigatewayv2";
 import * as apigatewayIntegrations from "aws-cdk-lib/aws-apigatewayv2-integrations";
 import * as dynamodb from "aws-cdk-lib/aws-dynamodb";
-import * as events from "aws-cdk-lib/aws-events";
-import * as targets from "aws-cdk-lib/aws-events-targets";
 import * as iam from "aws-cdk-lib/aws-iam";
 import * as ecs from "aws-cdk-lib/aws-ecs";
 import * as ec2 from "aws-cdk-lib/aws-ec2";
@@ -36,6 +33,9 @@ export class PlConfStack extends cdk.Stack {
 
     const { stage, notificationEmail, domainName, submissionApiUrl } = props;
     const isProduction = stage === "production";
+    const removalPolicy = isProduction
+      ? cdk.RemovalPolicy.RETAIN
+      : cdk.RemovalPolicy.DESTROY;
 
     let certificate: acm.ICertificate | undefined;
     let hostedZone: route53.IHostedZone | undefined;
@@ -55,21 +55,11 @@ export class PlConfStack extends cdk.Stack {
       domainNames = [domainName, `www.${domainName}`];
     }
 
-    const driftSnapshotsBucket = new s3.Bucket(this, "DriftSnapshots", {
-      versioned: true,
-      removalPolicy: isProduction
-        ? cdk.RemovalPolicy.RETAIN
-        : cdk.RemovalPolicy.DESTROY,
-      autoDeleteObjects: !isProduction,
-    });
-
     const rateLimitTable = new dynamodb.Table(this, "RateLimitTable", {
       partitionKey: { name: "id", type: dynamodb.AttributeType.STRING },
       timeToLiveAttribute: "ttl",
       billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
-      removalPolicy: isProduction
-        ? cdk.RemovalPolicy.RETAIN
-        : cdk.RemovalPolicy.DESTROY,
+      removalPolicy,
     });
 
     const submissionFunction = new lambda.Function(this, "SubmissionFunction", {
@@ -89,41 +79,10 @@ export class PlConfStack extends cdk.Stack {
     rateLimitTable.grantReadWriteData(submissionFunction);
     submissionFunction.addToRolePolicy(
       new iam.PolicyStatement({
-        actions: ["ses:SendEmail", "ses:SendRawEmail"],
+        actions: ["ses:SendEmail"],
         resources: ["*"],
       })
     );
-
-    const driftFunction = new lambda.Function(this, "DriftFunction", {
-      runtime: lambda.Runtime.NODEJS_22_X,
-      handler: "index.handler",
-      code: lambda.Code.fromAsset(
-        path.join(__dirname, "../../functions/dist/drift")
-      ),
-      timeout: cdk.Duration.minutes(5),
-      memorySize: 512,
-      environment: {
-        DRIFT_SNAPSHOTS_BUCKET_NAME: driftSnapshotsBucket.bucketName,
-        NOTIFICATION_EMAIL: notificationEmail,
-        DRIFT_EMAIL_SENDER: `drift-${stage}@pl-conferences.com`,
-      },
-    });
-
-    driftSnapshotsBucket.grantReadWrite(driftFunction);
-    driftFunction.addToRolePolicy(
-      new iam.PolicyStatement({
-        actions: ["ses:SendEmail", "ses:SendRawEmail"],
-        resources: ["*"],
-      })
-    );
-
-    if (isProduction) {
-      new events.Rule(this, "DriftCronRule", {
-        schedule: events.Schedule.cron({ minute: "0", hour: "17" }), // Daily at 5 PM UTC
-        targets: [new targets.LambdaFunction(driftFunction)],
-        enabled: false, // temporarily paused; flip to re-enable the daily drift email
-      });
-    }
 
     const submissionApi = new apigateway.HttpApi(this, "SubmissionApi", {
       corsPreflight: {
@@ -150,9 +109,7 @@ export class PlConfStack extends cdk.Stack {
     const cluster = new ecs.CfnCluster(this, "WebCluster", {
       capacityProviders: ["FARGATE"],
     });
-    cluster.applyRemovalPolicy(
-      isProduction ? cdk.RemovalPolicy.RETAIN : cdk.RemovalPolicy.DESTROY
-    );
+    cluster.applyRemovalPolicy(removalPolicy);
 
     const executionRole = new iam.Role(this, "WebExecutionRole", {
       assumedBy: new iam.ServicePrincipal("ecs-tasks.amazonaws.com"),
@@ -180,7 +137,7 @@ export class PlConfStack extends cdk.Stack {
 
     const webLogGroup = new logs.LogGroup(this, "WebLogGroup", {
       retention: logs.RetentionDays.ONE_MONTH,
-      removalPolicy: cdk.RemovalPolicy.DESTROY,
+      removalPolicy,
     });
 
     // Express Mode's managed task definition doesn't expose runtimePlatform,
@@ -212,9 +169,6 @@ export class PlConfStack extends cdk.Stack {
         // public 3000 and node binds loopback 3001. Overriding them here
         // makes node fight nginx for 3000 (EADDRINUSE crash loop).
         NODE_ENV: "production",
-        ...(submissionApiUrl
-          ? { NEXT_PUBLIC_SUBMISSION_API_URL: submissionApiUrl }
-          : {}),
       },
       logging: ecs.LogDrivers.awsLogs({
         logGroup: webLogGroup,
@@ -372,6 +326,17 @@ export class PlConfStack extends cdk.Stack {
       }
     );
 
+    const staticOrigin = new origins.HttpOrigin(originHost, {
+      protocolPolicy: originProtocolPolicy,
+    });
+
+    const staticAssetBehavior: cloudfront.BehaviorOptions = {
+      origin: staticOrigin,
+      viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
+      cachePolicy: cloudfront.CachePolicy.CACHING_OPTIMIZED,
+      compress: true,
+    };
+
     const distribution = new cloudfront.Distribution(this, "Distribution", {
       defaultBehavior: {
         origin: new origins.HttpOrigin(originHost, {
@@ -390,27 +355,11 @@ export class PlConfStack extends cdk.Stack {
       domainNames,
       certificate,
       additionalBehaviors: {
-        "/_next/static/*": {
-          origin: new origins.HttpOrigin(originHost, {
-            protocolPolicy: originProtocolPolicy,
-          }),
-          viewerProtocolPolicy:
-            cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
-          cachePolicy: cloudfront.CachePolicy.CACHING_OPTIMIZED,
-          compress: true,
-        },
+        "/_next/static/*": staticAssetBehavior,
         // Static feeds. The default behaviour keys on the preference cookies
         // and RSC headers, which would shard the cache for files that are
         // identical for every viewer.
-        "/ical/*": {
-          origin: new origins.HttpOrigin(originHost, {
-            protocolPolicy: originProtocolPolicy,
-          }),
-          viewerProtocolPolicy:
-            cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
-          cachePolicy: cloudfront.CachePolicy.CACHING_OPTIMIZED,
-          compress: true,
-        },
+        "/ical/*": staticAssetBehavior,
       },
     });
 
@@ -420,9 +369,7 @@ export class PlConfStack extends cdk.Stack {
     const accessLogGroup = new logs.LogGroup(this, "AccessLogGroup", {
       logGroupName: `pl-conf-${stage}-cloudfront-access-logs`,
       retention: logs.RetentionDays.TWO_YEARS,
-      removalPolicy: isProduction
-        ? cdk.RemovalPolicy.RETAIN
-        : cdk.RemovalPolicy.DESTROY,
+      removalPolicy,
     });
 
     const accessLogDeliveryPolicy = new logs.ResourcePolicy(
@@ -526,11 +473,6 @@ export class PlConfStack extends cdk.Stack {
     new cdk.CfnOutput(this, "SubmissionApiUrl", {
       value: submissionApi.url!,
       description: "Submission API endpoint",
-    });
-
-    new cdk.CfnOutput(this, "DriftSnapshotsBucketName", {
-      value: driftSnapshotsBucket.bucketName,
-      description: "S3 bucket for drift snapshots",
     });
   }
 }
