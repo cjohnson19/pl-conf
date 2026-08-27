@@ -13,7 +13,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
   }));
   return [
     { url: BASE, lastModified: new Date() },
-    { url: `${BASE}/about`, lastModified: new Date() },
+    { url: `${BASE}/about/`, lastModified: new Date() },
     ...eventPages,
   ];
 }
