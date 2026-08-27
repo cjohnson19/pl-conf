@@ -4,8 +4,8 @@ type: "conference"
 tags:
   - software-engineering
 date:
-  start: 2026-10-03
-  end: 2026-10-09
+  start: 2026-10-05
+  end: 2026-10-06
 location: Oakland, California
 partOf: SPLASH
 url: "https://2026.splashcon.org/track/splash-2026-onward--papers"
