@@ -4,6 +4,18 @@ type: "symposium"
 tags:
   - concurrency
 date:
-  start: 2027-03-27
-  end: 2027-03-31
+  start: 2027-03-20
+  end: 2027-03-24
 location: Salt Lake City, Utah
+colocatedWith:
+  - CGO
+url: "https://ppopp27.sigplan.org/"
+submissionUrl: "https://ppopp27-summer.hotcrp.com/"
+importantDateUrl: "https://ppopp27.sigplan.org/track/PPoPP-2027-papers"
+importantDates:
+  paper: 2026-08-03
+  rebuttal: 2026-10-08
+  notification: 2026-10-26
+  camera-ready: 2026-12-18
+notes:
+  - "Co-located with HPCA, CGO, and CC 2027"

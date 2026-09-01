@@ -5,8 +5,28 @@ tags:
   - compilers
   - program-analysis
 date:
-  start: 2027-08-11
-  end: 2027-08-13
-location: Denver, Colorado
+  start: 2027-10-10
+  end: 2027-10-15
+location: Prague, Czechia
 partOf: SPLASH
 format: PACMPL
+url: "https://2027.splashcon.org/track/splashoopsla2027"
+submissionUrl: "https://oopsla27.hotcrp.com/"
+importantDateUrl: "https://2027.splashcon.org/track/splashoopsla2027"
+rounds:
+  - name: Round 1
+    importantDates:
+      paper: 2026-10-14
+      rebuttal: 2026-12-05
+      conditional-acceptance: 2026-12-18
+      revisions: 2027-01-22
+      notification: 2027-02-12
+      camera-ready: 2027-03-05
+  - name: Round 2
+    importantDates:
+      paper: 2027-04-07
+      rebuttal: 2027-06-19
+      conditional-acceptance: 2027-07-02
+      revisions: 2027-07-30
+      notification: 2027-08-13
+      camera-ready: 2027-08-27

@@ -10,6 +10,7 @@ date:
   end: 2027-07-09
 location: Kraków, Poland
 url: "https://icalp.uj.edu.pl/home/"
+submissionUrl: "https://icalp27-b.hotcrp.com/"
 importantDateUrl: "https://icalp.uj.edu.pl/track-b/#dates-heading"
 rounds:
   - name: Track B Round 1

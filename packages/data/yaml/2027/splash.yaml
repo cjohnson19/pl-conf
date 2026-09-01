@@ -4,6 +4,7 @@ type: "conference"
 tags:
   - software-engineering
 date:
-  start: 2027-08-11
-  end: 2027-08-13
-location: Denver, Colorado
+  start: 2027-10-10
+  end: 2027-10-15
+location: Prague, Czechia
+url: "https://2027.splashcon.org/"

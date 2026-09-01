@@ -4,8 +4,8 @@ type: "workshop"
 tags:
   - program-analysis
 date:
-  start: 2026-10-04
-  end: 2026-10-09
+  start: 2026-10-07
+  end: 2026-10-07
 location: Oakland, California
 partOf: SPLASH
 colocatedWith: SAS
