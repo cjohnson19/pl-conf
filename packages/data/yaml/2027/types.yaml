@@ -1,0 +1,14 @@
+name: International Conference on Types for Proofs and Programs
+abbreviation: TYPES
+type: "conference"
+tags:
+  - types
+  - proof-assistants
+date:
+  start: 2027-06-07
+  end: 2027-06-11
+location: Udine, Italy
+url: "https://sites.google.com/view/thetypesconferences/next-types-meeting"
+notes:
+  - The call for papers has not been published yet.
+  - Dates and location come from the TYPES series page; no 2027 website yet.

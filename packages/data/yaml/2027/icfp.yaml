@@ -1,0 +1,19 @@
+name: International Conference on Functional Programming
+abbreviation: ICFP
+type: "conference"
+tags:
+  - functional-programming
+date:
+  start: 2027-09-26
+  end: 2027-10-01
+location: Nijmegen, The Netherlands
+url: "https://icfp27.sigplan.org/"
+submissionUrl: "https://icfp27.hotcrp.com"
+importantDateUrl: "https://icfp27.sigplan.org/dates"
+importantDates:
+  paper: 2027-02-25
+  rebuttal: 2027-04-22
+  conditional-acceptance: 2027-05-07
+  revisions: 2027-06-01
+  notification: 2027-06-11
+  camera-ready: 2027-07-01

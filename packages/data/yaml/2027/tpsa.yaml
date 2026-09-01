@@ -1,0 +1,14 @@
+name: Theory and Practice of Static Analysis
+abbreviation: TPSA
+type: "workshop"
+tags:
+  - program-analysis
+date:
+  start: 2027-01-10
+  end: 2027-01-16
+location: Mexico City, Mexico
+partOf: POPL
+url: "https://popl27.sigplan.org/home/tpsa-2027"
+importantDateUrl: "https://popl27.sigplan.org/home/tpsa-2027"
+importantDates:
+  abstract: 2026-10-29

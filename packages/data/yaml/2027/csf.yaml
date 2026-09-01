@@ -1,0 +1,25 @@
+name: Computer Security Foundations
+abbreviation: CSF
+type: "symposium"
+tags:
+  - security
+  - formal-methods
+location: Tokyo, Japan
+url: "https://csf2027.ieee-security.org/"
+submissionUrl: "https://hotcrp.csf2027.ieee-security.org/"
+importantDateUrl: "https://csf2027.ieee-security.org/cfp.html"
+rounds:
+  - name: Summer
+    importantDates:
+      paper: 2026-08-03
+      notification: 2026-10-07
+  - name: Fall
+    importantDates:
+      paper: 2026-10-15
+      notification: 2026-12-14
+  - name: Winter
+    importantDates:
+      paper: 2027-01-28
+      notification: 2027-04-05
+notes:
+  - "Conference dates have not been announced yet"

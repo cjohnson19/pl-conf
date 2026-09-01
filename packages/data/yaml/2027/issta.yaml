@@ -1,0 +1,20 @@
+name: International Symposium on Software Testing and Analysis
+abbreviation: ISSTA
+type: "symposium"
+tags:
+  - software-engineering
+  - program-analysis
+date:
+  start: 2027-09-07
+  end: 2027-09-10
+location: Singapore
+url: "https://conf.researchr.org/home/issta-2027"
+importantDateUrl: "https://conf.researchr.org/dates/issta-2027"
+importantDates:
+  abstract: 2027-01-08
+  paper: 2027-01-11
+  rebuttal: 2027-03-25
+  conditional-acceptance: 2027-04-20
+  revisions: 2027-05-20
+  notification: 2027-06-17
+  camera-ready: 2027-07-22
