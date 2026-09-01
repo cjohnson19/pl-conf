@@ -1,7 +1,6 @@
 export default function About() {
   return (
     <article className="mx-auto max-w-[640px] px-5 pb-24 pt-14 md:px-8">
-      <p className="label-cap mb-3">About</p>
       <p className="mb-10 font-display text-[32px] font-normal leading-[1.2] tracking-[-0.01em] text-ink">
         A small, open-source aggregator for programming-language conferences.
       </p>
@@ -14,21 +13,8 @@ export default function About() {
           get to soon.
         </p>
         <p>
-          This site stores none of your information and collects no analytics.
-          Your starred and hidden events are kept locally in your browser.
-        </p>
-        <p>
-          The source lives on{" "}
-          <a
-            href="https://github.com/cjohnson19/pl-conf"
-            target="_blank"
-            rel="noopener"
-            className="text-ink underline underline-offset-[3px]"
-          >
-            GitHub
-          </a>
-          . PRs against the <code className="font-mono text-ink">data</code>{" "}
-          folder are welcome — so are issues for features or corrections.
+          This site uses no cookies or client-side tracking. Your starred and
+          hidden events are kept locally in your browser.
         </p>
         <p>
           For anything else, you can find my contact info at{" "}
@@ -47,7 +33,6 @@ export default function About() {
       <hr className="my-14 border-rule" />
 
       <section>
-        <p className="label-cap mb-3">FAQ</p>
         <h2 className="mb-8 font-display text-[28px] font-normal leading-[1.15] tracking-[-0.01em] text-ink">
           Questions
         </h2>
@@ -60,8 +45,27 @@ export default function About() {
               </>
             }
           >
-            Yes. Open an issue on GitHub and I&apos;ll add it when I get the
-            chance — or open a PR adding it to the data.
+            Yes. The easiest way is to use the{" "}
+            <code className="font-mono text-ink">+</code> button on the page
+            with a link to the event. You can also create an{" "}
+            <a
+              href="https://github.com/cjohnson19/pl-conf/issues/new"
+              target="_blank"
+              rel="noopener"
+              className="text-ink underline underline-offset-[3px]"
+            >
+              issue on GitHub
+            </a>{" "}
+            or{" "}
+            <a
+              href="https://github.com/cjohnson19/pl-conf/compare"
+              target="_blank"
+              rel="noopener"
+              className="text-ink underline underline-offset-[3px]"
+            >
+              open a PR
+            </a>
+            .
           </FaqItem>
 
           <FaqItem q="Why should I use this site?">
@@ -69,9 +73,10 @@ export default function About() {
             isn&apos;t much reason to. Stick with what works for you.
           </FaqItem>
 
+          {/* biome-ignore format: a literal space after the bold element is dropped from the prerendered HTML; the explicit space expression survives */}
           <FaqItem q="How do I know this information is accurate?">
-            You should <b className="font-medium text-ink">always</b> check the
-            linked website to confirm dates. That said, I regularly run an
+            You should <b className="font-medium text-ink">always</b>{" "}
+            check the linked website to confirm dates. That said, I regularly run an
             automated review that cross-references each conference&apos;s site
             against the data here, so drift usually gets caught quickly.
           </FaqItem>
