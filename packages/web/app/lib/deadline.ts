@@ -1,6 +1,7 @@
 import {
   type DateName,
   type ScheduledEvent,
+  allDeadlines,
   isDeadline,
   isDeadlinePast,
   roundDeadlines,
@@ -39,6 +40,25 @@ export function findNextDeadline(
     });
   });
   return upcoming ?? fallback;
+}
+
+// Where an event stands in the live list: counting down to its next listed
+// deadline, waiting on any deadline to be listed, or past every one that was.
+// Past dates alongside TBD entries count as closed — the event has had its
+// deadlines go by, so it isn't waiting on a first one.
+export type DeadlineStanding =
+  | { kind: "upcoming"; next: NextDeadline }
+  | { kind: "unlisted" }
+  | { kind: "closed" };
+
+export function deadlineStanding(
+  e: DeadlineEvent,
+  now: Date
+): DeadlineStanding {
+  const next = findNextDeadline(e, now);
+  if (next) return { kind: "upcoming", next };
+  const listed = allDeadlines(e).some((d) => d !== "TBD");
+  return { kind: listed ? "closed" : "unlisted" };
 }
 
 export function findAllUpcomingDeadlines(

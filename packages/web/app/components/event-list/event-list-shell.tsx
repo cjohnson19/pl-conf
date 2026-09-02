@@ -51,9 +51,6 @@ export function EventListShell({
     countableEvents,
     lastUpdatedDate,
   } = view;
-  const firstCollapsibleIdx = groups.findIndex(
-    (g) => g.heading.kind === "month" || g.heading.date !== null
-  );
   const hasMultipleGroups = groups.length > 1;
   const serverNow = new Date(serverNowMs);
 
@@ -97,12 +94,10 @@ export function EventListShell({
                         groups.map((g, gi) => {
                           // A dated heading already states the deadline, so its
                           // rows drop their own date. Everywhere else — the archive
-                          // and "Deadlines closed" — the row shows the event date
-                          // rather than a deadline that is already behind us.
-                          const headingDate =
-                            g.heading.kind === "deadline"
-                              ? g.heading.date
-                              : null;
+                          // and the two "event ahead" catch-alls — the row shows
+                          // the event date rather than a deadline that is behind
+                          // us or not yet known.
+                          const dated = g.heading.kind === "deadline";
                           return (
                             <CollapsibleGroup
                               key={g.key}
@@ -110,9 +105,7 @@ export function EventListShell({
                               heading={g.heading}
                               groupKeys={g.events.map((e) => eventKey(e))}
                               isFirst={gi === 0}
-                              isFirstCollapsible={
-                                gi === firstCollapsibleIdx && hasMultipleGroups
-                              }
+                              showCollapseHint={gi === 0 && hasMultipleGroups}
                             >
                               {g.events.map((e, i) => (
                                 <div
@@ -124,12 +117,8 @@ export function EventListShell({
                                 >
                                   <EventRow
                                     event={e}
-                                    hideDate={headingDate !== null}
-                                    dateAnchor={
-                                      headingDate === null
-                                        ? "event"
-                                        : "deadline"
-                                    }
+                                    hideDate={dated}
+                                    dateAnchor={dated ? "deadline" : "event"}
                                     now={serverNow}
                                   />
                                 </div>

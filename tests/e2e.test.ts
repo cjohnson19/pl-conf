@@ -709,8 +709,10 @@ describe("archive view", () => {
     const keys = await renderedKeys();
     expect(keys).not.toContain(eventKey(findFixture("MOCKF")));
     expect(keys).not.toContain(eventKey(findFixture("MOCKG")));
+    // MOCKD lists no deadlines, so it sits under the live list's own
+    // catch-all rather than dropping out with the finished events.
     const body = await page.evaluate(() => document.body.innerText);
-    expect(body).toMatch(/deadlines closed/i);
+    expect(body).toMatch(/no deadlines/i);
   });
 });
 

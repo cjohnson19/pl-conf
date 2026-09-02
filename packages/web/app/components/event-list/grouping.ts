@@ -1,12 +1,15 @@
 import type { DisplayEvent } from "../../lib/event-list-view";
-import { findNextDeadline } from "../../lib/deadline";
+import { deadlineStanding } from "../../lib/deadline";
 import { parseDateParts } from "../../lib/event";
 
-// Deadline groups head the live list (one per distinct next-deadline date,
-// `null` for events whose deadlines have all closed); month groups head the
-// archive, where no deadline is left to sort by.
+// Deadline groups head the live list: one per distinct next-deadline date,
+// then the events with no deadline listed yet, then those past every listed
+// deadline. Month groups head the archive, where no deadline is left to sort
+// by.
 export type GroupHeading =
-  | { kind: "deadline"; date: string | null }
+  | { kind: "deadline"; date: string }
+  | { kind: "unlisted" }
+  | { kind: "closed" }
   | { kind: "month"; month: string };
 
 export type Group = {
@@ -15,21 +18,41 @@ export type Group = {
   events: DisplayEvent[];
 };
 
-export function buildGroups(events: DisplayEvent[], now: Date): Group[] {
+// Names a heading stably across renders and sessions: the date or month it
+// carries, or the kind itself for the two catch-alls.
+export function headingId(heading: GroupHeading): string {
+  if (heading.kind === "deadline") return heading.date;
+  if (heading.kind === "month") return heading.month;
+  return heading.kind;
+}
+
+function groupConsecutive(
+  events: DisplayEvent[],
+  headingOf: (event: DisplayEvent) => GroupHeading
+): Group[] {
   return events.reduce<Group[]>((acc, event) => {
-    const leadDate = findNextDeadline(event, now)?.date ?? null;
+    const heading = headingOf(event);
     const last = acc[acc.length - 1];
-    if (last?.heading.kind === "deadline" && last.heading.date === leadDate) {
+    if (last && headingId(last.heading) === headingId(heading)) {
       last.events.push(event);
       return acc;
     }
     acc.push({
-      key: `${leadDate ?? "none"}:${acc.length}`,
-      heading: { kind: "deadline", date: leadDate },
+      key: `${headingId(heading)}:${acc.length}`,
+      heading,
       events: [event],
     });
     return acc;
   }, []);
+}
+
+export function buildGroups(events: DisplayEvent[], now: Date): Group[] {
+  return groupConsecutive(events, (event) => {
+    const standing = deadlineStanding(event, now);
+    return standing.kind === "upcoming"
+      ? { kind: "deadline", date: standing.next.date }
+      : { kind: standing.kind };
+  });
 }
 
 // "YYYY-MM" of the event's start date; "unknown" when it has no concrete one.
@@ -42,18 +65,8 @@ export function monthKey(event: DisplayEvent): string {
 }
 
 export function buildArchiveGroups(events: DisplayEvent[]): Group[] {
-  return events.reduce<Group[]>((acc, event) => {
-    const month = monthKey(event);
-    const last = acc[acc.length - 1];
-    if (last?.heading.kind === "month" && last.heading.month === month) {
-      last.events.push(event);
-      return acc;
-    }
-    acc.push({
-      key: `${month}:${acc.length}`,
-      heading: { kind: "month", month },
-      events: [event],
-    });
-    return acc;
-  }, []);
+  return groupConsecutive(events, (event) => ({
+    kind: "month",
+    month: monthKey(event),
+  }));
 }

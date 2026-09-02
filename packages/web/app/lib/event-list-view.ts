@@ -12,8 +12,8 @@ import {
   toCalendarDate,
 } from "./event";
 import {
+  deadlineStanding,
   findAllUpcomingDeadlines,
-  findNextDeadline,
   findNextStart,
   isDueThisWeek,
 } from "./deadline";
@@ -167,17 +167,27 @@ function startTime(e: ScheduledEvent): number {
   return toCalendarDate(e.date.start)?.getTime() ?? Number.NEGATIVE_INFINITY;
 }
 
+// Soonest next deadline first; then events with no deadline listed yet; then
+// events past every listed deadline. Within the last two, alphabetical.
+const standingRank = { upcoming: 0, unlisted: 1, closed: 2 } as const;
+
 function sortByNextDeadline(
   events: ScheduledEvent[],
   now: Date
 ): ScheduledEvent[] {
-  const decorated = events.map((e) => ({
-    e,
-    time: findNextDeadline(e, now)?.time ?? Number.POSITIVE_INFINITY,
-  }));
+  const decorated = events.map((e) => {
+    const standing = deadlineStanding(e, now);
+    return {
+      e,
+      rank: standingRank[standing.kind],
+      time: standing.kind === "upcoming" ? standing.next.time : 0,
+    };
+  });
   decorated.sort(
     (a, b) =>
-      a.time - b.time || a.e.abbreviation.localeCompare(b.e.abbreviation)
+      a.rank - b.rank ||
+      a.time - b.time ||
+      a.e.abbreviation.localeCompare(b.e.abbreviation)
   );
   return decorated.map((d) => d.e);
 }

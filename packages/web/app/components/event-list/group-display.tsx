@@ -18,22 +18,22 @@ import { setPrefs } from "../../lib/preferences-store";
 import { useSessionStorageStringSet } from "../../hooks/use-session-storage";
 import { useNow } from "./now-provider";
 import { useCounts } from "./counts-context";
-import type { GroupHeading } from "./grouping";
+import { type GroupHeading, headingId } from "./grouping";
 import { useDisplayPref } from "../preferences-provider";
 
 const SESSION_COLLAPSED_KEY = "collapsedDateGroups";
 
-function EventCount({ count }: { count: number }) {
-  return (
-    <div className="font-mono text-[11px] tracking-[0.04em] text-ink-3">
-      <b className="font-medium text-ink-2">{count}</b> event
-      {count === 1 ? "" : "s"}
-    </div>
-  );
-}
+const SUBLINE_TEXT =
+  "font-mono text-[10px] tracking-[0.06em] text-ink-3 sm:text-[11px]";
 
-// The sticky chrome every group header shares; renders as a disclosure button
-// when the group can collapse and as a plain strip otherwise.
+type HeaderChrome = {
+  isFirst: boolean;
+  collapsed: boolean;
+  onToggle: () => void;
+  controlsId: string;
+};
+
+// The sticky disclosure strip every group header shares.
 function GroupHeaderShell({
   label,
   isFirst,
@@ -41,58 +41,60 @@ function GroupHeaderShell({
   onToggle,
   controlsId,
   children,
-}: {
-  label: string;
-  isFirst: boolean;
-  collapsed?: boolean;
-  onToggle?: () => void;
-  controlsId?: string;
-  children: React.ReactNode;
-}) {
-  const layout = clsx(
-    "flex items-end justify-between gap-4 px-5 pb-3 pt-4 md:px-8",
-    "border-b-2 border-rule",
-    !isFirst && "border-t-2"
-  );
+}: HeaderChrome & { label: string; children: React.ReactNode }) {
   return (
     <div className="sticky top-0 z-10 bg-paper">
-      {onToggle ? (
-        <button
-          type="button"
-          onClick={onToggle}
-          aria-expanded={!collapsed}
-          aria-controls={controlsId}
-          aria-label={
-            collapsed ? `Show events for ${label}` : `Hide events for ${label}`
-          }
-          className={clsx(
-            layout,
-            "w-full text-left transition-colors hover:bg-paper-2"
-          )}
-          // The label carries a locale-formatted date, which the server and
-          // the viewer's browser can disagree on.
-          suppressHydrationWarning
-        >
-          {children}
-        </button>
-      ) : (
-        <div className={layout}>{children}</div>
-      )}
+      <button
+        type="button"
+        onClick={onToggle}
+        aria-expanded={!collapsed}
+        aria-controls={controlsId}
+        aria-label={
+          collapsed ? `Show events for ${label}` : `Hide events for ${label}`
+        }
+        className={clsx(
+          "flex w-full items-end justify-between gap-4 px-5 pb-3 pt-4 text-left md:px-8",
+          "border-b-2 border-rule transition-colors hover:bg-paper-2",
+          !isFirst && "border-t-2"
+        )}
+        // The label carries a locale-formatted date, which the server and
+        // the viewer's browser can disagree on.
+        suppressHydrationWarning
+      >
+        {children}
+      </button>
     </div>
   );
 }
 
-function CollapseChevron({ collapsed }: { collapsed?: boolean }) {
+function HeaderRail({
+  note,
+  count,
+  collapsed,
+}: {
+  note?: React.ReactNode;
+  count: number;
+  collapsed: boolean;
+}) {
   return (
-    <ChevronDown
-      aria-hidden
-      size={16}
-      strokeWidth={1.75}
-      className={clsx(
-        "shrink-0 text-ink-3 transition-transform duration-200 ease-out",
-        collapsed && "-rotate-90"
-      )}
-    />
+    <div className="flex items-end gap-3">
+      <div className="flex flex-col items-end gap-1 font-mono text-[11px] tracking-[0.04em] text-ink-3">
+        {note}
+        <div>
+          <b className="font-medium text-ink-2">{count}</b> event
+          {count === 1 ? "" : "s"}
+        </div>
+      </div>
+      <ChevronDown
+        aria-hidden
+        size={16}
+        strokeWidth={1.75}
+        className={clsx(
+          "shrink-0 text-ink-3 transition-transform duration-200 ease-out",
+          collapsed && "-rotate-90"
+        )}
+      />
+    </div>
   );
 }
 
@@ -100,30 +102,14 @@ function CollapseChevron({ collapsed }: { collapsed?: boolean }) {
 function MonthGroupHeader({
   month,
   count,
-  isFirst,
-  collapsed,
-  onToggle,
-  controlsId,
-}: {
-  month: string;
-  count: number;
-  isFirst: boolean;
-  collapsed?: boolean;
-  onToggle?: () => void;
-  controlsId?: string;
-}) {
+  ...chrome
+}: HeaderChrome & { month: string; count: number }) {
   const [y, m] = month.split("-").map(Number);
   const cal = y && m ? new Date(y, m - 1, 1) : null;
   const monthName = cal ? monthLongFmt.format(cal) : "Date unknown";
-  const label = cal ? `${monthName} ${y}` : "Date unknown";
+  const label = cal ? `${monthName} ${y}` : monthName;
   return (
-    <GroupHeaderShell
-      label={label}
-      isFirst={isFirst}
-      collapsed={collapsed}
-      onToggle={onToggle}
-      controlsId={controlsId}
-    >
+    <GroupHeaderShell label={label} {...chrome}>
       <h2 className="flex items-baseline gap-2.5 font-ui text-[18px] font-semibold leading-none tracking-[-0.02em] text-ink-2 sm:text-[22px]">
         <span suppressHydrationWarning>{monthName}</span>{" "}
         {cal && (
@@ -132,10 +118,28 @@ function MonthGroupHeader({
           </span>
         )}
       </h2>
-      <div className="flex items-end gap-3">
-        <EventCount count={count} />
-        {onToggle && <CollapseChevron collapsed={collapsed} />}
-      </div>
+      <HeaderRail count={count} collapsed={chrome.collapsed} />
+    </GroupHeaderShell>
+  );
+}
+
+// Heading for the two catch-alls at the foot of the live list, set like the
+// dated header's "Month Year / Weekday" pair (a touch larger, with no numeral
+// to carry the strip).
+function StatusGroupHeader({
+  title,
+  count,
+  ...chrome
+}: HeaderChrome & { title: string; count: number }) {
+  return (
+    <GroupHeaderShell label={title} {...chrome}>
+      <h2 className="flex flex-col gap-1 leading-none">
+        <span className="font-mono text-[13px] font-medium tracking-[0.08em] text-ink sm:text-[14px]">
+          {title}
+        </span>{" "}
+        <span className={SUBLINE_TEXT}>Event ahead</span>
+      </h2>
+      <HeaderRail count={count} collapsed={chrome.collapsed} />
     </GroupHeaderShell>
   );
 }
@@ -144,42 +148,14 @@ function DeadlineGroupHeader({
   date,
   count,
   now,
-  isFirst,
-  collapsed,
-  onToggle,
-  controlsId,
-}: {
-  date: string | null;
-  count: number;
-  now: Date;
-  isFirst: boolean;
-  collapsed?: boolean;
-  onToggle?: () => void;
-  controlsId?: string;
-}) {
-  if (date === null) {
-    return (
-      <GroupHeaderShell label="Deadlines closed" isFirst={isFirst}>
-        <h2 className="font-ui text-[18px] font-semibold leading-none tracking-[-0.02em] text-ink-2 sm:text-[22px]">
-          Deadlines closed
-          <span className="font-normal text-ink-3"> · event ahead</span>
-        </h2>
-        <EventCount count={count} />
-      </GroupHeaderShell>
-    );
-  }
+  ...chrome
+}: HeaderChrome & { date: string; count: number; now: Date }) {
   const cal = toCalendarDate(date);
   if (!cal) return null;
   const urgent = isDeadlineUrgent(date, now);
   const past = isDeadlinePast(date, now);
   return (
-    <GroupHeaderShell
-      label={monDayYearFmt.format(cal)}
-      isFirst={isFirst}
-      collapsed={collapsed}
-      onToggle={onToggle}
-      controlsId={controlsId}
-    >
+    <GroupHeaderShell label={monDayYearFmt.format(cal)} {...chrome}>
       <h2 className="flex items-end gap-3 font-ui">
         <span
           className={clsx(
@@ -197,17 +173,14 @@ function DeadlineGroupHeader({
           >
             {monthLongFmt.format(cal)} {cal.getFullYear()}
           </span>
-          <span
-            className="font-mono text-[10px] tracking-[0.06em] text-ink-3 sm:text-[11px]"
-            suppressHydrationWarning
-          >
+          <span className={SUBLINE_TEXT} suppressHydrationWarning>
             {weekdayLongFmt.format(cal)}
           </span>
         </span>
       </h2>
-      <div className="flex items-end gap-3">
-        <div className="flex flex-col items-end gap-1 font-mono text-[11px] tracking-[0.04em] text-ink-3">
-          {!past && (
+      <HeaderRail
+        note={
+          !past && (
             <span
               className={clsx(
                 "font-medium",
@@ -216,13 +189,30 @@ function DeadlineGroupHeader({
             >
               {humanCountdown(date, now)}
             </span>
-          )}
-          <EventCount count={count} />
-        </div>
-        {onToggle && <CollapseChevron collapsed={collapsed} />}
-      </div>
+          )
+        }
+        count={count}
+        collapsed={chrome.collapsed}
+      />
     </GroupHeaderShell>
   );
+}
+
+function GroupHeader({
+  heading,
+  now,
+  ...rest
+}: HeaderChrome & { heading: GroupHeading; count: number; now: Date }) {
+  switch (heading.kind) {
+    case "month":
+      return <MonthGroupHeader month={heading.month} {...rest} />;
+    case "deadline":
+      return <DeadlineGroupHeader date={heading.date} now={now} {...rest} />;
+    case "unlisted":
+      return <StatusGroupHeader title="No deadlines" {...rest} />;
+    case "closed":
+      return <StatusGroupHeader title="Deadlines passed" {...rest} />;
+  }
 }
 
 export function CollapsibleGroup({
@@ -230,14 +220,14 @@ export function CollapsibleGroup({
   heading,
   groupKeys,
   isFirst,
-  isFirstCollapsible,
+  showCollapseHint,
   children,
 }: {
   groupKey: string;
   heading: GroupHeading;
   groupKeys: string[];
   isFirst: boolean;
-  isFirstCollapsible: boolean;
+  showCollapseHint: boolean;
   children: React.ReactNode;
 }) {
   const now = useNow();
@@ -245,18 +235,14 @@ export function CollapsibleGroup({
   // header matches what's actually on screen.
   const { countGroup } = useCounts();
   const count = countGroup(groupKeys);
-  // Dated and month groups collapse (keyed by the date / "YYYY-MM" they head);
-  // the catch-all "Deadlines closed" group has nothing unique to key on.
-  const collapseId =
-    heading.kind === "month" ? heading.month : (heading.date ?? null);
-  const [collapsedDates, setCollapsedDates] = useSessionStorageStringSet(
+  const collapseId = headingId(heading);
+  const [collapsedIds, setCollapsedIds] = useSessionStorageStringSet(
     SESSION_COLLAPSED_KEY,
     new Set()
   );
-  const collapsed = collapseId !== null && collapsedDates.has(collapseId);
+  const collapsed = collapsedIds.has(collapseId);
   const toggleCollapsed = () =>
-    setCollapsedDates((prev) => {
-      if (collapseId === null) return prev;
+    setCollapsedIds((prev) => {
       const next = new Set(prev);
       if (next.has(collapseId)) next.delete(collapseId);
       else next.add(collapseId);
@@ -269,7 +255,7 @@ export function CollapsibleGroup({
   // it hidden pre-paint by the layout.tsx script; React unmounts it here once
   // prefs load, while it's already display:none.
   const collapseHintDismissed = useDisplayPref("collapseHintDismissed");
-  const showHint = isFirstCollapsible && !collapseHintDismissed;
+  const showHint = showCollapseHint && !collapseHintDismissed;
   const onDismissHint = () =>
     setPrefs((p) => ({
       ...p,
@@ -286,34 +272,31 @@ export function CollapsibleGroup({
   );
   const contentId = `group-content-${groupKey.replace(/[^a-zA-Z0-9_-]/g, "-")}`;
 
-  const handleToggle =
-    collapseId !== null
-      ? () => {
-          const willCollapse = !collapsed;
-          const el = innerRef.current;
-          // Capture a fresh measurement on every toggle so the animation
-          // reflects the current rendered height (handles viewport changes
-          // between toggles without a long-lived observer).
-          const measured = el?.scrollHeight ?? contentHeight;
-          if (willCollapse && measured !== undefined) {
-            setContentHeight(measured);
-            requestAnimationFrame(() => toggleCollapsed());
-          } else {
-            if (measured !== undefined) setContentHeight(measured);
-            toggleCollapsed();
-          }
-          const sectionEl = sectionRef.current;
-          const shouldRestoreScroll =
-            willCollapse &&
-            sectionEl !== null &&
-            sectionEl.getBoundingClientRect().top < 0;
-          if (shouldRestoreScroll) {
-            requestAnimationFrame(() => {
-              sectionRef.current?.scrollIntoView({ block: "start" });
-            });
-          }
-        }
-      : undefined;
+  const handleToggle = () => {
+    const willCollapse = !collapsed;
+    const el = innerRef.current;
+    // Capture a fresh measurement on every toggle so the animation
+    // reflects the current rendered height (handles viewport changes
+    // between toggles without a long-lived observer).
+    const measured = el?.scrollHeight ?? contentHeight;
+    if (willCollapse && measured !== undefined) {
+      setContentHeight(measured);
+      requestAnimationFrame(() => toggleCollapsed());
+    } else {
+      if (measured !== undefined) setContentHeight(measured);
+      toggleCollapsed();
+    }
+    const sectionEl = sectionRef.current;
+    const shouldRestoreScroll =
+      willCollapse &&
+      sectionEl !== null &&
+      sectionEl.getBoundingClientRect().top < 0;
+    if (shouldRestoreScroll) {
+      requestAnimationFrame(() => {
+        sectionRef.current?.scrollIntoView({ block: "start" });
+      });
+    }
+  };
 
   return (
     <section
@@ -321,26 +304,15 @@ export function CollapsibleGroup({
       data-group-keys={groupKeys.join(",")}
       className={clsx("relative", !isFirst && "-mt-[2px]")}
     >
-      {heading.kind === "month" ? (
-        <MonthGroupHeader
-          month={heading.month}
-          count={count}
-          isFirst={isFirst}
-          collapsed={collapsed}
-          onToggle={handleToggle}
-          controlsId={contentId}
-        />
-      ) : (
-        <DeadlineGroupHeader
-          date={heading.date}
-          count={count}
-          now={now}
-          isFirst={isFirst}
-          collapsed={collapsed}
-          onToggle={handleToggle}
-          controlsId={contentId}
-        />
-      )}
+      <GroupHeader
+        heading={heading}
+        count={count}
+        now={now}
+        isFirst={isFirst}
+        collapsed={collapsed}
+        onToggle={handleToggle}
+        controlsId={contentId}
+      />
       <div
         id={contentId}
         className="overflow-hidden transition-[height] duration-200 ease-out motion-reduce:transition-none"
