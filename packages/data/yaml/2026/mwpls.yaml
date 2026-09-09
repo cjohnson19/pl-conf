@@ -1,0 +1,13 @@
+name: Midwest Programming Languages Summit
+abbreviation: MWPLS
+type: "workshop"
+date:
+  start: 2026-11-06
+  end: 2026-11-06
+location: Iowa City, Iowa
+url: "https://2026.mwpls.org/"
+submissionUrl: "https://uiowa.qualtrics.com/jfe/form/SV_8q3OxSXuASG6zCS"
+importantDateUrl: "https://2026.mwpls.org/"
+importantDates:
+  abstract: 2026-10-09
+  notification: 2026-10-16
