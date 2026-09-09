@@ -1,6 +1,7 @@
 import { ArrowUpRight } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
+import { Fragment } from "react";
 import { notFound } from "next/navigation";
 import { BUILD_NOW_MS, events } from "@pl-conf/data";
 import {
@@ -84,6 +85,24 @@ export default async function EventPage({ params }: { params: Params }) {
   const relations = resolveRelations(e, allEvents);
   const hasDeadlines =
     e.importantDateUrl !== undefined || roundsWithDates(e.rounds).length > 0;
+  const meta = [
+    {
+      key: "type",
+      node: <span className="text-ink-2">{typeLabel[e.type]}</span>,
+    },
+    e.location
+      ? {
+          key: "location",
+          node: <span className="text-ink-2">{e.location}</span>,
+        }
+      : undefined,
+    dates
+      ? { key: "dates", node: <span suppressHydrationWarning>{dates}</span> }
+      : undefined,
+    e.format
+      ? { key: "format", node: <span className="text-ink-2">{e.format}</span> }
+      : undefined,
+  ].filter((part) => part !== undefined);
 
   return (
     <article className="mx-auto max-w-[760px] px-5 pb-24 pt-10 md:px-8">
@@ -91,7 +110,6 @@ export default async function EventPage({ params }: { params: Params }) {
 
       <header className="flex flex-col gap-5 border-b border-rule pb-8">
         <div className="flex flex-col gap-3">
-          <p className="label-cap">{typeLabel[e.type]}</p>
           <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
             <h1 className="font-display text-[40px] font-bold leading-none tracking-[-0.02em] text-ink">
               {e.abbreviation}
@@ -125,19 +143,16 @@ export default async function EventPage({ params }: { params: Params }) {
         </div>
 
         <div className="flex flex-wrap items-center gap-x-3 gap-y-1 font-mono text-[12px] tracking-[0.04em] text-ink-3">
-          {e.location && <span className="text-ink-2">{e.location}</span>}
-          {e.location && dates && (
-            <span aria-hidden className="text-ink-3/60">
-              ·
-            </span>
-          )}
-          {dates && <span suppressHydrationWarning>{dates}</span>}
-          {(e.location || dates) && e.format && (
-            <span aria-hidden className="text-ink-3/60">
-              ·
-            </span>
-          )}
-          {e.format && <span className="text-ink-2">{e.format}</span>}
+          {meta.map((part, i) => (
+            <Fragment key={part.key}>
+              {i > 0 && (
+                <span aria-hidden className="text-ink-3/60">
+                  ·
+                </span>
+              )}
+              {part.node}
+            </Fragment>
+          ))}
         </div>
 
         <EventTags tags={e.tags} />
