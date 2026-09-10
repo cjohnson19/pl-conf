@@ -18,6 +18,7 @@ rounds:
       paper: 2026-05-28
       rebuttal: 2026-07-22
       notification: 2026-08-06
+      revisions: 2026-10-15
       camera-ready: 2027-01-25
   - name: Round 2
     importantDates:

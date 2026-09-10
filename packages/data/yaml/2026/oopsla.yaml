@@ -13,10 +13,20 @@ format: PACMPL
 url: "https://2026.splashcon.org/track/oopsla-2026"
 submissionUrl: "https://oopsla26.hotcrp.com/"
 importantDateUrl: "https://2026.splashcon.org/track/oopsla-2026#Call-for-Papers"
-importantDates:
-  paper: 2026-03-17
-  rebuttal: 2026-05-22
-  conditional-acceptance: 2026-06-10
-  revisions: 2026-07-21
-  notification: 2026-08-07
-  camera-ready: 2026-08-14
+rounds:
+  - name: Round 1
+    importantDates:
+      paper: 2025-10-10
+      rebuttal: 2025-12-05
+      conditional-acceptance: 2025-12-17
+      revisions: 2026-02-03
+      notification: 2026-02-17
+      camera-ready: 2026-02-27
+  - name: Round 2
+    importantDates:
+      paper: 2026-03-17
+      rebuttal: 2026-05-22
+      conditional-acceptance: 2026-06-10
+      revisions: 2026-07-21
+      notification: 2026-08-07
+      camera-ready: 2026-08-14
