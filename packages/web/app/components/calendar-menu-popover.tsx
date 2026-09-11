@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useSyncExternalStore } from "react";
 import { Calendar } from "lucide-react";
 import { labeledTriggerClass, triggerClass } from "./calendar-menu";
 import {
@@ -18,6 +18,17 @@ import {
 } from "./export-options";
 import { useCalendarExport } from "../hooks/use-calendar-export";
 import type { DisplayEvent } from "../lib/event-list-view";
+import { CalendarSheet } from "./calendar-sheet";
+
+const DESKTOP_QUERY = "(min-width: 680px)";
+
+function subscribeToViewport(onChange: () => void) {
+  const query = window.matchMedia(DESKTOP_QUERY);
+  query.addEventListener("change", onChange);
+  return () => query.removeEventListener("change", onChange);
+}
+
+const isMobileViewport = () => !window.matchMedia(DESKTOP_QUERY).matches;
 
 const itemClass = "cursor-pointer rounded-md px-3 py-2.5 text-[13px] text-ink";
 
@@ -66,21 +77,43 @@ export function CalendarMenuPopover({
   const data = useCalendarExport(event);
   // Rendered only when the menu should be open.
   const [open, setOpen] = useState(true);
+  const mobile = useSyncExternalStore(
+    subscribeToViewport,
+    isMobileViewport,
+    () => false
+  );
+  const trigger = (
+    <button
+      type="button"
+      aria-label={`Add ${event.abbreviation} to calendar`}
+      title="Add to calendar"
+      className={label ? labeledTriggerClass : triggerClass}
+    >
+      <Calendar size={label ? 15 : 14} strokeWidth={1.75} />
+      {label}
+    </button>
+  );
+
+  if (mobile) {
+    return (
+      <CalendarSheet
+        event={event}
+        data={data}
+        trigger={trigger}
+        open={open}
+        onOpenChange={setOpen}
+      />
+    );
+  }
 
   return (
     <DropdownMenu open={open} onOpenChange={setOpen}>
-      <DropdownMenuTrigger
-        aria-label={`Add ${event.abbreviation} to calendar`}
-        title="Add to calendar"
-        className={label ? labeledTriggerClass : triggerClass}
-      >
-        <Calendar size={label ? 15 : 14} strokeWidth={1.75} />
-        {label}
-      </DropdownMenuTrigger>
+      <DropdownMenuTrigger asChild>{trigger}</DropdownMenuTrigger>
       <DropdownMenuContent
         align="end"
         sideOffset={6}
-        className="w-[280px] rounded-lg p-1"
+        collisionPadding={8}
+        className="max-h-[var(--radix-dropdown-menu-content-available-height)] w-[280px] overflow-y-auto overscroll-contain rounded-lg p-1"
       >
         <ExportOptions
           variant="menu"

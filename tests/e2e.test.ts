@@ -735,6 +735,166 @@ describe.concurrent("multi-round badge", () => {
 });
 
 describe("calendar menu", () => {
+  const calendarTrigger = 'button[aria-label="Add MOCKB to calendar"]';
+
+  const bounds = (page: Page, selector: string) =>
+    page.$eval(selector, async (el) => {
+      await Promise.all(
+        el.getAnimations().map((animation) => animation.finished)
+      );
+      const rect = el.getBoundingClientRect();
+      return {
+        top: rect.top,
+        bottom: rect.bottom,
+        left: rect.left,
+        right: rect.right,
+        width: rect.width,
+      };
+    });
+
+  const scrollToLastOption = async (page: Page, selector: string) => {
+    const panel = await bounds(page, selector);
+    const lastOption = `${selector} > :last-child`;
+    expect((await bounds(page, lastOption)).bottom).toBeGreaterThan(
+      panel.bottom
+    );
+    await page.mouse.move((panel.left + panel.right) / 2, panel.bottom - 20);
+    await page.mouse.wheel({ deltaY: 2000 });
+    await page.waitForFunction(
+      (sel) => (document.querySelector(sel)?.scrollTop ?? 0) > 0,
+      { timeout: 5000 },
+      selector
+    );
+    const option = await bounds(page, lastOption);
+    expect(option.top).toBeGreaterThanOrEqual(panel.top);
+    expect(option.bottom).toBeLessThanOrEqual(panel.bottom);
+    await page.mouse.click(
+      (option.left + option.right) / 2,
+      (option.top + option.bottom) / 2
+    );
+    await page.waitForFunction(
+      (sel) => document.querySelector(sel)?.textContent?.includes("Copied"),
+      { timeout: 5000 },
+      lastOption
+    );
+  };
+
+  test("event page calendar uses a scrollable mobile sheet", async ({
+    page,
+  }) => {
+    await page.setViewport({
+      width: 375,
+      height: 500,
+      isMobile: true,
+      hasTouch: true,
+    });
+    await page
+      .browserContext()
+      .overridePermissions(URL, [
+        "clipboard-read",
+        "clipboard-sanitized-write",
+      ]);
+    await page.goto(`${URL}${eventPath(findFixture("MOCKB"))}`, {
+      waitUntil: "networkidle2",
+    });
+    await page.tap(calendarTrigger);
+    await page.waitForSelector('[role="dialog"]', { timeout: 5000 });
+    expect(await page.$('[role="menu"]')).toBeNull();
+    const panel = await bounds(page, '[role="dialog"]');
+    expect(panel.width).toBe(375);
+    expect(panel.bottom).toBe(500);
+    expect(panel.top).toBeGreaterThan(0);
+    await scrollToLastOption(page, '[role="dialog"]');
+    await page.keyboard.press("Escape");
+    await page.waitForSelector('[role="dialog"]', { hidden: true });
+    expect(
+      await page.$eval(calendarTrigger, (el) => el === document.activeElement)
+    ).toBe(true);
+  });
+
+  test("grid calendar uses the mobile sheet", async ({
+    page,
+    goToAllEvents,
+  }) => {
+    await page.setViewport({ width: 375, height: 800 });
+    await goToAllEvents();
+    await page.click('button[aria-label="Grid view"]');
+    await page.click(calendarTrigger);
+    await page.waitForSelector('[role="dialog"]', { timeout: 5000 });
+    expect(await page.$('[role="menu"]')).toBeNull();
+    expect((await bounds(page, '[role="dialog"]')).width).toBe(375);
+  });
+
+  test("calendar presentation follows resizing without reopening a closed menu", async ({
+    page,
+  }) => {
+    await page.setViewport({ width: 375, height: 800 });
+    await page.goto(`${URL}${eventPath(findFixture("MOCKB"))}`, {
+      waitUntil: "networkidle2",
+    });
+    await page.click(calendarTrigger);
+    await page.waitForSelector('[role="dialog"]', { timeout: 5000 });
+    await page.setViewport({ width: 1280, height: 800 });
+    await page.waitForSelector('[role="menu"]', { timeout: 5000 });
+    expect(await page.$('[role="dialog"]')).toBeNull();
+    await page.keyboard.press("Escape");
+    await page.waitForSelector('[role="menu"]', { hidden: true });
+    await page.setViewport({ width: 375, height: 800 });
+    await page.waitForFunction(
+      (sel) =>
+        document.querySelector(sel)?.getAttribute("aria-haspopup") === "dialog",
+      { timeout: 5000 },
+      calendarTrigger
+    );
+    expect(await page.$('[role="dialog"], [role="menu"]')).toBeNull();
+    await page.click(calendarTrigger);
+    await page.waitForSelector('[role="dialog"]', { timeout: 5000 });
+    await page.click('button[aria-label="Close"]');
+    await page.waitForSelector('[role="dialog"]', { hidden: true });
+  });
+
+  test("desktop calendar near the viewport bottom scrolls to its last option", async ({
+    page,
+  }) => {
+    await page.setViewport({ width: 1280, height: 320 });
+    await page
+      .browserContext()
+      .overridePermissions(URL, [
+        "clipboard-read",
+        "clipboard-sanitized-write",
+      ]);
+    await page.goto(`${URL}${eventPath(findFixture("MOCKB"))}`, {
+      waitUntil: "networkidle2",
+    });
+    await page.$eval(calendarTrigger, (el) =>
+      el.scrollIntoView({ block: "end" })
+    );
+    expect((await bounds(page, calendarTrigger)).bottom).toBeGreaterThan(280);
+    await page.click(calendarTrigger);
+    await page.waitForSelector('[role="menu"]', { timeout: 5000 });
+    const panel = await bounds(page, '[role="menu"]');
+    expect(panel.top).toBeGreaterThanOrEqual(0);
+    expect(panel.bottom).toBeLessThanOrEqual(320);
+    await scrollToLastOption(page, '[role="menu"]');
+    await page.keyboard.press("Escape");
+    await page.waitForSelector('[role="menu"]', { hidden: true });
+    expect(
+      await page.$eval(calendarTrigger, (el) => el === document.activeElement)
+    ).toBe(true);
+    await page.keyboard.press("ArrowDown");
+    await page.waitForSelector('[role="menu"]', { timeout: 5000 });
+    await page.keyboard.press("End");
+    await page.waitForFunction(
+      () =>
+        /Copy feed URL|Copied/.test(document.activeElement?.textContent ?? ""),
+      { timeout: 5000 }
+    );
+    const lastOption = await bounds(page, '[role="menu"] :focus');
+    const reopened = await bounds(page, '[role="menu"]');
+    expect(lastOption.top).toBeGreaterThanOrEqual(reopened.top);
+    expect(lastOption.bottom).toBeLessThanOrEqual(reopened.bottom);
+  });
+
   test("toggling 'Include submission deadlines' regenerates the .ics with extra VEVENTs", async ({
     page,
     goToAllEvents,
