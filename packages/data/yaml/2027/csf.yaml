@@ -4,6 +4,9 @@ type: "symposium"
 tags:
   - security
   - formal-methods
+date:
+  start: 2027-09-13
+  end: 2027-09-17
 location: Tokyo, Japan
 url: "https://csf2027.ieee-security.org/"
 submissionUrl: "https://hotcrp.csf2027.ieee-security.org/"
@@ -21,5 +24,3 @@ rounds:
     importantDates:
       paper: 2027-01-28
       notification: 2027-04-05
-notes:
-  - "Conference dates have not been announced yet"
