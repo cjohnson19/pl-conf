@@ -112,7 +112,7 @@ export function EventRow({
           </span>
           {showMultiRound && (
             <span
-              className="inline-flex h-[18px] items-center rounded-xs border px-1.5 font-mono text-[10px] font-medium tracking-[0.06em] text-accent"
+              className="inline-flex h-[18px] items-center rounded-xs border px-1.5 font-mono text-[10px] font-medium tracking-[0.06em] text-hot"
               style={{ borderColor: "currentColor" }}
             >
               Round {(lead?.roundIdx ?? totalRounds - 1) + 1} / {totalRounds}
@@ -129,7 +129,7 @@ export function EventRow({
         style={{ gridArea: "rail" }}
       >
         {e.importantDateUrl && <DatesDeadlinesLink href={e.importantDateUrl} />}
-        <RoundRail event={e} now={now} showMultiRound={showMultiRound} />
+        <RoundRail event={e} now={now} />
       </div>
 
       <div

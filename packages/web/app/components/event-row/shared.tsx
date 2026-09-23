@@ -6,7 +6,6 @@ import {
   type MaybeDate,
   type Round,
   isDeadlinePast,
-  isDeadlineUrgent,
   roundEntries,
 } from "../../lib/event";
 import type { DisplayEvent, RelatedLink } from "../../lib/event-list-view";
@@ -17,7 +16,6 @@ export type RailRow = {
   name: DateName;
   date: MaybeDate;
   kind: ChipKind;
-  urgent?: boolean;
 };
 
 // Base classes for the animated hover underline; compose with the caller's
@@ -25,9 +23,8 @@ export type RailRow = {
 export const hoverUnderlineClass =
   "underline decoration-rule decoration-1 underline-offset-[3px] transition-[text-decoration-color] duration-200 ease-out";
 
-export function deadlineToneClass(r: Pick<RailRow, "kind" | "urgent">): string {
-  if (r.kind !== "next") return "text-ink-3";
-  return r.urgent ? "text-hot" : "text-accent";
+export function deadlineToneClass(r: Pick<RailRow, "kind">): string {
+  return r.kind === "next" ? "text-hot" : "text-ink-3";
 }
 
 export function roundLabel(round: Round, idx: number): string {
@@ -51,13 +48,7 @@ export function buildRoundRows(
     if (date === "TBD") return { name, date, kind: "default" as ChipKind };
     if (isDeadlinePast(date, now))
       return { name, date, kind: "past" as ChipKind };
-    if (name === nextName)
-      return {
-        name,
-        date,
-        kind: "next" as ChipKind,
-        urgent: isDeadlineUrgent(date, now),
-      };
+    if (name === nextName) return { name, date, kind: "next" as ChipKind };
     return { name, date, kind: "default" as ChipKind };
   });
 }

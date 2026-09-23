@@ -16,7 +16,7 @@ export type NextDeadline = {
   time: number;
 };
 
-type DeadlineEvent = Pick<ScheduledEvent, "rounds">;
+export type DeadlineEvent = Pick<ScheduledEvent, "rounds">;
 type StartEvent = Pick<ScheduledEvent, "date">;
 
 export function findNextDeadline(

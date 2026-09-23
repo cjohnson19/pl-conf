@@ -1,22 +1,18 @@
 import clsx from "clsx";
 import type { DisplayEvent } from "../../lib/event-list-view";
-import { roundStatuses } from "../../lib/deadline";
 import { dateNameShort, roundShortDate } from "../../lib/date-formatters";
-import { type RoundSlot, pickMultiRoundSlots } from "./rail-slots";
+import { type RoundSlot, type RoundSlots, pickRailSlots } from "./rail-slots";
 import { type RailRow, buildRoundRows, deadlineToneClass } from "./shared";
 
 export function RoundRail({
   event: e,
   now,
-  showMultiRound,
 }: {
   event: DisplayEvent;
   now: Date;
-  showMultiRound: boolean;
 }) {
-  if (showMultiRound) {
-    return <MultiRoundRail event={e} now={now} />;
-  }
+  const slots = pickRailSlots(e, now);
+  if (slots) return <MultiRoundRail event={e} slots={slots} now={now} />;
   return <SingleRoundRail event={e} now={now} />;
 }
 
@@ -59,8 +55,15 @@ function DateRow({ row: r }: { row: RailRow }) {
   );
 }
 
-function MultiRoundRail({ event: e, now }: { event: DisplayEvent; now: Date }) {
-  const { left, right } = pickMultiRoundSlots(roundStatuses(e, now));
+function MultiRoundRail({
+  event: e,
+  slots: { left, right },
+  now,
+}: {
+  event: DisplayEvent;
+  slots: RoundSlots;
+  now: Date;
+}) {
   return (
     <div className="mt-2 grid grid-cols-2 gap-3">
       {left ? <RoundColumn event={e} slot={left} now={now} /> : <div />}
@@ -82,20 +85,17 @@ function RoundColumn({
   if (!round) return <div />;
   const active = slot.status === "active";
   const rows = buildRoundRows(round, now, active);
-  const urgent = active && rows.some((r) => r.kind === "next" && r.urgent);
-  const accentClass = urgent ? "text-hot" : "text-accent";
-  const borderClass = urgent ? "border-hot" : "border-accent";
   return (
     <div
       className={clsx(
         "flex flex-col gap-1 border-l-2 pl-2.5",
-        active ? borderClass : "border-rule"
+        active ? "border-hot" : "border-rule"
       )}
     >
       <div
         className={clsx(
           "flex items-baseline gap-2 font-mono text-[10px] font-medium tracking-[0.08em]",
-          active ? accentClass : "text-ink-3"
+          active ? "text-hot" : "text-ink-3"
         )}
       >
         Round {slot.idx + 1}

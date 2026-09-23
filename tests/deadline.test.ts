@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
 import type { Round } from "@pl-conf/core";
-import { pickMultiRoundSlots } from "@/components/event-row/rail-slots";
+import {
+  pickMultiRoundSlots,
+  pickRailSlots,
+} from "@/components/event-row/rail-slots";
 import { roundStatuses } from "@/lib/deadline";
 
 const round = (importantDates: Round["importantDates"]): Round => ({
@@ -107,5 +110,32 @@ describe("pickMultiRoundSlots", () => {
       left: null,
       right: { idx: 0, status: "active" },
     });
+  });
+});
+
+describe("pickRailSlots", () => {
+  const rounds = [
+    round({ paper: "2026-10-14", notification: "2027-02-12" }),
+    round({ paper: "2027-04-07", notification: "2027-08-13" }),
+  ];
+
+  it("shows every round before the first deadline has passed", () => {
+    expect(pickRailSlots({ rounds }, now)).toEqual({
+      left: { idx: 0, status: "active" },
+      right: { idx: 1, status: "next" },
+    });
+  });
+
+  it("shows the last two rounds once every deadline has passed", () => {
+    expect(pickRailSlots({ rounds }, new Date("2027-09-01T12:00:00Z"))).toEqual(
+      {
+        left: { idx: 0, status: "done" },
+        right: { idx: 1, status: "done" },
+      }
+    );
+  });
+
+  it("leaves a single-round event to the unlabeled rail", () => {
+    expect(pickRailSlots({ rounds: [rounds[0]] }, now)).toBeUndefined();
   });
 });
