@@ -5,18 +5,17 @@ tags:
   - theorem-proving
   - logic
 date:
-  start: 2027-08-24
-  end: 2027-08-27
+  start: 2027-08-22
+  end: 2027-08-25
 location: Nijmegen, The Netherlands
 colocatedWith:
   - FSCD
 url: "https://fscd-cade.science.ru.nl/"
-importantDateUrl: "https://fscd-cade.science.ru.nl/"
+submissionUrl: "https://easychair.org/conferences/?conf=cade31"
+importantDateUrl: "https://fscd-cade.science.ru.nl/calls/papers-cade"
 importantDates:
-  abstract: TBD
-  paper: TBD
-  rebuttal: TBD
-  notification: TBD
+  abstract: 2027-02-15
+  paper: 2027-02-22
+  rebuttal: 2027-04-30
+  notification: 2027-05-17
   camera-ready: 2027-05-31
-notes:
-  - "Site lists placeholder dates for the abstract, paper, rebuttal, and notification deadlines"

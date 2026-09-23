@@ -13,10 +13,8 @@ colocatedWith:
 url: "https://fscd-cade.science.ru.nl/"
 importantDateUrl: "https://fscd-cade.science.ru.nl/"
 importantDates:
-  abstract: TBD
-  paper: TBD
-  rebuttal: TBD
-  notification: TBD
+  abstract: 2027-02-15
+  paper: 2027-02-22
+  rebuttal: 2027-04-30
+  notification: 2027-05-17
   camera-ready: 2027-05-31
-notes:
-  - "Site lists placeholder dates for the abstract, paper, rebuttal, and notification deadlines"

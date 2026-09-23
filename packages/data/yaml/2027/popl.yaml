@@ -11,6 +11,7 @@ url: "https://popl27.sigplan.org/"
 submissionUrl: "https://popl27.hotcrp.com"
 importantDateUrl: "https://popl27.sigplan.org/track/POPL-2027-popl-research-papers"
 type: "symposium"
+format: PACMPL
 importantDates:
   paper: 2026-07-09
   rebuttal: 2026-09-10
