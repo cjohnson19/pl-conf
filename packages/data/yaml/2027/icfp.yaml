@@ -7,6 +7,7 @@ date:
   start: 2027-09-26
   end: 2027-10-01
 location: Nijmegen, The Netherlands
+format: PACMPL
 url: "https://icfp27.sigplan.org/"
 submissionUrl: "https://icfp27.hotcrp.com"
 importantDateUrl: "https://icfp27.sigplan.org/dates"

@@ -8,7 +8,9 @@ date:
   start: 2027-06-07
   end: 2027-06-11
 location: Udine, Italy
-url: "https://sites.google.com/view/thetypesconferences/next-types-meeting"
-notes:
-  - The call for papers has not been published yet.
-  - Dates and location come from the TYPES series page; no 2027 website yet.
+url: "https://types2027.uniud.it/"
+importantDateUrl: "https://types2027.uniud.it/call-for-contributions/"
+importantDates:
+  paper: 2027-02-19
+  notification: 2027-03-22
+  camera-ready: 2027-04-30
