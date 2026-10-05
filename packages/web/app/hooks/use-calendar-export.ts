@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   hasConcreteDates,
   icalFeedPath,
@@ -8,8 +8,8 @@ import {
   toGoogleCalendarLink,
 } from "../lib/event";
 import type { DisplayEvent } from "../lib/event-list-view";
-import { setPrefs } from "../lib/preferences-store";
-import { useDisplayPref } from "@/components/preferences-provider";
+import { setDisplayPref } from "../lib/preferences-store";
+import { useDisplayPref } from "./use-preferences";
 
 type SubscribeUrls = {
   httpsUrl: string;
@@ -31,14 +31,8 @@ export type CalendarExport = {
 
 export function useCalendarExport(event: DisplayEvent): CalendarExport {
   const includeDeadlines = useDisplayPref("includeCalendarDeadlines");
-  const setIncludeDeadlines = useCallback(
-    (v: boolean) =>
-      setPrefs((prev) => ({
-        ...prev,
-        display: { ...prev.display, includeCalendarDeadlines: v },
-      })),
-    []
-  );
+  const setIncludeDeadlines = (v: boolean) =>
+    setDisplayPref("includeCalendarDeadlines", v);
   const [copied, setCopied] = useState(false);
   const datesTBD = !hasConcreteDates(event);
 

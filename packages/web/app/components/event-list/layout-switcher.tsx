@@ -3,8 +3,7 @@
 import { eventKey } from "../../lib/event";
 import type { DisplayEvent } from "../../lib/event-list-view";
 import { EventCard } from "../event-card";
-import { useDisplayPref, usePrefsLoaded } from "../preferences-provider";
-import { NoEventsMessage } from "./view-empty-state";
+import { useDisplayPref } from "../../hooks/use-preferences";
 
 // Shared with the loading skeleton, which must mirror the real grid layout.
 export const cardGridClass =
@@ -17,12 +16,7 @@ export function LayoutSwitcher({
   events: DisplayEvent[];
   listChildren: React.ReactNode;
 }) {
-  const prefsLoaded = usePrefsLoaded();
-  const layout = useDisplayPref("layout") ?? "list";
-  if (prefsLoaded && layout === "grid") {
-    if (events.length === 0) {
-      return <NoEventsMessage />;
-    }
+  if (useDisplayPref("layout") === "grid") {
     return (
       <div className={cardGridClass}>
         {events.map((e) => (

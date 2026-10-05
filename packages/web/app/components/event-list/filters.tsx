@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef } from "react";
+import { useEffect, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import clsx from "clsx";
 import {
@@ -12,19 +12,19 @@ import {
   Tags as TagsIcon,
 } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
-import { tagDisplayName, tagValues } from "../../lib/event";
+import { type Tag, tagDisplayName, tagValues } from "../../lib/event";
 import {
   type Category,
   type View,
   parseCategoryParam,
-  parseViewParam,
+  withParams,
 } from "../../lib/filter-params";
-import { setPrefs } from "../../lib/preferences-store";
+import { setDisplayPref } from "../../lib/preferences-store";
+import type { Counts } from "../../lib/counts";
 import type { DisplayPreferences } from "../../lib/user-prefs";
-import { useTagFilter } from "../event-tags";
-import { useDisplayPref } from "../preferences-provider";
-import { useCounts } from "./counts-context";
-import { useSearchQuery, useSetSearchQuery } from "./search-provider";
+import { useTagFilter } from "../../hooks/use-tag-filter";
+import { useDisplayPref } from "../../hooks/use-preferences";
+import { useListFilter } from "./list-filter";
 import { useViewNav } from "./view-nav-provider";
 
 type Layout = DisplayPreferences["layout"];
@@ -44,27 +44,8 @@ const chipClass = (on: boolean) =>
       : "border-rule bg-transparent text-ink-2 hover:text-ink"
   );
 
-function replaceSearchParam(
-  searchParams: URLSearchParams,
-  key: string,
-  value: string | null
-): string {
-  // Read from window.location instead of the React snapshot so we don't drop
-  // `q` (or other params SearchProvider writes via history.replaceState
-  // between React render cycles). Falls back to the snapshot during SSR.
-  const sp =
-    typeof window !== "undefined"
-      ? new URLSearchParams(window.location.search)
-      : new URLSearchParams(searchParams.toString());
-  if (value === null || value === "") sp.delete(key);
-  else sp.set(key, value);
-  const qs = sp.toString();
-  return qs ? `?${qs}` : "?";
-}
-
 export function SearchPill() {
-  const value = useSearchQuery();
-  const setValue = useSetSearchQuery();
+  const { query: value, setQuery: setValue } = useListFilter();
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -107,20 +88,13 @@ export function SearchPill() {
   );
 }
 
-export function FilterChips() {
-  const { categoryCounts: counts } = useCounts();
+export function FilterChips({ counts }: { counts: Record<Category, number> }) {
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const active = parseCategoryParam(searchParams.get("c"));
-  const select = useCallback(
-    (key: Category) => {
-      router.replace(
-        replaceSearchParam(searchParams, "c", key === "all" ? null : key),
-        { scroll: false }
-      );
-    },
-    [router, searchParams]
-  );
+  const active = parseCategoryParam(useSearchParams().get("c"));
+  const select = (key: Category) =>
+    router.replace(withParams({ c: key === "all" ? undefined : key }), {
+      scroll: false,
+    });
   return (
     <>
       {CATEGORY_CHIPS.map(({ key, label }) => (
@@ -140,11 +114,8 @@ export function FilterChips() {
   );
 }
 
-export function TagsFilter() {
-  const { tagCounts } = useCounts();
-  const tagFilter = useTagFilter();
-  if (!tagFilter) return null;
-  const { activeTags, onToggle, onClear } = tagFilter;
+export function TagsFilter({ counts }: { counts: Record<Tag, number> }) {
+  const { activeTags, toggle, clear } = useTagFilter();
   const activeCount = activeTags.size;
   return (
     <Popover>
@@ -172,7 +143,7 @@ export function TagsFilter() {
           <p className="label-cap">Filter by tags</p>
           <button
             type="button"
-            onClick={onClear}
+            onClick={clear}
             disabled={activeCount === 0}
             className="text-[11px] font-medium text-ink-2 transition-colors hover:text-ink disabled:cursor-not-allowed disabled:text-ink-3"
           >
@@ -182,7 +153,7 @@ export function TagsFilter() {
         <ul className="max-h-[320px] overflow-y-auto py-1">
           {tagValues.map((tag) => {
             const checked = activeTags.has(tag);
-            const count = tagCounts[tag];
+            const count = counts[tag];
             const disabled = count === 0 && !checked;
             return (
               <li key={tag}>
@@ -190,7 +161,7 @@ export function TagsFilter() {
                   type="button"
                   data-tag={tag}
                   aria-pressed={checked}
-                  onClick={() => onToggle(tag)}
+                  onClick={() => toggle(tag)}
                   disabled={disabled}
                   className={clsx(
                     "flex w-full items-center justify-between gap-3 px-4 py-1.5 text-left text-[13px] transition-colors",
@@ -245,22 +216,16 @@ export function TagsFilter() {
 }
 
 export function ViewTabs({
-  starredCountSlot,
+  counts,
   trailing,
 }: {
-  starredCountSlot?: React.ReactNode;
-  trailing?: React.ReactNode;
+  counts: Counts["viewCounts"];
+  trailing: React.ReactNode;
 }) {
-  const { viewCounts: counts } = useCounts();
-  const searchParams = useSearchParams();
+  const { view: active, starredCount } = useListFilter();
   const { pending, navigateView } = useViewNav();
-  const active = parseViewParam(searchParams.get("view"));
   const select = (next: View) => {
-    const url = replaceSearchParam(
-      searchParams,
-      "view",
-      next === "all" ? null : next
-    );
+    const url = withParams({ view: next === "all" ? undefined : next });
     // Starred / submissions are CSS filters over rows the page already shipped,
     // so they switch with a bare history entry. Archived rows aren't in the DOM
     // at all — entering or leaving the archive needs a real render.
@@ -303,10 +268,7 @@ export function ViewTabs({
       >
         {tabs.map((t) => {
           const on = t.key === active;
-          const countNode =
-            t.key === "starred"
-              ? starredCountSlot
-              : counts[t.key as Exclude<View, "starred">];
+          const count = t.key === "starred" ? starredCount : counts[t.key];
           return (
             <button
               key={t.key}
@@ -326,31 +288,27 @@ export function ViewTabs({
               ) : (
                 t.label
               )}
-              {countNode !== undefined && countNode !== null && (
+              {count !== undefined && (
                 <span
                   className={clsx(
                     "hidden font-mono text-[11px] sm:inline",
                     on ? "text-ink-2" : "text-ink-3"
                   )}
                 >
-                  {countNode}
+                  {count}
                 </span>
               )}
             </button>
           );
         })}
       </div>
-      {trailing && (
-        <div className="flex shrink-0 items-center gap-4 pb-2">{trailing}</div>
-      )}
+      <div className="flex shrink-0 items-center gap-4 pb-2">{trailing}</div>
     </div>
   );
 }
 
 export function LayoutToggle() {
-  const layout: Layout = useDisplayPref("layout") ?? "list";
-  const setLayout = (next: Layout) =>
-    setPrefs((p) => ({ ...p, display: { ...p.display, layout: next } }));
+  const layout = useDisplayPref("layout");
   const options: {
     key: Layout;
     icon: React.ReactNode;
@@ -375,7 +333,7 @@ export function LayoutToggle() {
           <button
             key={o.key}
             type="button"
-            onClick={() => setLayout(o.key)}
+            onClick={() => setDisplayPref("layout", o.key)}
             aria-label={o.label}
             aria-pressed={on}
             title={o.label}

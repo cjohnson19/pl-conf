@@ -23,12 +23,8 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "../ui/dropdown-menu";
-import {
-  useDisplayPref,
-  useEventPrefs,
-  usePrefsLoaded,
-} from "../preferences-provider";
-import { setPrefs } from "../../lib/preferences-store";
+import { useDisplayPref, useEventPrefs } from "../../hooks/use-preferences";
+import { setDisplayPref } from "../../lib/preferences-store";
 import { collectStarredKeys } from "../../lib/user-prefs";
 import { useSessionStorageStringSet } from "../../hooks/use-session-storage";
 import { useNow } from "./now-provider";
@@ -41,7 +37,6 @@ const SESSION_DISMISSED_KEY = "dismissedHeroKeys";
 export function Hero({ events }: { events: HeroEvent[] }) {
   const now = useNow();
   const eventPrefs = useEventPrefs();
-  const prefsLoaded = usePrefsLoaded();
   const deadlineHeroDismissed = useDisplayPref("deadlineHeroDismissed");
   const permanentlyHiddenEventHeroes = useDisplayPref(
     "permanentlyHiddenEventHeroes"
@@ -51,26 +46,15 @@ export function Hero({ events }: { events: HeroEvent[] }) {
     [eventPrefs]
   );
   const [sessionDismissed, setSessionDismissed] = useSessionStorageStringSet(
-    SESSION_DISMISSED_KEY,
-    new Set()
+    SESSION_DISMISSED_KEY
   );
   const dismissThisSession = (key: string) =>
     setSessionDismissed((prev) => new Set(prev).add(key));
   const hideEventForever = (key: string) =>
-    setPrefs((p) => ({
-      ...p,
-      display: {
-        ...p.display,
-        permanentlyHiddenEventHeroes: Array.from(
-          new Set([...(p.display.permanentlyHiddenEventHeroes ?? []), key])
-        ),
-      },
-    }));
-  const dismissAllAlerts = () =>
-    setPrefs((p) => ({
-      ...p,
-      display: { ...p.display, deadlineHeroDismissed: true },
-    }));
+    setDisplayPref("permanentlyHiddenEventHeroes", (prev) =>
+      Array.from(new Set([...prev, key]))
+    );
+  const dismissAllAlerts = () => setDisplayPref("deadlineHeroDismissed", true);
   const alertMenuItems = (event: HeroEvent) => [
     {
       label: `Hide alerts for ${event.abbreviation}`,
@@ -111,7 +95,6 @@ export function Hero({ events }: { events: HeroEvent[] }) {
   return <HeroSlot>{content}</HeroSlot>;
 
   function pickHero(): ReactNode {
-    if (!prefsLoaded) return null;
     if (starredKeys.size === 0) return null;
     if (deadlineHeroDismissed) return null;
 
@@ -121,7 +104,7 @@ export function Hero({ events }: { events: HeroEvent[] }) {
       );
       const pickKey = `deadline:${pick.event.key}:${pick.name}:${pick.date}`;
       if (sessionDismissed.has(pickKey)) return null;
-      if (permanentlyHiddenEventHeroes?.includes(pick.event.key)) return null;
+      if (permanentlyHiddenEventHeroes.includes(pick.event.key)) return null;
       const deadline = isDeadline(pick.name);
       return (
         <HeroShell
@@ -147,7 +130,7 @@ export function Hero({ events }: { events: HeroEvent[] }) {
     const pick = upcomingStarts.reduce((a, b) => (a.time <= b.time ? a : b));
     const pickKey = `start:${pick.event.key}:${pick.date}`;
     if (sessionDismissed.has(pickKey)) return null;
-    if (permanentlyHiddenEventHeroes?.includes(pick.event.key)) return null;
+    if (permanentlyHiddenEventHeroes.includes(pick.event.key)) return null;
     const startCal = toCalendarDate(pick.date);
     return (
       <HeroShell

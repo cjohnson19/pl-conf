@@ -1,44 +1,13 @@
 "use client";
 
-import { createContext, useContext } from "react";
 import clsx from "clsx";
+import { useTagFilter } from "../hooks/use-tag-filter";
 import { type Tag, tagDisplayName } from "../lib/event";
 
-type TagFilter = {
-  activeTags: ReadonlySet<Tag>;
-  onToggle: (tag: Tag) => void;
-  onClear: () => void;
-};
-
-const TagFilterContext = createContext<TagFilter | null>(null);
-
-export function TagFilterProvider({
-  value,
-  children,
-}: {
-  value: TagFilter;
-  children: React.ReactNode;
-}) {
-  return (
-    <TagFilterContext.Provider value={value}>
-      {children}
-    </TagFilterContext.Provider>
-  );
-}
-
+// Row tags that toggle the list's tag filter.
 export function ConnectedEventTags({ tags }: { tags: Tag[] }) {
-  const ctx = useContext(TagFilterContext);
-  return (
-    <EventTags
-      tags={tags}
-      activeTags={ctx?.activeTags}
-      onToggle={ctx?.onToggle}
-    />
-  );
-}
-
-export function useTagFilter(): TagFilter | null {
-  return useContext(TagFilterContext);
+  const { activeTags, toggle } = useTagFilter();
+  return <EventTags tags={tags} activeTags={activeTags} onToggle={toggle} />;
 }
 
 export function EventTags({

@@ -3,7 +3,7 @@
 import clsx from "clsx";
 import type { ReactNode } from "react";
 import { Skeleton } from "../ui/skeleton";
-import { useDisplayPref, usePrefsLoaded } from "../preferences-provider";
+import { useDisplayPref } from "../../hooks/use-preferences";
 import { cardGridClass } from "./layout-switcher";
 import { useViewNav } from "./view-nav-provider";
 
@@ -18,8 +18,7 @@ const CARDS = ["a", "b", "c", "d", "e", "f"];
 
 export function ListSkeletonBoundary({ children }: { children: ReactNode }) {
   const { pending } = useViewNav();
-  const prefsLoaded = usePrefsLoaded();
-  const layout = useDisplayPref("layout") ?? "list";
+  const layout = useDisplayPref("layout");
   if (!pending) return <>{children}</>;
   return (
     <div
@@ -29,7 +28,7 @@ export function ListSkeletonBoundary({ children }: { children: ReactNode }) {
       // instead of flashing the skeleton.
       style={{ animation: "skeleton-in 150ms ease-out 120ms both" }}
     >
-      {prefsLoaded && layout === "grid" ? <GridSkeleton /> : <ListSkeleton />}
+      {layout === "grid" ? <GridSkeleton /> : <ListSkeleton />}
     </div>
   );
 }

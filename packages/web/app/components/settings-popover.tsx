@@ -3,7 +3,8 @@
 import { RotateCcw, Settings } from "lucide-react";
 import { headerIconButtonClass } from "./icon-button";
 import { Popover, PopoverTrigger, PopoverContent } from "./ui/popover";
-import { usePreferences } from "./preferences-provider";
+import { useDisplayPref } from "../hooks/use-preferences";
+import { setDisplayPref } from "../lib/preferences-store";
 import clsx from "clsx";
 
 function ToggleRow({
@@ -50,23 +51,8 @@ function ToggleRow({
 }
 
 export function SettingsPopover() {
-  const { prefs, setPrefs, prefsLoaded } = usePreferences();
-
-  const setDeadlineDismissed = (dismissed: boolean) =>
-    setPrefs((p) => ({
-      ...p,
-      display: { ...p.display, deadlineHeroDismissed: dismissed },
-    }));
-
-  const clearAllHidden = () =>
-    setPrefs((p) => ({
-      ...p,
-      display: { ...p.display, permanentlyHiddenEventHeroes: [] },
-    }));
-
-  const hiddenCount = prefsLoaded
-    ? (prefs.display.permanentlyHiddenEventHeroes ?? []).length
-    : 0;
+  const deadlineHeroDismissed = useDisplayPref("deadlineHeroDismissed");
+  const hiddenCount = useDisplayPref("permanentlyHiddenEventHeroes").length;
 
   return (
     <Popover>
@@ -90,8 +76,8 @@ export function SettingsPopover() {
         <ToggleRow
           label="Show deadline alerts"
           description="The card above the list highlighting your next starred deadline."
-          checked={!prefs.display.deadlineHeroDismissed}
-          onChange={(v) => setDeadlineDismissed(!v)}
+          checked={!deadlineHeroDismissed}
+          onChange={(v) => setDisplayPref("deadlineHeroDismissed", !v)}
         />
 
         <div className="mt-2 flex items-center justify-between gap-3 px-2">
@@ -102,7 +88,7 @@ export function SettingsPopover() {
           </p>
           <button
             type="button"
-            onClick={clearAllHidden}
+            onClick={() => setDisplayPref("permanentlyHiddenEventHeroes", [])}
             disabled={hiddenCount === 0}
             className="inline-flex h-8 items-center gap-1.5 rounded-full border border-rule bg-transparent px-3 text-[12px] font-medium text-ink-2 transition-colors hover:border-ink hover:text-ink disabled:cursor-not-allowed disabled:border-rule disabled:text-ink-3 disabled:hover:border-rule"
           >

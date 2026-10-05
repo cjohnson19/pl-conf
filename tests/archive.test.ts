@@ -1,11 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { BUILD_NOW_MS, events } from "@pl-conf/data";
 import { eventKey, hasEndedAt, type Tag } from "@pl-conf/core";
-import { type Counts, type CountsInput, computeCounts } from "@/lib/counts";
-import {
-  type CountableEvent,
-  computeEventListView,
-} from "@/lib/event-list-view";
+import { computeCounts } from "@/lib/counts";
+import { computeEventListView } from "@/lib/event-list-view";
 import { defaultFilterParams, type FilterParams } from "@/lib/filter-params";
 import { FROZEN_NOW_ISO, FROZEN_NOW_MS } from "./frozen-now";
 
@@ -24,48 +21,38 @@ const params = (overrides: Partial<FilterParams> = {}): FilterParams => ({
   ...overrides,
 });
 
-const counts = (
-  countable: CountableEvent[],
-  overrides: Partial<CountsInput> = {}
-): Counts =>
-  computeCounts(countable, {
-    category: "all",
-    tags: new Set(),
-    view: "all",
-    starredKeys: new Set(),
-    starredLoaded: false,
-    ...overrides,
-  });
-
 const abbrevs = (view: ReturnType<typeof computeEventListView>) =>
   view.displayEvents.map((e) => e.abbreviation);
 
 describe("live list", () => {
+  const view = computeEventListView(all, params(), NOW);
+
   it("leaves finished events out", () => {
-    const view = computeEventListView(all, params(), NOW);
     expect(abbrevs(view)).not.toContain("MOCKF");
     expect(abbrevs(view)).not.toContain("MOCKG");
-    expect(view.countableEvents.filter((e) => !e.archived)).toHaveLength(5);
+    expect(view.rows).toHaveLength(5);
   });
 
   it("counts the archive for the tab badge without listing it", () => {
-    const view = computeEventListView(all, params(), NOW);
-    const c = counts(view.countableEvents);
-    expect(c.viewCounts.archive).toBe(2);
-    expect(c.viewCounts.all).toBe(5);
-    expect(c.categoryCounts.all).toBe(5);
+    expect(view.counts.viewCounts).toEqual({
+      all: 5,
+      submissions: 3,
+      archive: 2,
+    });
+    expect(view.counts.categoryCounts.all).toBe(5);
   });
 
-  it("ships every schedulable event as countable so archive counts survive hiding", () => {
-    const view = computeEventListView(all, params(), NOW);
-    const countable = new Set(view.countableEvents.map((e) => e.key));
-    // MOCKH's dates are TBD, so it is neither active nor ended: it belongs to
-    // no list and has nothing to count. Every other event must be countable.
-    const missing = all.filter((e) => !countable.has(eventKey(e)));
-    expect(missing.map((e) => e.abbreviation)).toEqual(["MOCKH"]);
-    const archived = view.countableEvents.filter((e) => e.archived);
-    expect(archived.map((e) => e.key)).toEqual(
-      all.filter(hasEndedAt(NOW)).map(eventKey)
+  it("describes each row for client-side filtering", () => {
+    expect(view.rows.map((r) => [r.key, r.open])).toEqual([
+      ["MOCKE-2026", true],
+      ["MOCKB-2026", true],
+      ["MOCKA-2027", false],
+      ["MOCKC-2027", true],
+      ["MOCKD-2026", false],
+    ]);
+    expect(view.rows[1]?.haystack).toContain("borgo");
+    expect(new Set(view.liveKeys)).toEqual(
+      new Set(view.rows.map((r) => r.key))
     );
   });
 });
@@ -76,26 +63,31 @@ describe("archive view", () => {
 
   it("lists only finished events, most recent first", () => {
     expect(abbrevs(archive())).toEqual(["MOCKF", "MOCKG"]);
+    expect(new Set(archive().displayEvents.map(eventKey))).toEqual(
+      new Set(all.filter(hasEndedAt(NOW)).map(eventKey))
+    );
   });
 
   it("groups by the month the event took place in", () => {
-    const view = archive();
-    expect(view.groups.map((g) => g.heading)).toEqual([
+    expect(archive().groups.map((g) => g.heading)).toEqual([
       { kind: "month", month: "2026-02" },
       { kind: "month", month: "2025-09" },
     ]);
   });
 
-  it("keeps reporting the live tab counts", () => {
+  it("keeps reporting the live tab counts and the live pool", () => {
     const view = archive();
-    const c = counts(view.countableEvents, { view: "archive" });
-    expect(c.viewCounts.all).toBe(5);
-    expect(c.viewCounts.archive).toBe(2);
-    expect(c.dueThisWeek).toBe(counts(view.countableEvents).dueThisWeek);
+    expect(view.counts.viewCounts.all).toBe(5);
+    expect(view.counts.viewCounts.archive).toBe(2);
+    expect(view.counts.dueThisWeek).toBe(
+      computeEventListView(all, params(), NOW).counts.dueThisWeek
+    );
+    expect(view.liveKeys).toHaveLength(5);
+    expect(view.rows.every((r) => !r.open)).toBe(true);
   });
 
   it("scopes chips and tag counts to the archived pool", () => {
-    const c = counts(archive().countableEvents, { view: "archive" });
+    const c = computeCounts(all, params({ view: "archive" }), NOW);
     expect(c.categoryCounts).toMatchObject({
       all: 2,
       symposium: 1,
@@ -114,16 +106,13 @@ describe("archive view", () => {
     const view = archive({ tags: new Set<Tag>(["logic"]) });
     expect(abbrevs(view)).toEqual(["MOCKF"]);
     // Tab counts follow the same chips into the live list.
-    const c = counts(view.countableEvents, {
-      view: "archive",
-      tags: new Set<Tag>(["logic"]),
-    });
-    expect(c.viewCounts.all).toBe(0);
+    expect(view.counts.viewCounts.all).toBe(0);
+    expect(view.liveKeys).toEqual([]);
   });
 
   it("anchors nothing on a countdown — no hero comes from the archive", () => {
     const view = archive();
     expect(view.heroEvents.map((e) => e.abbreviation)).not.toContain("MOCKF");
-    expect(counts(view.countableEvents).totalActive).toBe(5);
+    expect(view.counts.totalActive).toBe(5);
   });
 });

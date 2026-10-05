@@ -1,32 +1,19 @@
 "use client";
 
-import { useSearchParams } from "next/navigation";
-import { collectStarredKeys } from "../../lib/user-prefs";
-import { useEventPrefs, usePrefsLoaded } from "../preferences-provider";
-import { useCounts } from "./counts-context";
+import { withParams } from "../../lib/filter-params";
+import { useListFilter } from "./list-filter";
 
-export function StarredEmptyState() {
-  const eventPrefs = useEventPrefs();
-  const prefsLoaded = usePrefsLoaded();
-  const searchParams = useSearchParams();
-  const { totalActive } = useCounts();
-  if (searchParams.get("view") !== "starred") return null;
-  if (!prefsLoaded) return null;
-  // Filter hidden so "Nothing starred yet" doesn't include hidden favorites in
-  // its count of starred entries.
-  const starredCount = collectStarredKeys(eventPrefs).size;
-  const hasOthers = totalActive > starredCount;
-  if (starredCount > 0 && !hasOthers) return null;
-  const goAll = () => {
-    const sp = new URLSearchParams(searchParams.toString());
-    sp.delete("view");
-    const qs = sp.toString();
-    window.history.replaceState(null, "", qs ? `?${qs}` : "?");
-  };
+export function StarredEmptyState({ totalActive }: { totalActive: number }) {
+  const { view, starred, hydrated } = useListFilter();
+  if (view !== "starred" || !hydrated) return null;
+  const hasOthers = totalActive > starred.size;
+  if (starred.size > 0 && !hasOthers) return null;
+  const goAll = () =>
+    window.history.replaceState(null, "", withParams({ view: undefined }));
   return (
     <div className="mx-5 mt-8 flex flex-col items-start gap-4 border border-dashed border-rule p-5 sm:p-7 md:mx-8 min-[480px]:flex-row min-[480px]:items-center min-[480px]:justify-between min-[480px]:gap-6">
       <div className="text-[13px] text-ink-2">
-        {starredCount === 0 ? (
+        {starred.size === 0 ? (
           <>
             Nothing starred yet —{" "}
             <b className="font-semibold text-ink">{totalActive} events</b>{" "}

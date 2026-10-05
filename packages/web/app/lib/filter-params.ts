@@ -45,6 +45,21 @@ export function parseTagsParam(raw: string | null | undefined): Set<Tag> {
   );
 }
 
+// The next query string after `updates`, built from the live URL rather than
+// React's search-params snapshot, which never sees the `q` the search box
+// writes with history.replaceState. `undefined` removes a parameter.
+export function withParams(
+  updates: Record<string, string | undefined>
+): string {
+  const sp = new URLSearchParams(window.location.search);
+  Object.entries(updates).forEach(([key, value]) => {
+    if (value === undefined || value === "") sp.delete(key);
+    else sp.set(key, value);
+  });
+  const qs = sp.toString();
+  return qs ? `?${qs}` : "?";
+}
+
 export function parseFilterParams(sp: RawSearchParams): FilterParams {
   return {
     q: (firstValue(sp.q) ?? "").trim(),

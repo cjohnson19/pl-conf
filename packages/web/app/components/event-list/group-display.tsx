@@ -9,14 +9,14 @@ import {
   toCalendarDate,
 } from "../../lib/event";
 import { humanCountdown } from "../../lib/countdown";
-import { setPrefs } from "../../lib/preferences-store";
+import { setDisplayPref } from "../../lib/preferences-store";
 import { useSessionStorageStringSet } from "../../hooks/use-session-storage";
 import { useNow } from "./now-provider";
-import { useCounts } from "./counts-context";
+import { useListFilter } from "./list-filter";
 import { type GroupHeading, headingId } from "./grouping";
 import { Icon } from "../icons";
 import { LocalDate, useLocalDate } from "../local-date";
-import { useDisplayPref } from "../preferences-provider";
+import { useDisplayPref } from "../../hooks/use-preferences";
 
 const SESSION_COLLAPSED_KEY = "collapsedDateGroups";
 
@@ -224,14 +224,11 @@ export function CollapsibleGroup({
   children: React.ReactNode;
 }) {
   const now = useNow();
-  // Count visible (post-view-filter, post-hidden) rows in this group so the
-  // header matches what's actually on screen.
-  const { countGroup } = useCounts();
-  const count = countGroup(groupKeys);
+  const { visible } = useListFilter();
+  const count = groupKeys.filter((k) => visible.has(k)).length;
   const collapseId = headingId(heading);
   const [collapsedIds, setCollapsedIds] = useSessionStorageStringSet(
-    SESSION_COLLAPSED_KEY,
-    new Set()
+    SESSION_COLLAPSED_KEY
   );
   const collapsed = collapsedIds.has(collapseId);
   const toggleCollapsed = () =>
@@ -249,11 +246,7 @@ export function CollapsibleGroup({
   // prefs load, while it's already display:none.
   const collapseHintDismissed = useDisplayPref("collapseHintDismissed");
   const showHint = showCollapseHint && !collapseHintDismissed;
-  const onDismissHint = () =>
-    setPrefs((p) => ({
-      ...p,
-      display: { ...p.display, collapseHintDismissed: true },
-    }));
+  const onDismissHint = () => setDisplayPref("collapseHintDismissed", true);
 
   const sectionRef = useRef<HTMLElement>(null);
   const innerRef = useRef<HTMLDivElement>(null);

@@ -1018,7 +1018,8 @@ describe("calendar menu", () => {
     );
 
     await page.setViewport({ width: 1280, height: 800 });
-    await page.waitForSelector(calendarTrigger);
+    // The trigger re-renders from the sheet's to the menu's after the resize.
+    await page.waitForSelector(`${calendarTrigger}[aria-haspopup="menu"]`);
     await page.click(calendarTrigger);
     await page.waitForSelector(checkboxSelector);
 
@@ -1480,6 +1481,38 @@ describe.concurrent("persistence settle", () => {
     );
     expect(groupState.aria).toBe("true");
     expect(groupState.height).toBe(0);
+  });
+
+  test("collapsing two groups keeps both collapsed across a reload", async ({
+    page,
+  }) => {
+    await goToAllEvents(page);
+    const headers = 'button[aria-label^="Hide events for "]';
+    const collapse = async (index: number) => {
+      const buttons = await page.$$(headers);
+      const button = buttons[index];
+      const label = await button?.evaluate((b) => b.getAttribute("aria-label"));
+      await button?.evaluate((b) => (b as HTMLButtonElement).click());
+      await page.waitForSelector(
+        `button[aria-label="${label?.replace("Hide", "Show")}"]`
+      );
+      return label;
+    };
+    const first = await collapse(0);
+    // The first header is now "Show events…", so index 0 is the next group.
+    const second = await collapse(0);
+    expect(first).not.toBe(second);
+
+    await page.reload({ waitUntil: "networkidle2" });
+    await waitForSettled(page);
+    const collapsed = await page.$$eval(
+      'button[aria-label^="Show events for "]',
+      (nodes) => nodes.map((n) => n.getAttribute("aria-label"))
+    );
+    expect(collapsed).toEqual([
+      first?.replace("Hide", "Show"),
+      second?.replace("Hide", "Show"),
+    ]);
   });
 
   test("partial prefs object merges with defaults without crashing", async ({

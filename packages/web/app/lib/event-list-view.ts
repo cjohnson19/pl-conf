@@ -1,8 +1,6 @@
 import {
   type DateName,
-  type EventType,
   type ScheduledEvent,
-  type Tag,
   eventKey,
   eventPathFromSlug,
   eventSlug,
@@ -11,13 +9,14 @@ import {
   isActiveAt,
   toCalendarDate,
 } from "./event";
+import { type Counts, computeCounts, matchesChips } from "./counts";
 import {
   deadlineStanding,
   findAllUpcomingDeadlines,
   findNextStart,
-  isDueThisWeek,
 } from "./deadline";
 import type { FilterParams } from "./filter-params";
+import type { ListRow } from "./list-visibility";
 import {
   type Group,
   buildArchiveGroups,
@@ -44,9 +43,8 @@ export type RelatedLink = { abbreviation: string; path?: string };
 
 // Projection of ScheduledEvent shipped to client components via RSC. Drops
 // fields no client consumer reads (submissionUrl, notes), fields used only
-// for server aggregation (lastUpdated), and fields only needed by the
-// server-rendered .ics path (sequence). The raw partOf/colocatedWith arrays
-// are dropped too — clients read the resolved *Links instead.
+// for server aggregation (lastUpdated, sequence), and the raw
+// partOf/colocatedWith arrays — clients read the resolved *Links instead.
 export type DisplayEvent = Omit<
   ScheduledEvent,
   | "submissionUrl"
@@ -95,24 +93,16 @@ export function toDisplayEvent(
   };
 }
 
-// Slim projection of every event — active and archived — shipped to the client
-// so chip/tab/footer counts can follow the starred set on the client.
-// `hasOpenSubmission` and `dueThisWeek` are computed once at SSR — they don't
-// tick — but that's an acceptable approximation for badge counts.
-export type CountableEvent = {
-  key: string;
-  category: EventType;
-  tags: Tag[];
-  hasOpenSubmission: boolean;
-  dueThisWeek: boolean;
-  archived: boolean;
-};
-
 export type EventListView = {
   displayEvents: DisplayEvent[];
   heroEvents: HeroEvent[];
   groups: Group[];
-  countableEvents: CountableEvent[];
+  // One entry per displayed row, for client-side view and search filtering.
+  rows: ListRow[];
+  // The live events under the current chips, whichever view is shown; the
+  // client counts the starred tab against these.
+  liveKeys: string[];
+  counts: Counts;
   lastUpdatedDate: string | undefined;
 };
 
@@ -142,12 +132,11 @@ type ComputeOptions = {
   validEventPaths?: Set<string>;
 };
 
-export function buildSearchHaystack(e: DisplayEvent): string {
-  const parts = [e.name, e.abbreviation];
-  if (e.location) parts.push(e.location);
-  if (e.format) parts.push(e.format);
-  parts.push(...e.tags);
-  return parts.join("\n").toLowerCase();
+function searchHaystack(e: ScheduledEvent): string {
+  return [e.name, e.abbreviation, e.location, e.format, ...e.tags]
+    .filter((part) => part !== undefined)
+    .join("\n")
+    .toLowerCase();
 }
 
 // Most recently held first, so the top of the archive is the conference that
@@ -199,61 +188,37 @@ export function computeEventListView(
   options: ComputeOptions = {}
 ): EventListView {
   const { validEventPaths } = options;
-  const hasOpenSubmission = hasOpenSubmissionAt(now);
   const isArchive = filters.view === "archive";
 
   const activeEvents = events.filter(isActiveAt(now));
-  const archivedEvents = events.filter(hasEndedAt(now));
-  const listed = isArchive ? archivedEvents : activeEvents;
-
-  const byCategory = (list: ScheduledEvent[]) =>
-    filters.category === "all"
-      ? list
-      : list.filter((e) => e.type === filters.category);
-  const byTags = (list: ScheduledEvent[]) =>
-    filters.tags.size === 0
-      ? list
-      : list.filter((e) => e.tags.some((t) => filters.tags.has(t)));
-
-  const baseFiltered = byTags(byCategory(listed));
+  const liveEvents = activeEvents.filter(matchesChips(filters));
+  const listed = isArchive
+    ? events.filter(hasEndedAt(now)).filter(matchesChips(filters))
+    : liveEvents;
 
   const sorted = isArchive
-    ? sortArchived(baseFiltered)
-    : sortByNextDeadline(baseFiltered, now);
+    ? sortArchived(listed)
+    : sortByNextDeadline(listed, now);
   const displayEvents = sorted.map((e) => toDisplayEvent(e, validEventPaths));
 
-  const groups = isArchive
-    ? buildArchiveGroups(displayEvents)
-    : buildGroups(displayEvents, now);
-
-  const lastUpdatedDate = events
-    .map((e) => e.lastUpdated)
-    .reduce<string | undefined>(
-      (max, d) => (max === undefined || d > max ? d : max),
-      undefined
-    );
-
-  const toCountable = (
-    e: ScheduledEvent,
-    archived: boolean
-  ): CountableEvent => ({
-    key: eventKey(e),
-    category: e.type,
-    tags: [...e.tags],
-    hasOpenSubmission: !archived && hasOpenSubmission(e),
-    dueThisWeek: !archived && isDueThisWeek(e, now),
-    archived,
-  });
-  const countableEvents: CountableEvent[] = [
-    ...activeEvents.map((e) => toCountable(e, false)),
-    ...archivedEvents.map((e) => toCountable(e, true)),
-  ];
+  const hasOpenSubmission = hasOpenSubmissionAt(now);
 
   return {
     displayEvents,
     heroEvents: buildHeroEvents(activeEvents, now),
-    groups,
-    countableEvents,
-    lastUpdatedDate,
+    groups: isArchive
+      ? buildArchiveGroups(displayEvents)
+      : buildGroups(displayEvents, now),
+    rows: sorted.map((e) => ({
+      key: eventKey(e),
+      open: !isArchive && hasOpenSubmission(e),
+      haystack: searchHaystack(e),
+    })),
+    liveKeys: liveEvents.map(eventKey),
+    counts: computeCounts(events, filters, now),
+    lastUpdatedDate: events
+      .map((e) => e.lastUpdated)
+      .sort()
+      .at(-1),
   };
 }
