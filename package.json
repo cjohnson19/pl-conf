@@ -19,6 +19,8 @@
     "lint": "biome check",
     "format": "biome format --write",
     "test": "vitest run",
+    "test:unit": "vitest run --project unit",
+    "test:e2e": "vitest run --project e2e",
     "prepare": "husky"
   },
   "devDependencies": {

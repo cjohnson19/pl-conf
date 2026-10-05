@@ -8,25 +8,12 @@
 // Paint dependency chain that Lighthouse simulates. Hydration starts one frame
 // after `load` rather than in parallel with parsing.
 //
-// The rewrite itself happens in nginx (docker/nginx.conf), which already
-// buffers every response: `deferChunkScripts` is the same literal substitution
-// so tests can mirror it, and `DEFERRED_CHUNK_SUB_FILTER` is what the nginx
-// `sub_filter` directive must contain. Local `pnpm run start` and the e2e
-// fixture serve the untouched HTML, where the loader finds nothing to do.
+// The rewrite itself is an nginx `sub_filter` (docker/nginx.conf), which
+// already buffers every response; it must tag each chunk script with this
+// attribute. Local `pnpm run start` serves the untouched HTML, where the
+// loader finds nothing to do; the e2e suite applies the nginx rewrite itself.
 
 export const DEFERRED_CHUNK_ATTR = "data-pl-defer";
-
-export const DEFERRED_CHUNK_SUB_FILTER = {
-  search: '<script src="/_next/static/chunks/',
-  replace: `<script type="text/plain" ${DEFERRED_CHUNK_ATTR} src="/_next/static/chunks/`,
-} as const;
-
-export function deferChunkScripts(html: string): string {
-  return html.replaceAll(
-    DEFERRED_CHUNK_SUB_FILTER.search,
-    DEFERRED_CHUNK_SUB_FILTER.replace
-  );
-}
 
 // Runs at the first idle moment after `load`: by then parsing is complete and
 // any style, layout, and paint work queued on the main thread has drained, so
