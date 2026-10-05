@@ -9,10 +9,6 @@ export const ROOT_DIR = path.join(
 );
 export const CDK_DIR = path.join(ROOT_DIR, "packages", "cdk");
 
-export function stackName(stage: string): string {
-  return `PlConf-${stage}`;
-}
-
 export function run(
   command: string,
   options?: { cwd?: string; env?: Partial<NodeJS.ProcessEnv> }

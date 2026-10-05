@@ -93,10 +93,7 @@ export function EventListShell({
                       displayEvents.length > 0 ? (
                         groups.map((g, gi) => {
                           // A dated heading already states the deadline, so its
-                          // rows drop their own date. Everywhere else — the archive
-                          // and the two "event ahead" catch-alls — the row shows
-                          // the event date rather than a deadline that is behind
-                          // us or not yet known.
+                          // rows drop their own date.
                           const dated = g.heading.kind === "deadline";
                           return (
                             <CollapsibleGroup
@@ -117,8 +114,7 @@ export function EventListShell({
                                 >
                                   <EventRow
                                     event={e}
-                                    hideDate={dated}
-                                    dateAnchor={dated ? "deadline" : "event"}
+                                    showDate={!dated}
                                     now={serverNow}
                                   />
                                 </div>

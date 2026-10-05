@@ -96,7 +96,7 @@ export function toDisplayEvent(
 }
 
 // Slim projection of every event — active and archived — shipped to the client
-// so chip/tab/footer counts can be re-derived after subtracting hidden events.
+// so chip/tab/footer counts can follow the starred set on the client.
 // `hasOpenSubmission` and `dueThisWeek` are computed once at SSR — they don't
 // tick — but that's an acceptable approximation for badge counts.
 export type CountableEvent = {

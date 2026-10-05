@@ -83,7 +83,7 @@ export const setPrefs: Dispatch<SetStateAction<PreferenceCollection>> = (
   // Hydrate first if the user clicked before <PreferencesProvider>'s
   // useEffect fired. Without this, the functional updater receives the
   // default `prefs` and the write below clobbers whatever was in
-  // localStorage (saved stars, hidden flags, display prefs).
+  // localStorage (saved stars, display prefs).
   if (typeof window !== "undefined" && !loaded) {
     preferencesStore.hydrateFromStorage();
   }

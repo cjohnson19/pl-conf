@@ -21,25 +21,9 @@ type StartEvent = Pick<ScheduledEvent, "date">;
 
 export function findNextDeadline(
   e: DeadlineEvent,
-  now: Date,
-  options: { fallbackToPast?: boolean } = {}
-): NextDeadline | null {
-  const nowTime = now.getTime();
-  let upcoming: NextDeadline | null = null;
-  let fallback: NextDeadline | null = null;
-  e.rounds.forEach((r, roundIdx) => {
-    roundEntries(r).forEach(([name, date]) => {
-      if (date === "TBD") return;
-      const time = toAoeInstant(date)!.getTime();
-      const candidate = { roundIdx, name, date, time };
-      if (time > nowTime) {
-        if (!upcoming || time < upcoming.time) upcoming = candidate;
-      } else if (options.fallbackToPast) {
-        if (!fallback || time > fallback.time) fallback = candidate;
-      }
-    });
-  });
-  return upcoming ?? fallback;
+  now: Date
+): NextDeadline | undefined {
+  return findAllUpcomingDeadlines(e, now)[0];
 }
 
 // Where an event stands in the live list: counting down to its next listed

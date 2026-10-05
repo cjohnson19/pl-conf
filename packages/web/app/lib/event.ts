@@ -7,7 +7,6 @@ export {
   eventTypes,
   hasConcreteDates,
   allDeadlines,
-  firstDeadline,
   roundDeadlines,
   roundEntries,
   roundsWithDates,

@@ -97,8 +97,8 @@ export function SettingsPopover() {
         <div className="mt-2 flex items-center justify-between gap-3 px-2">
           <p className="text-[11px] leading-[1.45] text-ink-3">
             {hiddenCount > 0
-              ? `${hiddenCount} event${hiddenCount === 1 ? "" : "s"} hidden.`
-              : "No events hidden."}
+              ? `Alerts hidden for ${hiddenCount} event${hiddenCount === 1 ? "" : "s"}.`
+              : "No event alerts hidden."}
           </p>
           <button
             type="button"
@@ -107,7 +107,7 @@ export function SettingsPopover() {
             className="inline-flex h-8 items-center gap-1.5 rounded-full border border-rule bg-transparent px-3 text-[12px] font-medium text-ink-2 transition-colors hover:border-ink hover:text-ink disabled:cursor-not-allowed disabled:border-rule disabled:text-ink-3 disabled:hover:border-rule"
           >
             <RotateCcw size={12} strokeWidth={1.75} />
-            Reset hidden
+            Reset
           </button>
         </div>
       </PopoverContent>

@@ -2,7 +2,7 @@
 
 // Deploys the PlConf-<stage> stack.
 //
-// The site runs SSR on ECS Express; CDK's DockerImageAsset builds and pushes
+// The site runs SSR on ECS Fargate; CDK's DockerImageAsset builds and pushes
 // the container image during `cdk deploy`. The submission API URL must be
 // inlined into the image at build time (NEXT_PUBLIC_* are baked in by Next),
 // but the URL is also an output of this same stack — so on the very first
@@ -12,7 +12,7 @@
 // On subsequent deploys the URL is already known (read from existing stack
 // outputs) and we deploy in a single pass.
 
-import { CDK_DIR, run, stackName, tryExec } from "./lib/exec";
+import { CDK_DIR, run, tryExec } from "./lib/exec";
 
 function getStackOutputs(stack: string): Record<string, string> {
   const output = tryExec(
@@ -57,7 +57,7 @@ async function main() {
 
   const stage = process.env.STAGE || "dev";
   const domainName = stage === "production" ? "pl-conferences.com" : undefined;
-  const stack = stackName(stage);
+  const stack = `PlConf-${stage}`;
 
   console.log("=".repeat(60));
   console.log(`Deploying stage: ${stage}`);

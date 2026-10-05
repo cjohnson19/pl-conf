@@ -1438,21 +1438,6 @@ describe.concurrent("persistence settle", () => {
     expect(gridPressed).toBe("true");
   });
 
-  test("eventPrefs.hidden removes the event from the All-events list", async ({
-    page,
-  }) => {
-    const hiddenKey = eventKey(findFixture("MOCKB"));
-    await seedStorage(page, {
-      local: {
-        [PREFS_KEY]: prefs({}, { [hiddenKey]: { hidden: true } }),
-      },
-    });
-    await waitForSettled(page);
-    const keys = await renderedKeys(page);
-    expect(keys).not.toContain(hiddenKey);
-    expect(keys.length).toBe(activeEvents().length - 1);
-  });
-
   test("collapseHintDismissed suppresses the 'tap any date heading' tip", async ({
     page,
   }) => {

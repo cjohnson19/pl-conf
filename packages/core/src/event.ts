@@ -132,15 +132,6 @@ export function allDeadlines(e: Pick<ScheduledEvent, "rounds">): MaybeDate[] {
   return e.rounds.flatMap(roundDeadlines);
 }
 
-export function firstDeadline(
-  e: Pick<ScheduledEvent, "rounds">
-): MaybeDate | undefined {
-  const dates = allDeadlines(e);
-  return dates.length === 0
-    ? undefined
-    : dates.reduce((min, d) => (d < min ? d : min));
-}
-
 export function isDeadline(name: DateName): boolean {
   // Some date-name entries describe an event the author receives rather than
   // a date they must submit by. Those aren't "deadlines" — surface them as
@@ -243,10 +234,7 @@ export function toCalendarDate(date: MaybeDate): Date | null {
   return result;
 }
 
-export function isDeadlinePast(
-  date: MaybeDate,
-  now: Date = new Date()
-): boolean {
+export function isDeadlinePast(date: MaybeDate, now: Date): boolean {
   const instant = toAoeInstant(date);
   if (instant === null) return false;
   return instant.getTime() < now.getTime();
@@ -255,10 +243,7 @@ export function isDeadlinePast(
 // 14 days
 const URGENT_WINDOW_MS = 14 * 86_400_000;
 
-export function isDeadlineUrgent(
-  date: MaybeDate,
-  now: Date = new Date()
-): boolean {
+export function isDeadlineUrgent(date: MaybeDate, now: Date): boolean {
   const instant = toAoeInstant(date);
   if (instant === null) return false;
   const ms = instant.getTime() - now.getTime();

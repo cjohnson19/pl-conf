@@ -24,27 +24,21 @@ var esc = function(s){return s.replace(/[\\\\"]/g, "\\\\$&");};
 // disabled and the user sees every row flash before VisibilityStyle hydrates.
 var prefs = null;
 try { if (raw) prefs = JSON.parse(raw); } catch (e) {}
-var starredAll = [];
+var starred = [];
 if (prefs) {
   // The collapse hint is server-rendered so first paint reserves its space;
   // dismissed visitors must never see it, so hide it before paint.
   if (prefs.display && prefs.display.collapseHintDismissed) rules += '[data-collapse-hint]{display:none}';
-  var entries = Object.entries(prefs.eventPrefs || {});
-  var hidden = entries.filter(function(kv){return kv[1] && kv[1].hidden;}).map(function(kv){return kv[0];});
-  hidden.forEach(function(k){rules += '[data-event-key="' + esc(k) + '"]{display:none}';});
-  starredAll = entries.filter(function(kv){return kv[1] && kv[1].favorite;}).map(function(kv){return kv[0];});
-  if (view === "starred") {
-    var starred = entries.filter(function(kv){return kv[1] && kv[1].favorite && !kv[1].hidden;}).map(function(kv){return kv[0];});
-    if (starred.length === 0) {
-      rules += '[data-event-key]{display:none}[data-group-keys]{display:none}';
-    } else {
-      var sel = starred.map(function(k){return '[data-event-key="' + esc(k) + '"]';}).join(',');
-      rules += '[data-event-key]:not(' + sel + '){display:none}';
-      rules += '[data-group-keys]:not(:has(' + sel + ')){display:none}';
-    }
+  starred = Object.entries(prefs.eventPrefs || {}).filter(function(kv){return kv[1] && kv[1].favorite;}).map(function(kv){return kv[0];});
+}
+if (view === "starred") {
+  if (starred.length === 0) {
+    rules += '[data-event-key]{display:none}[data-group-keys]{display:none}';
+  } else {
+    var sel = starred.map(function(k){return '[data-event-key="' + esc(k) + '"]';}).join(',');
+    rules += '[data-event-key]:not(' + sel + '){display:none}';
+    rules += '[data-group-keys]:not(:has(' + sel + ')){display:none}';
   }
-} else if (view === "starred") {
-  rules += '[data-event-key]{display:none}[data-group-keys]{display:none}';
 }
 if (view === "submissions") {
   rules += '[data-event-key]:not([data-has-open-submission]){display:none}';
@@ -56,8 +50,8 @@ if (rules) {
   style.textContent = rules;
   document.head.appendChild(style);
 }
-if (starredAll.length > 0) {
-  var starSel = starredAll.map(function(k){return '[data-pl-star][data-pref-key="' + esc(k) + '"]';}).join(',');
+if (starred.length > 0) {
+  var starSel = starred.map(function(k){return '[data-pl-star][data-pref-key="' + esc(k) + '"]';}).join(',');
   var starStyle = document.createElement("style");
   starStyle.id = "pl-prepaint-stars";
   starStyle.textContent = starSel + '{color:var(--accent)}' + starSel + ' svg{fill:currentColor}';
@@ -118,7 +112,7 @@ export default function RootLayout({
     <html lang="en" className={inter.variable} suppressHydrationWarning>
       <head>
         <script
-          // biome-ignore lint/security/noDangerouslySetInnerHtml: pre-hydration script reads localStorage prefs and emits CSS so hidden/starred events match the user's saved state before React boots
+          // biome-ignore lint/security/noDangerouslySetInnerHtml: pre-hydration script reads localStorage prefs and emits CSS so starred events match the user's saved state before React boots
           dangerouslySetInnerHTML={{ __html: prePaintScript }}
         />
         <script

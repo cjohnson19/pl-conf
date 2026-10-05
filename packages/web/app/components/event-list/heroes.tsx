@@ -46,8 +46,6 @@ export function Hero({ events }: { events: HeroEvent[] }) {
   const permanentlyHiddenEventHeroes = useDisplayPref(
     "permanentlyHiddenEventHeroes"
   );
-  // Excludes `hidden` events even if starred — VisibilityStyle hides them
-  // from the grid, so popping them up in the Hero is jarring.
   const starredKeys = useMemo(
     () => collectStarredKeys(eventPrefs),
     [eventPrefs]

@@ -20,14 +20,12 @@ import { useEventPrefs, usePrefsLoaded } from "../preferences-provider";
 
 type CountsContextValue = Counts & {
   // Count events in a date group that are still visible under the active view
-  // (starred / submissions / all) AND not user-hidden. Used by per-group
-  // headers so e.g. "May 30 · 5 events" matches the number of rows the user
-  // actually sees.
+  // (starred / submissions / all). Used by per-group headers so e.g.
+  // "May 30 · 5 events" matches the number of rows the user actually sees.
   countGroup: (groupKeys: string[]) => number;
-  // True if an event key passes both the active view filter and the hidden
-  // filter — i.e., its row is currently rendered. Used by SearchEmptyState so
-  // a query that matches only hidden / off-view events still triggers the
-  // "no results" message.
+  // True if an event key passes the active view filter — i.e., its row is
+  // currently rendered. Used by SearchEmptyState so a query that matches only
+  // off-view events still triggers the "no results" message.
   matchesActiveView: (key: string) => boolean;
 };
 
@@ -60,14 +58,13 @@ export function CountsProvider({
     (key: string): boolean => {
       const e = keyMap.get(key);
       if (!e) return false;
-      if (eventPrefs[key]?.hidden) return false;
       if (view === "starred" && !starredKeys.has(key)) return false;
       if (view === "submissions" && !e.hasOpenSubmission) return false;
       // The archive is server-rendered on its own, so whichever rows are on the
       // page already belong to the active view — nothing further to filter.
       return true;
     },
-    [keyMap, eventPrefs, view, starredKeys]
+    [keyMap, view, starredKeys]
   );
 
   const countGroup = useCallback(
@@ -79,13 +76,9 @@ export function CountsProvider({
     [matchesActiveView]
   );
 
-  const value = useMemo<CountsContextValue>(() => {
-    // Pre-hydration `eventPrefs` is the empty defaults, so this returns the
-    // same shape as the SSR counts. After hydration, hidden events drop out
-    // and counts shift to reflect what's visible on screen.
-    const visible = events.filter((e) => !eventPrefs[e.key]?.hidden);
-    return {
-      ...computeCounts(visible, {
+  const value = useMemo<CountsContextValue>(
+    () => ({
+      ...computeCounts(events, {
         category,
         tags: activeTags,
         view,
@@ -94,18 +87,18 @@ export function CountsProvider({
       }),
       countGroup,
       matchesActiveView,
-    };
-  }, [
-    events,
-    eventPrefs,
-    prefsLoaded,
-    category,
-    activeTags,
-    starredKeys,
-    countGroup,
-    matchesActiveView,
-    view,
-  ]);
+    }),
+    [
+      events,
+      prefsLoaded,
+      category,
+      activeTags,
+      starredKeys,
+      countGroup,
+      matchesActiveView,
+      view,
+    ]
+  );
 
   return (
     <CountsContext.Provider value={value}>{children}</CountsContext.Provider>

@@ -1,6 +1,6 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 import {
-  hasFutureDeadline,
+  hasOpenSubmissionAt,
   isDeadlinePast,
   toAoeInstant,
   toCalendarDate,
@@ -66,44 +66,29 @@ describe("toCalendarDate", () => {
 });
 
 describe("isDeadlinePast", () => {
-  beforeEach(() => {
-    vi.useFakeTimers();
-  });
-  afterEach(() => {
-    vi.useRealTimers();
-  });
-
   it("returns false for a deadline whose date matches today (local)", () => {
     // 14:00 UTC on 2026-04-30; local midnight has passed, but AOE has not
-    vi.setSystemTime(new Date("2026-04-30T14:00:00Z"));
-    expect(isDeadlinePast("2026/04/30")).toBe(false);
+    const now = new Date("2026-04-30T14:00:00Z");
+    expect(isDeadlinePast("2026/04/30", now)).toBe(false);
   });
 
   it("returns false for a deadline whose date is yesterday (local) but still before AOE cutoff", () => {
     // 2026-04-30 09:00 UTC: AOE for 2026-04-29 ends at 2026-04-30T11:59:59.999Z
-    vi.setSystemTime(new Date("2026-04-30T09:00:00Z"));
-    expect(isDeadlinePast("2026/04/29")).toBe(false);
+    const now = new Date("2026-04-30T09:00:00Z");
+    expect(isDeadlinePast("2026/04/29", now)).toBe(false);
   });
 
   it("returns true once the AOE cutoff for that date has elapsed", () => {
-    vi.setSystemTime(new Date("2026-04-30T12:00:00Z"));
-    expect(isDeadlinePast("2026/04/29")).toBe(true);
+    const now = new Date("2026-04-30T12:00:00Z");
+    expect(isDeadlinePast("2026/04/29", now)).toBe(true);
   });
 
   it("returns false for TBD", () => {
-    vi.setSystemTime(new Date("2030-01-01T00:00:00Z"));
-    expect(isDeadlinePast("TBD")).toBe(false);
+    expect(isDeadlinePast("TBD", new Date("2030-01-01T00:00:00Z"))).toBe(false);
   });
 });
 
-describe("hasFutureDeadline", () => {
-  beforeEach(() => {
-    vi.useFakeTimers();
-  });
-  afterEach(() => {
-    vi.useRealTimers();
-  });
-
+describe("hasOpenSubmissionAt", () => {
   const eventWithDeadline = (paper: string): ScheduledEvent =>
     ({
       name: "X",
@@ -115,13 +100,23 @@ describe("hasFutureDeadline", () => {
       lastUpdated: "2026/01/01",
     }) as unknown as ScheduledEvent;
 
-  it("treats a deadline whose date is today (local) as a future deadline", () => {
-    vi.setSystemTime(new Date("2026-04-30T14:00:00Z"));
-    expect(hasFutureDeadline(eventWithDeadline("2026/04/30"))).toBe(true);
+  it("treats a deadline whose date is today (local) as still open", () => {
+    const now = new Date("2026-04-30T14:00:00Z");
+    expect(hasOpenSubmissionAt(now)(eventWithDeadline("2026/04/30"))).toBe(
+      true
+    );
   });
 
-  it("returns false once the AOE cutoff has passed", () => {
-    vi.setSystemTime(new Date("2026-04-30T12:00:00Z"));
-    expect(hasFutureDeadline(eventWithDeadline("2026/04/29"))).toBe(false);
+  it("closes once the AOE cutoff has passed", () => {
+    const now = new Date("2026-04-30T12:00:00Z");
+    expect(hasOpenSubmissionAt(now)(eventWithDeadline("2026/04/29"))).toBe(
+      false
+    );
+  });
+
+  it("stays open while every listed deadline is TBD", () => {
+    expect(hasOpenSubmissionAt(new Date())(eventWithDeadline("TBD"))).toBe(
+      true
+    );
   });
 });

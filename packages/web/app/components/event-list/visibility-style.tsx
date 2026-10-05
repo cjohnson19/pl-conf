@@ -3,6 +3,7 @@
 import { useEffect, useMemo } from "react";
 import { useSearchParams } from "next/navigation";
 import { eventKeySelector } from "../../lib/row-css";
+import { collectStarredKeys } from "../../lib/user-prefs";
 import { useEventPrefs, usePrefsLoaded } from "../preferences-provider";
 
 const PREPAINT_STYLE_ID = "pl-prepaint-visibility";
@@ -21,11 +22,8 @@ export function VisibilityStyle() {
         "[data-group-keys]:not(:has([data-has-open-submission])){display:none}";
     }
     if (!prefsLoaded) return css;
-    const entries = Object.entries(eventPrefs);
-    const hidden = entries.filter(([, v]) => v?.hidden).map(([k]) => k);
-    const starred = entries.filter(([, v]) => v?.favorite).map(([k]) => k);
-    css += hidden.map((k) => `${eventKeySelector(k)}{display:none}`).join("");
     if (view === "starred") {
+      const starred = Array.from(collectStarredKeys(eventPrefs));
       if (starred.length === 0) {
         css += "[data-event-key]{display:none}[data-group-keys]{display:none}";
       } else {

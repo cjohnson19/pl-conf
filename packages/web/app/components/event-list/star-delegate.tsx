@@ -13,13 +13,8 @@ function findButton(key: string): HTMLElement | null {
   return document.querySelector<HTMLElement>(starSelector(key));
 }
 
-// Hidden rows still render their star button, so the style must cover hidden
-// favorites too — unlike badge counts, which exclude them.
-function collectStarred(): Set<string> {
-  return collectStarredKeys(preferencesStore.getPrefs().eventPrefs, {
-    includeHidden: true,
-  });
-}
+const collectStarred = () =>
+  collectStarredKeys(preferencesStore.getPrefs().eventPrefs);
 
 // Replaces ~97 hydrated FavoriteButton islands with a single click listener
 // and a single <style> element that gets diff-updated from the prefs store.

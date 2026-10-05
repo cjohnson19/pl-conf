@@ -13,8 +13,8 @@ export default function About() {
           get to soon.
         </p>
         <p>
-          This site uses no cookies or client-side tracking. Your starred and
-          hidden events are kept locally in your browser.
+          This site uses no cookies or client-side tracking. Your starred events
+          are kept locally in your browser.
         </p>
         <p>
           For anything else, you can find my contact info at{" "}

@@ -1,11 +1,8 @@
 **/node_modules
-**/.next
+**/.next*
 **/dist
-**/out
-**/out-test
 **/cdk.out
 **/tsconfig.tsbuildinfo
-**/.turbo
 .git
 .github
 .husky
@@ -17,5 +14,5 @@ scripts
 packages/cdk
 packages/functions
 packages/web/public/ical
-*.log
-.DS_Store
+**/*.log
+**/.DS_Store

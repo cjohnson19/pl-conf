@@ -1,13 +1,10 @@
 import clsx from "clsx";
 import Link from "next/link";
 import {
-  type MaybeDate,
-  allDeadlines,
   eventKey,
   eventPath,
   eventYear2,
   hasOpenSubmissionAt,
-  isDeadlineUrgent,
 } from "../lib/event";
 import type { DisplayEvent } from "../lib/event-list-view";
 import { findNextDeadline, isMidMultiRound } from "../lib/deadline";
@@ -24,36 +21,21 @@ import {
 import { RoundRail } from "./event-row/rail";
 import { LocalDate, LocalDateRange } from "./local-date";
 
-// `now` freezes per render — row-level urgent/round/has-open-submission do
-// not tick. Group headers handle the live clock.
+// `now` freezes per render — the round badge and has-open-submission do not
+// tick. Group headers handle the live clock.
 export function EventRow({
   event: e,
-  hideDate = false,
-  dateAnchor = "deadline",
+  showDate,
   now,
 }: {
   event: DisplayEvent;
-  hideDate?: boolean;
-  // What the big date on the left refers to: the deadline the row is sorted by,
-  // or the event itself (the archive, where every deadline is long gone).
-  dateAnchor?: "deadline" | "event";
+  // The event's start date on the left; off when the group heading already
+  // names the deadline the row is listed under.
+  showDate: boolean;
   now: Date;
 }) {
-  const lead = findNextDeadline(e, now, { fallbackToPast: true });
-
-  const leadDate = lead?.date;
-  const anchorDate: MaybeDate =
-    dateAnchor === "event"
-      ? e.date.start
-      : (leadDate ?? allDeadlines(e).at(0) ?? e.date.start);
-
-  const urgent =
-    dateAnchor === "deadline" && leadDate
-      ? isDeadlineUrgent(leadDate, now)
-      : false;
-
+  const next = findNextDeadline(e, now);
   const totalRounds = e.rounds.length;
-  const showMultiRound = isMidMultiRound(e, now);
 
   const year2 = eventYear2(e);
   const openSubmission = hasOpenSubmissionAt(now)(e);
@@ -65,30 +47,24 @@ export function EventRow({
       data-has-open-submission={openSubmission ? "" : undefined}
       className={clsx(
         "group grid items-center rounded-xs border-t border-rule",
-        hideDate ? "event-row-grid--no-date" : "event-row-grid",
+        showDate ? "event-row-grid" : "event-row-grid--no-date",
         "py-[22px] px-5 md:px-8 transition-colors",
         "hover:bg-[color-mix(in_srgb,var(--card)_70%,transparent)]"
       )}
     >
-      {!hideDate && (
+      {showDate && (
         <div
           className="flex flex-col items-start gap-1.5 self-start @[680px]/row:self-auto"
           style={{ gridArea: "date" }}
         >
-          <div
-            className={clsx(
-              "font-ui font-semibold leading-none tracking-[-0.025em] tabular-nums",
-              "text-[22px] @[420px]/row:text-[24px] @[680px]/row:text-[32px]",
-              urgent ? "text-hot" : "text-ink"
-            )}
-          >
-            {dayNum(anchorDate)}
+          <div className="font-ui text-[22px] font-semibold leading-none tracking-[-0.025em] text-ink tabular-nums @[420px]/row:text-[24px] @[680px]/row:text-[32px]">
+            {dayNum(e.date.start)}
           </div>
           <div className="font-mono text-[11px] font-medium leading-none tracking-[0.08em] text-ink-2">
-            <LocalDate date={anchorDate} style="monthShort" />
+            <LocalDate date={e.date.start} style="monthShort" />
           </div>
           <div className="font-mono text-[10px] font-medium leading-none tracking-[0.06em] text-ink-3">
-            {yearNum(anchorDate)}
+            {yearNum(e.date.start)}
           </div>
         </div>
       )}
@@ -107,12 +83,12 @@ export function EventRow({
           <span className="font-mono text-[14px] font-medium text-ink-3">
             &rsquo;{year2}
           </span>
-          {showMultiRound && (
+          {next && isMidMultiRound(e, now) && (
             <span
               className="inline-flex h-[18px] items-center rounded-xs border px-1.5 font-mono text-[10px] font-medium tracking-[0.06em] text-hot"
               style={{ borderColor: "currentColor" }}
             >
-              Round {(lead?.roundIdx ?? totalRounds - 1) + 1} / {totalRounds}
+              Round {next.roundIdx + 1} / {totalRounds}
             </span>
           )}
           <ConnectedEventTags tags={e.tags} />

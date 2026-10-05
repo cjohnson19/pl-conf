@@ -1,5 +1,4 @@
 export type EventPreferences = {
-  hidden: boolean | undefined;
   favorite: boolean | undefined;
 };
 
@@ -27,16 +26,12 @@ export const defaultPreferences: PreferenceCollection = {
   },
 };
 
-// Starred keys usually exclude hidden events — a hidden event's star shouldn't
-// count toward badges or heroes. `includeHidden` is for consumers that operate
-// on the row itself (star toggling, per-row CSS), where hidden rows still exist.
 export function collectStarredKeys(
-  eventPrefs: PreferenceCollection["eventPrefs"],
-  options: { includeHidden?: boolean } = {}
+  eventPrefs: PreferenceCollection["eventPrefs"]
 ): Set<string> {
   return new Set(
     Object.entries(eventPrefs)
-      .filter(([, v]) => v?.favorite && (options.includeHidden || !v.hidden))
+      .filter(([, v]) => v?.favorite)
       .map(([k]) => k)
   );
 }

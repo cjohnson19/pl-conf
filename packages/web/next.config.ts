@@ -14,9 +14,6 @@ const nextConfig: NextConfig = {
   compress: false,
   distDir: isTestFixture ? ".next-test" : ".next",
   trailingSlash: true,
-  images: {
-    unoptimized: true,
-  },
   async headers() {
     return [
       {
@@ -63,13 +60,6 @@ const nextConfig: NextConfig = {
     // network round trip for CSS. Repeat views refetch it inside the HTML,
     // but the HTML is edge-cached and small, so that trade is cheap.
     inlineCss: true,
-    optimizePackageImports: [
-      "lucide-react",
-      "@radix-ui/react-dialog",
-      "@radix-ui/react-dropdown-menu",
-      "@radix-ui/react-popover",
-      "date-fns",
-    ],
   },
 };
 
