@@ -30,7 +30,7 @@ function subscribeToViewport(onChange: () => void) {
 
 const isMobileViewport = () => !window.matchMedia(DESKTOP_QUERY).matches;
 
-const itemClass = "cursor-pointer rounded-md px-3 py-2.5 text-[13px] text-ink";
+const itemClass = "rounded-md px-3 py-2.5";
 
 function MenuItem({ href, download, icon, title, sub }: ExportItemProps) {
   return (
@@ -113,7 +113,7 @@ export function CalendarMenuPopover({
         align="end"
         sideOffset={6}
         collisionPadding={8}
-        className="max-h-[var(--radix-dropdown-menu-content-available-height)] w-[280px] overflow-y-auto overscroll-contain rounded-lg p-1"
+        className="max-h-[var(--radix-dropdown-menu-content-available-height)] w-[280px] overflow-y-auto overscroll-contain rounded-lg"
       >
         <ExportOptions
           variant="menu"

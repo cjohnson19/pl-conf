@@ -8,7 +8,7 @@ import {
 } from "../lib/deferred-component";
 import { hasConcreteDates } from "../lib/event";
 import type { DisplayEvent } from "../lib/event-list-view";
-import { Icon } from "./icons";
+import { Calendar } from "lucide-react";
 import { rowIconButtonClass } from "./icon-button";
 
 type PopoverProps = { event: DisplayEvent; label?: string };
@@ -58,7 +58,7 @@ export function CalendarMenu({
             : "grid h-11 w-11 shrink-0 place-items-center border-0 bg-transparent sm:h-8 sm:w-8"
         )}
       >
-        <Icon name="calendar" size={label ? 15 : 14} strokeWidth={1.75} />
+        <Calendar size={label ? 15 : 14} strokeWidth={1.75} />
         {label}
       </button>
     );
@@ -77,7 +77,7 @@ export function CalendarMenu({
       title="Add to calendar"
       className={label ? labeledTriggerClass : triggerClass}
     >
-      <Icon name="calendar" size={label ? 15 : 14} strokeWidth={1.75} />
+      <Calendar size={label ? 15 : 14} strokeWidth={1.75} />
       {label}
     </button>
   );

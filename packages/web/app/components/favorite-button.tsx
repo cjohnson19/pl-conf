@@ -2,7 +2,7 @@
 
 import clsx from "clsx";
 import { useFavorite } from "../hooks/use-favorite";
-import { Icon } from "./icons";
+import { Star } from "lucide-react";
 import { rowIconButtonClass } from "./icon-button";
 
 // `data-pl-star` and `data-pref-key` let lib/pre-paint.ts colour a starred
@@ -24,12 +24,7 @@ export function FavoriteButton({ prefKey }: { prefKey: string }) {
         on ? "text-accent hover:text-accent" : "text-ink-3 hover:text-ink"
       )}
     >
-      <Icon
-        name="star"
-        size={18}
-        strokeWidth={1.75}
-        fill={on ? "currentColor" : "none"}
-      />
+      <Star size={18} strokeWidth={1.75} fill={on ? "currentColor" : "none"} />
     </button>
   );
 }

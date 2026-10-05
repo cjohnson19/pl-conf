@@ -5,7 +5,6 @@ import "./typography.css";
 import { events } from "@pl-conf/data";
 import { isActiveAt } from "@pl-conf/core";
 import { Header } from "./components/header";
-import { IconSprite } from "./components/icons";
 import { ThemeProvider } from "./components/theme-provider";
 import { deferredChunksLoaderScript } from "./lib/deferred-chunks";
 import { prePaint } from "./lib/pre-paint";
@@ -65,7 +64,6 @@ export default function RootLayout({
         />
       </head>
       <body>
-        <IconSprite />
         <ThemeProvider>
           <Header totalActive={totalActive} />
           <main>{children}</main>

@@ -69,7 +69,7 @@ export function SettingsPopover() {
       <PopoverContent
         align="end"
         sideOffset={8}
-        className="w-[min(320px,calc(100vw-2rem))]"
+        className="w-[min(320px,calc(100vw-2rem))] p-4"
       >
         <p className="label-cap mb-3">Deadline alerts</p>
 

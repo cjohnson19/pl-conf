@@ -4,7 +4,7 @@ import { useState, useRef, useEffect } from "react";
 import { Plus } from "lucide-react";
 import { headerOutlinedIconButtonClass } from "./icon-button";
 import { Popover, PopoverTrigger, PopoverContent } from "./ui/popover";
-import { cn } from "../lib/utils";
+import clsx from "clsx";
 
 type Status =
   | { kind: "idle" }
@@ -111,7 +111,7 @@ export function SubmitEventPopover() {
         {status.kind !== "idle" && status.kind !== "submitting" && (
           <p
             role="status"
-            className={cn(
+            className={clsx(
               "mt-3 text-[12px] leading-[1.5]",
               status.kind === "success" ? "text-ink-2" : "text-hot"
             )}

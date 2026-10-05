@@ -8,7 +8,7 @@ import {
   roundEntries,
 } from "../../lib/event";
 import type { DisplayEvent, RelatedLink } from "../../lib/event-list-view";
-import { Icon } from "../icons";
+import { ArrowUpRight } from "lucide-react";
 
 type ChipKind = "past" | "next" | "default";
 
@@ -74,8 +74,7 @@ export function EventNameLink({ event: e }: { event: DisplayEvent }) {
       >
         {e.name}
       </span>
-      <Icon
-        name="arrow-up-right"
+      <ArrowUpRight
         size={11}
         strokeWidth={1.75}
         className="shrink-0 self-center text-ink-3 transition-all duration-200 ease-out group-hover/url:translate-x-0.5 group-hover/url:-translate-y-0.5 group-hover/url:text-ink"
@@ -121,8 +120,7 @@ export function DatesDeadlinesLink({ href }: { href: string }) {
       >
         Dates &amp; Deadlines
       </span>
-      <Icon
-        name="arrow-up-right"
+      <ArrowUpRight
         size={12}
         strokeWidth={1.75}
         className="text-ink-3 transition-all duration-200 ease-out group-hover/dates:-translate-y-0.5 group-hover/dates:translate-x-0.5 group-hover/dates:text-ink"

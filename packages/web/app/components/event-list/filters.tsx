@@ -136,7 +136,7 @@ export function TagsFilter({ counts }: { counts: Record<Tag, number> }) {
       <PopoverContent
         align="start"
         sideOffset={8}
-        className="w-[min(320px,calc(100vw-2rem))] p-0"
+        className="w-[min(320px,calc(100vw-2rem))]"
       >
         <div className="flex items-center justify-between gap-3 border-b border-rule px-4 py-3">
           <p className="label-cap">Filter by tags</p>

@@ -232,13 +232,13 @@ function HeroShell({
               <DropdownMenuContent
                 align="end"
                 sideOffset={4}
-                className="max-w-[280px]"
+                className="max-w-[280px] rounded-md"
               >
                 {menuItems.map((item) => (
                   <DropdownMenuItem
                     key={item.label}
                     onSelect={item.onSelect}
-                    className="flex cursor-pointer flex-col items-start gap-0.5 rounded-sm text-[13px] text-ink"
+                    className="flex-col items-start gap-0.5 rounded-sm px-2 py-1.5"
                   >
                     <span className="font-medium text-ink">{item.label}</span>
                     {item.description && (

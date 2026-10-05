@@ -7,7 +7,7 @@ import {
   useDeferred,
 } from "../lib/deferred-component";
 import type { DisplayEvent } from "../lib/event-list-view";
-import { Icon } from "./icons";
+import { MoreHorizontal } from "lucide-react";
 
 type SheetProps = { event: DisplayEvent; prefKey: string };
 
@@ -46,7 +46,7 @@ export function RowActionSheet({ event, prefKey }: SheetProps) {
       title="Actions"
       className={triggerClass}
     >
-      <Icon name="ellipsis" size={16} strokeWidth={1.75} />
+      <MoreHorizontal size={16} strokeWidth={1.75} />
     </button>
   );
 }

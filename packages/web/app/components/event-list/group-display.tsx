@@ -2,7 +2,6 @@
 
 import { useRef, useState } from "react";
 import clsx from "clsx";
-import { X } from "lucide-react";
 import {
   type CalendarDate,
   calendarDate,
@@ -15,7 +14,7 @@ import { useSessionStorageStringSet } from "../../hooks/use-session-storage";
 import { useNow } from "./now-provider";
 import { useListFilter } from "./list-filter";
 import { type GroupHeading, headingId } from "./grouping";
-import { Icon } from "../icons";
+import { ChevronDown, X } from "lucide-react";
 import { LocalDate, useLocalDate } from "../local-date";
 import { useDisplayPref } from "../../hooks/use-preferences";
 
@@ -80,8 +79,7 @@ function HeaderRail({
           {count === 1 ? "" : "s"}
         </div>
       </div>
-      <Icon
-        name="chevron-down"
+      <ChevronDown
         size={16}
         strokeWidth={1.75}
         className={clsx(
