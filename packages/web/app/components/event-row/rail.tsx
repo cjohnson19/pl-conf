@@ -1,8 +1,9 @@
 import clsx from "clsx";
 import type { DisplayEvent } from "../../lib/event-list-view";
-import { dateNameShort, roundShortDate } from "../../lib/date-formatters";
+import { dateNameShort } from "../../lib/date-formatters";
 import { type RoundSlot, type RoundSlots, pickRailSlots } from "./rail-slots";
 import { type RailRow, buildRoundRows, deadlineToneClass } from "./shared";
+import { LocalDate } from "../local-date";
 
 export function RoundRail({
   event: e,
@@ -45,11 +46,8 @@ function DateRow({ row: r }: { row: RailRow }) {
       )}
     >
       <span>{dateNameShort(r.name)}</span>
-      <span
-        className={clsx("font-mono text-[11px]", deadlineToneClass(r))}
-        suppressHydrationWarning
-      >
-        {roundShortDate(r.date)}
+      <span className={clsx("font-mono text-[11px]", deadlineToneClass(r))}>
+        <LocalDate date={r.date} style="monthDay" />
       </span>
     </div>
   );

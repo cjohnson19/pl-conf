@@ -27,6 +27,7 @@ import { EventDeadlines } from "../../../components/event-page/event-deadlines";
 import { EventTags } from "../../../components/event-tags";
 import { hoverUnderlineClass } from "../../../components/event-row/shared";
 import { LastUpdated } from "../../../components/last-updated";
+import { LocalDateRange } from "../../../components/local-date";
 
 const allEvents = Object.values(events);
 const eventByPath = new Map(allEvents.map((e) => [eventPath(e), e]));
@@ -97,7 +98,18 @@ export default async function EventPage({ params }: { params: Params }) {
         }
       : undefined,
     dates
-      ? { key: "dates", node: <span suppressHydrationWarning>{dates}</span> }
+      ? {
+          key: "dates",
+          node: (
+            <span>
+              <LocalDateRange
+                start={e.date.start}
+                end={e.date.end}
+                style="long"
+              />
+            </span>
+          ),
+        }
       : undefined,
     e.format
       ? { key: "format", node: <span className="text-ink-2">{e.format}</span> }
@@ -282,11 +294,12 @@ function RelationRow({
       {(dates || location) && (
         <span className="flex shrink-0 flex-col items-end gap-0.5 text-right">
           {dates && (
-            <span
-              className="font-mono text-[12px] text-ink-3"
-              suppressHydrationWarning
-            >
-              {dates}
+            <span className="font-mono text-[12px] text-ink-3">
+              <LocalDateRange
+                start={r.date.start}
+                end={r.date.end}
+                style="short"
+              />
             </span>
           )}
           {location && (

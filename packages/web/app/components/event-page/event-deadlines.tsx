@@ -2,7 +2,8 @@
 
 import clsx from "clsx";
 import { type Round, roundsWithDates } from "../../lib/event";
-import { dateNameShort, roundShortDate } from "../../lib/date-formatters";
+import { dateNameShort } from "../../lib/date-formatters";
+import { LocalDate } from "../local-date";
 import { shortCountdown } from "../../lib/countdown";
 import { useNow } from "../event-list/now-provider";
 import {
@@ -55,9 +56,8 @@ export function EventDeadlines({ rounds }: { rounds: Round[] }) {
                         "shrink-0 font-mono text-[13px] tabular-nums",
                         next ? "text-ink" : "text-ink-2"
                       )}
-                      suppressHydrationWarning
                     >
-                      {roundShortDate(r.date)}
+                      <LocalDate date={r.date} style="monthDay" />
                     </span>
                     <span className="flex w-20 shrink-0 items-baseline gap-2">
                       {r.date !== "TBD" && (

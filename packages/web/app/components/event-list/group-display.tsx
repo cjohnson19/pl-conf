@@ -9,17 +9,13 @@ import {
   toCalendarDate,
 } from "../../lib/event";
 import { humanCountdown } from "../../lib/countdown";
-import {
-  monDayYearFmt,
-  monthLongFmt,
-  weekdayLongFmt,
-} from "../../lib/date-formatters";
 import { setPrefs } from "../../lib/preferences-store";
 import { useSessionStorageStringSet } from "../../hooks/use-session-storage";
 import { useNow } from "./now-provider";
 import { useCounts } from "./counts-context";
 import { type GroupHeading, headingId } from "./grouping";
 import { Icon } from "../icons";
+import { LocalDate, useLocalDate } from "../local-date";
 import { useDisplayPref } from "../preferences-provider";
 
 const SESSION_COLLAPSED_KEY = "collapsedDateGroups";
@@ -58,9 +54,6 @@ function GroupHeaderShell({
           "border-b-2 border-rule transition-colors hover:bg-paper-2",
           !isFirst && "border-t-2"
         )}
-        // The label carries a locale-formatted date, which the server and
-        // the viewer's browser can disagree on.
-        suppressHydrationWarning
       >
         {children}
       </button>
@@ -107,12 +100,13 @@ function MonthGroupHeader({
 }: HeaderChrome & { month: string; count: number }) {
   const [y, m] = month.split("-").map(Number);
   const cal = y && m ? new Date(y, m - 1, 1) : null;
-  const monthName = cal ? monthLongFmt.format(cal) : "Date unknown";
+  const localMonth = useLocalDate(`${month}-01`, "monthLong");
+  const monthName = cal ? localMonth : "Date unknown";
   const label = cal ? `${monthName} ${y}` : monthName;
   return (
     <GroupHeaderShell label={label} {...chrome}>
       <h2 className="flex items-baseline gap-2.5 font-ui text-[18px] font-semibold leading-none tracking-[-0.02em] text-ink-2 sm:text-[22px]">
-        <span suppressHydrationWarning>{monthName}</span>{" "}
+        <span>{monthName}</span>{" "}
         {cal && (
           <span className="font-mono text-[12px] font-medium tracking-[0.06em] text-ink-3">
             {y}
@@ -152,11 +146,12 @@ function DeadlineGroupHeader({
   ...chrome
 }: HeaderChrome & { date: string; count: number; now: Date }) {
   const cal = toCalendarDate(date);
+  const label = useLocalDate(date, "monDayYear");
   if (!cal) return null;
   const urgent = isDeadlineUrgent(date, now);
   const past = isDeadlinePast(date, now);
   return (
-    <GroupHeaderShell label={monDayYearFmt.format(cal)} {...chrome}>
+    <GroupHeaderShell label={label} {...chrome}>
       <h2 className="flex items-end gap-3 font-ui">
         <span
           className={clsx(
@@ -168,14 +163,11 @@ function DeadlineGroupHeader({
           {cal.getDate()}
         </span>
         <span className="flex flex-col gap-1 leading-none">
-          <span
-            className="font-mono text-[12px] font-medium tracking-[0.08em] text-ink sm:text-[13px]"
-            suppressHydrationWarning
-          >
-            {monthLongFmt.format(cal)} {cal.getFullYear()}
+          <span className="font-mono text-[12px] font-medium tracking-[0.08em] text-ink sm:text-[13px]">
+            <LocalDate date={date} style="monthLong" /> {cal.getFullYear()}
           </span>
-          <span className={SUBLINE_TEXT} suppressHydrationWarning>
-            {weekdayLongFmt.format(cal)}
+          <span className={SUBLINE_TEXT}>
+            <LocalDate date={date} style="weekdayLong" />
           </span>
         </span>
       </h2>

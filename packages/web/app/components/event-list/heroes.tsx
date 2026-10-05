@@ -15,7 +15,7 @@ import type { HeroEvent } from "../../lib/event-list-view";
 import {
   deadlineKindWord,
   localDeadlineString,
-  monDayYearFmt,
+  formatCal,
 } from "../../lib/date-formatters";
 import {
   DropdownMenu,
@@ -168,7 +168,7 @@ export function Hero({ events }: { events: HeroEvent[] }) {
         }
         footer={
           startCal
-            ? `${monDayYearFmt.format(startCal)}${
+            ? `${formatCal(startCal, "monDayYear")}${
                 pick.event.location ? ` · ${pick.event.location}` : ""
               }`
             : undefined

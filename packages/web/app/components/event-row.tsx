@@ -6,13 +6,12 @@ import {
   eventKey,
   eventPath,
   eventYear2,
-  formatDateRange,
   hasOpenSubmissionAt,
   isDeadlineUrgent,
 } from "../lib/event";
 import type { DisplayEvent } from "../lib/event-list-view";
 import { findNextDeadline, isMidMultiRound } from "../lib/deadline";
-import { dayNum, monthShort, yearNum } from "../lib/date-formatters";
+import { dayNum, yearNum } from "../lib/date-formatters";
 import { StarButton } from "./star-button";
 import { CalendarMenu } from "./calendar-menu";
 import { ConnectedEventTags } from "./event-tags";
@@ -23,6 +22,7 @@ import {
   RelatedLinks,
 } from "./event-row/shared";
 import { RoundRail } from "./event-row/rail";
+import { LocalDate, LocalDateRange } from "./local-date";
 
 // `now` freezes per render — row-level urgent/round/has-open-submission do
 // not tick. Group headers handle the live clock.
@@ -84,11 +84,8 @@ export function EventRow({
           >
             {dayNum(anchorDate)}
           </div>
-          <div
-            className="font-mono text-[11px] font-medium leading-none tracking-[0.08em] text-ink-2"
-            suppressHydrationWarning
-          >
-            {monthShort(anchorDate)}
+          <div className="font-mono text-[11px] font-medium leading-none tracking-[0.08em] text-ink-2">
+            <LocalDate date={anchorDate} style="monthShort" />
           </div>
           <div className="font-mono text-[10px] font-medium leading-none tracking-[0.06em] text-ink-3">
             {yearNum(anchorDate)}
@@ -158,8 +155,8 @@ function RowMetadata({ event: e }: { event: DisplayEvent }) {
   if (e.date.start !== "TBD" && e.date.end !== "TBD")
     items.push({
       node: (
-        <span suppressHydrationWarning>
-          {formatDateRange(e.date.start, e.date.end, "short")}
+        <span>
+          <LocalDateRange start={e.date.start} end={e.date.end} style="short" />
         </span>
       ),
       wideOnly: false,

@@ -1,7 +1,9 @@
 import { events } from "@pl-conf/data";
 import {
+  dateFormatStyles,
   eventKey,
   eventPath,
+  formatDateRange,
   isActive,
   type ScheduledEvent,
 } from "@pl-conf/core";
@@ -364,6 +366,59 @@ describe("deferred hydration chunks", () => {
       timing.chunkStarts.forEach((start) => {
         expect(start).toBeGreaterThanOrEqual(timing.loadEventStart);
       });
+    } finally {
+      await context.close();
+    }
+  });
+});
+
+describe("viewer locale", () => {
+  // Dates are server-rendered in en-US; LocalDate hydrates with that string
+  // and then re-renders in the browser's locale (components/local-date.tsx).
+  test("re-formats server-rendered dates in the browser's locale", async () => {
+    const context = await browser.createBrowserContext();
+    const page = await context.newPage();
+    try {
+      await installFrozenClock(page);
+      const cdp = await page.createCDPSession();
+      await cdp.send("Emulation.setLocaleOverride", { locale: "de-DE" });
+      await page.goto(URL, { waitUntil: "networkidle2" });
+
+      const e = activeEvents().find(
+        (x) => x.date.start !== "TBD" && x.date.end !== "TBD"
+      );
+      if (!e) throw new Error("No fixture with concrete dates");
+      const server = formatDateRange(
+        e.date.start,
+        e.date.end,
+        "short",
+        "en-US"
+      );
+      const expected = await page.evaluate(
+        (start, end, opts) => {
+          const cal = (s: string) => {
+            const [y, m, d] = s.split("/").map(Number);
+            return new Date(y, m - 1, d);
+          };
+          return new Intl.DateTimeFormat(undefined, opts).formatRange(
+            cal(start),
+            cal(end)
+          );
+        },
+        e.date.start,
+        e.date.end,
+        dateFormatStyles.short
+      );
+      expect(expected).not.toBe(server);
+      await page.waitForFunction(
+        (k, text) =>
+          document
+            .querySelector(`[data-event-key="${k}"]`)
+            ?.textContent?.includes(text) ?? false,
+        { timeout: 5000 },
+        eventKey(e),
+        expected
+      );
     } finally {
       await context.close();
     }

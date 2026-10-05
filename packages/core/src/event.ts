@@ -180,7 +180,7 @@ export function dateNameToReadable(name: DateName): string {
 
 type LocaleArg = string | string[] | undefined;
 
-const dateFormatStyles = {
+export const dateFormatStyles = {
   long: { year: "numeric", month: "long", day: "numeric" },
   short: { year: "numeric", month: "short", day: "numeric" },
   compact: { year: "2-digit", month: "2-digit", day: "2-digit" },
