@@ -5,19 +5,20 @@ import { useFavorite } from "../hooks/use-favorite";
 import { Icon } from "./icons";
 import { rowIconButtonClass } from "./icon-button";
 
+// `data-pl-star` and `data-pref-key` let lib/pre-paint.ts colour a starred
+// button before hydration; this component owns it from then on.
 export function FavoriteButton({ prefKey }: { prefKey: string }) {
   const { on, toggle } = useFavorite(prefKey);
 
   return (
     <button
       type="button"
+      data-pl-star=""
+      data-pref-key={prefKey}
       aria-label={on ? `Unstar ${prefKey}` : `Star ${prefKey}`}
       aria-pressed={on}
       title={on ? "Starred" : "Star"}
-      onClick={(e) => {
-        e.stopPropagation();
-        toggle();
-      }}
+      onClick={toggle}
       className={clsx(
         rowIconButtonClass,
         on ? "text-accent hover:text-accent" : "text-ink-3 hover:text-ink"

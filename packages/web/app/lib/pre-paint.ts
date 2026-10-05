@@ -3,8 +3,9 @@
 // imports, no closures, nothing outside its own body. It applies what the
 // browser already knows (saved prefs, the URL) as CSS so the first paint
 // matches the user's state instead of flashing every row until hydration.
-// Hydrated components then take over: lib/list-visibility.ts emits the same
-// row/group rules, and the star delegate restyles starred buttons.
+// Once hydrated, ListFilterProvider removes both style elements: it emits the
+// same row/group rules from lib/list-visibility.ts, and each FavoriteButton
+// renders its own starred state.
 export function prePaint() {
   try {
     const nav = navigator as Navigator & {
@@ -72,14 +73,6 @@ export function prePaint() {
         "pl-prepaint-stars",
         `${starSel}{color:var(--accent)}${starSel} svg{fill:currentColor}`
       );
-      document.addEventListener("DOMContentLoaded", () => {
-        document.querySelectorAll(starSel).forEach((b) => {
-          const k = b.getAttribute("data-pref-key") ?? "";
-          b.setAttribute("aria-pressed", "true");
-          b.setAttribute("aria-label", `Unstar ${k}`);
-          b.setAttribute("title", "Starred");
-        });
-      });
     }
   } catch {}
 }

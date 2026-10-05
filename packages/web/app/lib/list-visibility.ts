@@ -1,5 +1,10 @@
 import type { View } from "./filter-params";
-import { eventKeySelector } from "./row-css";
+
+// Event keys are alphanumerics plus a few separators, so escaping \ and " is
+// enough for an attribute selector; CSS.escape is browser-only and this also
+// runs on the server. lib/pre-paint.ts carries its own copy.
+const eventKeySelector = (key: string) =>
+  `[data-event-key="${key.replace(/[\\"]/g, "\\$&")}"]`;
 
 // What the client needs to know about each server-rendered row to filter it
 // without re-rendering: whether submissions are open and what search matches.

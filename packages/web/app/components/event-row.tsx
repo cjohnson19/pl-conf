@@ -9,7 +9,7 @@ import {
 } from "../lib/event";
 import type { DisplayEvent } from "../lib/event-list-view";
 import { isMidMultiRound, nextDeadline } from "../lib/deadline";
-import { StarButton } from "./star-button";
+import { FavoriteButton } from "./favorite-button";
 import { CalendarMenu } from "./calendar-menu";
 import { ConnectedEventTags } from "./event-tags";
 import { RowActionSheet } from "./row-action-sheet";
@@ -111,7 +111,7 @@ export function EventRow({
         style={{ gridArea: "actions" }}
       >
         <div className="hidden @[680px]/row:contents">
-          <StarButton prefKey={eventKey(e)} />
+          <FavoriteButton prefKey={eventKey(e)} />
           <CalendarMenu event={e} />
         </div>
         <div className="contents @[680px]/row:hidden">

@@ -40,7 +40,7 @@ type ListFilterValue = {
 
 const ListFilterContext = createContext<ListFilterValue | undefined>(undefined);
 
-const PREPAINT_STYLE_ID = "pl-prepaint-visibility";
+const PREPAINT_STYLE_IDS = ["pl-prepaint-visibility", "pl-prepaint-stars"];
 const URL_SYNC_DEBOUNCE_MS = 300;
 
 function syncQueryToUrl(query: string): void {
@@ -111,7 +111,11 @@ export function ListFilterProvider({
   }, []);
 
   useEffect(() => {
-    if (hydrated) document.getElementById(PREPAINT_STYLE_ID)?.remove();
+    if (hydrated) {
+      PREPAINT_STYLE_IDS.forEach((id) => {
+        document.getElementById(id)?.remove();
+      });
+    }
   }, [hydrated]);
 
   // During hydration the starred set is still the server's empty default, so

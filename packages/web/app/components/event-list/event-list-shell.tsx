@@ -13,7 +13,6 @@ import { ListEmptyState } from "./list-empty-state";
 import { ListFilterProvider } from "./list-filter";
 import { ListSkeletonBoundary } from "./list-skeleton";
 import { NowProvider } from "./now-provider";
-import { StarDelegate } from "./star-delegate";
 import { StarredEmptyState } from "./starred-empty-state";
 import { ViewNavProvider } from "./view-nav-provider";
 import {
@@ -48,7 +47,6 @@ export function EventListShell({
       >
         <NowProvider initialMs={serverNowMs}>
           <ViewNavProvider>
-            <StarDelegate />
             <Hero events={heroEvents} />
 
             <div className="flex flex-col gap-2 px-5 pt-7 sm:flex-row sm:flex-wrap sm:items-center md:px-8">
