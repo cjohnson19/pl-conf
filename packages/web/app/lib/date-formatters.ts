@@ -1,8 +1,8 @@
 import {
-  type DateName,
+  type CalendarDate,
   type MaybeDate,
-  toAoeInstant,
-  toCalendarDate,
+  aoeTime,
+  calendarDate,
 } from "./event";
 
 // The locale the server renders dates in. Client components that display a
@@ -10,8 +10,11 @@ import {
 // components/local-date.tsx.
 export const SERVER_LOCALE = "en-US";
 
-export const calendarStyles = {
+export const dateStyles = {
+  short: { year: "numeric", month: "short", day: "numeric" },
+  long: { year: "numeric", month: "long", day: "numeric" },
   monthShort: { month: "short" },
+  monthLong: { month: "long" },
   monthDay: { month: "short", day: "numeric" },
   monDayYear: {
     weekday: "short",
@@ -20,11 +23,12 @@ export const calendarStyles = {
     year: "numeric",
   },
   weekdayLong: { weekday: "long" },
-  monthLong: { month: "long" },
 } as const satisfies Record<string, Intl.DateTimeFormatOptions>;
 
-export type CalendarStyle = keyof typeof calendarStyles;
+export type DateStyle = keyof typeof dateStyles;
 
+// Building an Intl.DateTimeFormat is measurably slow on the client (eight at
+// module scope cost ~11ms of hydration), so they are built on first use.
 const formatters = new Map<string, Intl.DateTimeFormat>();
 
 // `locale` undefined means the runtime's default: the viewer's browser on the
@@ -42,84 +46,33 @@ function formatter(
   return fmt;
 }
 
-export function formatCal(
-  cal: Date,
-  style: CalendarStyle,
-  locale?: string
-): string {
-  return formatter(calendarStyles[style], locale).format(cal);
-}
-
-export function formatCalendar(
+export function formatDate(
   date: MaybeDate,
-  style: CalendarStyle,
+  style: DateStyle,
   locale?: string
 ): string {
-  const cal = toCalendarDate(date);
-  return cal ? formatCal(cal, style, locale) : "TBD";
+  if (date === "TBD") return "TBD";
+  return formatter(dateStyles[style], locale).format(calendarDate(date));
 }
 
-export function monthShort(date: MaybeDate): string {
-  return formatCalendar(date, "monthShort");
+export function formatDateRange(
+  start: MaybeDate,
+  end: MaybeDate,
+  style: DateStyle,
+  locale?: string
+): string {
+  if (start === "TBD" || end === "TBD") return "TBD";
+  return formatter(dateStyles[style], locale).formatRange(
+    calendarDate(start),
+    calendarDate(end)
+  );
 }
 
-export function dayNum(date: MaybeDate): string {
-  const cal = toCalendarDate(date);
-  return cal ? cal.getDate().toString() : "—";
-}
-
-export function yearNum(date: MaybeDate): string {
-  const cal = toCalendarDate(date);
-  return cal ? cal.getFullYear().toString() : "";
-}
-
-export function roundShortDate(date: MaybeDate): string {
-  return formatCalendar(date, "monthDay");
-}
-
-export function dateNameShort(n: DateName): string {
-  switch (n) {
-    case "paper":
-      return "Paper";
-    case "abstract":
-      return "Abstract";
-    case "notification":
-      return "Notification";
-    case "rebuttal":
-      return "Rebuttal";
-    case "conditional-acceptance":
-      return "Conditional Acceptance";
-    case "camera-ready":
-      return "Camera-ready";
-    case "revisions":
-      return "Revisions";
-  }
-}
-
-export function deadlineKindWord(name: DateName): string {
-  switch (name) {
-    case "paper":
-      return "paper";
-    case "abstract":
-      return "abstract";
-    case "notification":
-      return "notification";
-    case "rebuttal":
-      return "rebuttal";
-    case "conditional-acceptance":
-      return "conditional acceptance";
-    case "camera-ready":
-      return "camera-ready";
-    case "revisions":
-      return "revisions";
-  }
-}
-
-export function localDeadlineString(date: string): string {
-  const instant = toAoeInstant(date);
-  if (!instant) return "";
+// The deadline's AoE instant in the viewer's own clock, for the hero footer.
+export function localDeadlineString(date: CalendarDate): string {
+  const instant = new Date(aoeTime(date));
   const dow = formatter({ weekday: "short" }).format(instant);
-  const dat = formatter(calendarStyles.monthDay).format(instant);
+  const dat = formatter(dateStyles.monthDay).format(instant);
   const tim = formatter({ hour: "2-digit", minute: "2-digit" }).format(instant);
   const tz =
     formatter({ timeZoneName: "short" })

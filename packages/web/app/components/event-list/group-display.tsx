@@ -4,9 +4,10 @@ import { useRef, useState } from "react";
 import clsx from "clsx";
 import { X } from "lucide-react";
 import {
+  type CalendarDate,
+  calendarDate,
   isDeadlinePast,
   isDeadlineUrgent,
-  toCalendarDate,
 } from "../../lib/event";
 import { humanCountdown } from "../../lib/countdown";
 import { setDisplayPref } from "../../lib/preferences-store";
@@ -98,16 +99,16 @@ function MonthGroupHeader({
   count,
   ...chrome
 }: HeaderChrome & { month: string; count: number }) {
+  const known = month !== "unknown";
   const [y, m] = month.split("-").map(Number);
-  const cal = y && m ? new Date(y, m - 1, 1) : null;
-  const localMonth = useLocalDate(`${month}-01`, "monthLong");
-  const monthName = cal ? localMonth : "Date unknown";
-  const label = cal ? `${monthName} ${y}` : monthName;
+  const localMonth = useLocalDate(known ? `${y}/${m}/1` : "TBD", "monthLong");
+  const monthName = known ? localMonth : "Date unknown";
+  const label = known ? `${monthName} ${y}` : monthName;
   return (
     <GroupHeaderShell label={label} {...chrome}>
       <h2 className="flex items-baseline gap-2.5 font-ui text-[18px] font-semibold leading-none tracking-[-0.02em] text-ink-2 sm:text-[22px]">
         <span>{monthName}</span>{" "}
-        {cal && (
+        {known && (
           <span className="font-mono text-[12px] font-medium tracking-[0.06em] text-ink-3">
             {y}
           </span>
@@ -144,10 +145,9 @@ function DeadlineGroupHeader({
   count,
   now,
   ...chrome
-}: HeaderChrome & { date: string; count: number; now: Date }) {
-  const cal = toCalendarDate(date);
+}: HeaderChrome & { date: CalendarDate; count: number; now: Date }) {
+  const cal = calendarDate(date);
   const label = useLocalDate(date, "monDayYear");
-  if (!cal) return null;
   const urgent = isDeadlineUrgent(date, now);
   const past = isDeadlinePast(date, now);
   return (

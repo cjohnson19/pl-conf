@@ -9,14 +9,10 @@ import {
   useState,
 } from "react";
 import { MoreHorizontal, X } from "lucide-react";
-import { isDeadline, toCalendarDate } from "../../lib/event";
+import { dateNames } from "../../lib/event";
 import { humanCountdown } from "../../lib/countdown";
 import type { HeroEvent } from "../../lib/event-list-view";
-import {
-  deadlineKindWord,
-  localDeadlineString,
-  formatCal,
-} from "../../lib/date-formatters";
+import { formatDate, localDeadlineString } from "../../lib/date-formatters";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -76,14 +72,14 @@ export function Hero({ events }: { events: HeroEvent[] }) {
         // Pick the next deadline still in the future as of live `now`. The
         // server may have shipped a Round 1 deadline that has since elapsed;
         // walking the sorted list rolls forward to Round 2 automatically.
-        const d = event.upcomingDeadlines.find((d) => d.time > nowMs);
+        const d = event.upcomingDeadlines.find((d) => d.time >= nowMs);
         return d && d.time <= horizon
           ? [{ event, date: d.date, name: d.name, time: d.time }]
           : [];
       }),
       upcomingStarts: starred.flatMap((event) => {
         const s = event.upcomingStart;
-        return s && s.time > nowMs && s.time <= horizon
+        return s && s.time >= nowMs && s.time <= horizon
           ? [{ event, date: s.date, time: s.time }]
           : [];
       }),
@@ -105,7 +101,7 @@ export function Hero({ events }: { events: HeroEvent[] }) {
       const pickKey = `deadline:${pick.event.key}:${pick.name}:${pick.date}`;
       if (sessionDismissed.has(pickKey)) return null;
       if (permanentlyHiddenEventHeroes.includes(pick.event.key)) return null;
-      const deadline = isDeadline(pick.name);
+      const { deadline, short } = dateNames[pick.name];
       return (
         <HeroShell
           label={deadline ? "Your next deadline" : "Coming up"}
@@ -114,7 +110,7 @@ export function Hero({ events }: { events: HeroEvent[] }) {
           headline={
             <>
               <span className="font-semibold">
-                {pick.event.abbreviation} {deadlineKindWord(pick.name)}
+                {pick.event.abbreviation} {short.toLowerCase()}
               </span>{" "}
               {deadline ? "is due " : ""}
               <em className="not-italic">{humanCountdown(pick.date, now)}</em>.
@@ -131,7 +127,6 @@ export function Hero({ events }: { events: HeroEvent[] }) {
     const pickKey = `start:${pick.event.key}:${pick.date}`;
     if (sessionDismissed.has(pickKey)) return null;
     if (permanentlyHiddenEventHeroes.includes(pick.event.key)) return null;
-    const startCal = toCalendarDate(pick.date);
     return (
       <HeroShell
         label="Up next"
@@ -147,13 +142,9 @@ export function Hero({ events }: { events: HeroEvent[] }) {
             .
           </>
         }
-        footer={
-          startCal
-            ? `${formatCal(startCal, "monDayYear")}${
-                pick.event.location ? ` · ${pick.event.location}` : ""
-              }`
-            : undefined
-        }
+        footer={`${formatDate(pick.date, "monDayYear")}${
+          pick.event.location ? ` · ${pick.event.location}` : ""
+        }`}
       />
     );
   }

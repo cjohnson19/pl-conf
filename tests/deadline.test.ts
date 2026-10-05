@@ -4,7 +4,12 @@ import {
   pickMultiRoundSlots,
   pickRailSlots,
 } from "@/components/event-row/rail-slots";
-import { roundStatuses } from "@/lib/deadline";
+import {
+  datedEntries,
+  deadlineStanding,
+  isDueThisWeek,
+  roundStatuses,
+} from "@/lib/deadline";
 
 const round = (importantDates: Round["importantDates"]): Round => ({
   importantDates,
@@ -12,11 +17,57 @@ const round = (importantDates: Round["importantDates"]): Round => ({
 
 const now = new Date("2026-07-12T12:00:00Z");
 
+describe("datedEntries", () => {
+  it("flattens every dated entry across rounds, soonest first, skipping TBD", () => {
+    const rounds = [
+      round({ paper: "2026/06/19", notification: "TBD" }),
+      round({ abstract: "2026/04/15", paper: "2026/04/22" }),
+    ];
+    expect(datedEntries({ rounds }).map((d) => [d.roundIdx, d.name])).toEqual([
+      [1, "abstract"],
+      [1, "paper"],
+      [0, "paper"],
+    ]);
+  });
+});
+
+describe("deadlineStanding", () => {
+  it("keeps a deadline open through its last AoE millisecond", () => {
+    const rounds = [round({ paper: "2026/07/12" })];
+    const lastMs = new Date("2026-07-13T11:59:59.999Z");
+    expect(deadlineStanding({ rounds }, lastMs).kind).toBe("upcoming");
+    expect(
+      deadlineStanding({ rounds }, new Date(lastMs.getTime() + 1)).kind
+    ).toBe("closed");
+  });
+
+  it("is unlisted only while no date at all is listed", () => {
+    expect(
+      deadlineStanding({ rounds: [round({ paper: "TBD" })] }, now).kind
+    ).toBe("unlisted");
+    expect(deadlineStanding({ rounds: [] }, now).kind).toBe("unlisted");
+  });
+});
+
+describe("isDueThisWeek", () => {
+  it("counts deadlines within seven days but not milestones", () => {
+    expect(
+      isDueThisWeek({ rounds: [round({ paper: "2026/07/15" })] }, now)
+    ).toBe(true);
+    expect(
+      isDueThisWeek({ rounds: [round({ notification: "2026/07/15" })] }, now)
+    ).toBe(false);
+    expect(
+      isDueThisWeek({ rounds: [round({ paper: "2026/07/25" })] }, now)
+    ).toBe(false);
+  });
+});
+
 describe("roundStatuses", () => {
   it("marks a round done only when every date has passed", () => {
     const rounds = [
-      round({ paper: "2026-04-15", notification: "2026-05-01" }),
-      round({ paper: "2026-06-19", notification: "2026-09-01" }),
+      round({ paper: "2026/04/15", notification: "2026/05/01" }),
+      round({ paper: "2026/06/19", notification: "2026/09/01" }),
     ];
     expect(roundStatuses({ rounds }, now)).toEqual(["done", "active"]);
   });
@@ -25,45 +76,45 @@ describe("roundStatuses", () => {
     // Scheme 2026 on July 12: both rounds are mid-flight.
     const rounds = [
       round({
-        paper: "2026-06-05",
-        notification: "2026-07-01",
-        "camera-ready": "2026-07-21",
+        paper: "2026/06/05",
+        notification: "2026/07/01",
+        "camera-ready": "2026/07/21",
       }),
       round({
-        paper: "2026-06-19",
-        notification: "2026-07-14",
-        "camera-ready": "2026-07-21",
+        paper: "2026/06/19",
+        notification: "2026/07/14",
+        "camera-ready": "2026/07/21",
       }),
     ];
     expect(roundStatuses({ rounds }, now)).toEqual(["active", "active"]);
   });
 
   it("treats a TBD date as still pending", () => {
-    const rounds = [round({ paper: "2026-06-05", notification: "TBD" })];
+    const rounds = [round({ paper: "2026/06/05", notification: "TBD" })];
     expect(roundStatuses({ rounds }, now)).toEqual(["active"]);
   });
 
   it("marks the first round active and later rounds next before anything passes", () => {
     const rounds = [
-      round({ paper: "2026-08-01" }),
-      round({ paper: "2026-10-01" }),
+      round({ paper: "2026/08/01" }),
+      round({ paper: "2026/10/01" }),
     ];
     expect(roundStatuses({ rounds }, now)).toEqual(["active", "next"]);
   });
 
   it("keeps a round next while any earlier round is still in flight", () => {
     const rounds = [
-      round({ paper: "2026-04-15", notification: "2026-05-01" }),
-      round({ paper: "2026-06-19", "camera-ready": "2026-08-01" }),
-      round({ paper: "2026-10-16" }),
+      round({ paper: "2026/04/15", notification: "2026/05/01" }),
+      round({ paper: "2026/06/19", "camera-ready": "2026/08/01" }),
+      round({ paper: "2026/10/16" }),
     ];
     expect(roundStatuses({ rounds }, now)).toEqual(["done", "active", "next"]);
   });
 
   it("activates an untouched round once all earlier rounds are done", () => {
     const rounds = [
-      round({ paper: "2026-04-15", notification: "2026-05-01" }),
-      round({ paper: "2026-10-16" }),
+      round({ paper: "2026/04/15", notification: "2026/05/01" }),
+      round({ paper: "2026/10/16" }),
     ];
     expect(roundStatuses({ rounds }, now)).toEqual(["done", "active"]);
   });
@@ -115,8 +166,8 @@ describe("pickMultiRoundSlots", () => {
 
 describe("pickRailSlots", () => {
   const rounds = [
-    round({ paper: "2026-10-14", notification: "2027-02-12" }),
-    round({ paper: "2027-04-07", notification: "2027-08-13" }),
+    round({ paper: "2026/10/14", notification: "2027/02/12" }),
+    round({ paper: "2027/04/07", notification: "2027/08/13" }),
   ];
 
   it("shows every round before the first deadline has passed", () => {

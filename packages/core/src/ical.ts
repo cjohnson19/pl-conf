@@ -1,26 +1,20 @@
 import * as ics from "ics";
 import {
-  dateNameToReadable,
+  dateNames,
   eventKey,
   hasConcreteDates,
   parseDateParts,
   roundEntries,
 } from "./event";
-import type { ScheduledEvent } from "./schemas";
+import type { CalendarDate, ScheduledEvent } from "./schemas";
 
 const UID_DOMAIN = "pl-conferences.com";
 
 const AOE_NOTE =
   "Deadline is end-of-day Anywhere on Earth (AoE, UTC-12). If you are east of UTC-12, the absolute deadline is later than midnight local time on this date.";
 
-function ymdParts(date: string): [number, number, number] {
-  const parts = parseDateParts(date);
-  if (!parts) throw new Error(`Invalid date: ${date}`);
-  return parts;
-}
-
-function lastModifiedArray(date: string): ics.DateArray {
-  const [y, m, d] = ymdParts(date);
+function lastModifiedArray(date: CalendarDate): ics.DateArray {
+  const [y, m, d] = parseDateParts(date);
   return [y, m, d, 12, 0];
 }
 
@@ -49,8 +43,8 @@ export function toICal(e: ICalEvent, includeDates: boolean = false): string {
   const key = eventKey(e);
   const sequence = e.sequence;
   const lastModified = lastModifiedArray(e.lastUpdated);
-  const [sy, sm, sd] = ymdParts(e.date.start);
-  const [ey, em, ed] = ymdParts(e.date.end);
+  const [sy, sm, sd] = parseDateParts(e.date.start);
+  const [ey, em, ed] = parseDateParts(e.date.end);
   const calName = `${e.abbreviation} ${sy} - PL Conferences`;
   const iCalEvent = ics.createEvents(
     [
@@ -73,8 +67,8 @@ export function toICal(e: ICalEvent, includeDates: boolean = false): string {
               if (date === "TBD") {
                 return [];
               }
-              const [dy, dm, dd] = ymdParts(date);
-              const readable = dateNameToReadable(type);
+              const [dy, dm, dd] = parseDateParts(date);
+              const readable = dateNames[type].label;
               const roundLabel = round.name ? `${round.name} – ` : "";
               return [
                 {

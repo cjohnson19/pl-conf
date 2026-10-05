@@ -1,18 +1,18 @@
-import { getYear, isBefore } from "date-fns";
 import { z } from "zod";
 import { eventTypes, tagValues } from "./event";
+
+// A YAML calendar date, zero-padded, with the separators swapped to "/" so
+// `new Date(string)` and date-fns read it as local time rather than UTC. Zod's
+// inferred output would be plain `string`, so the type is spelled out: the
+// template literal lets `=== "TBD"` narrow a MaybeDate.
+export type CalendarDate = `${number}/${number}/${number}`;
 
 const DateSchema = z
   .string()
   .date()
-  // Date fns interprets dates with "-" as having a timezone which should be
-  // converted into local time, but we want to treat them as "AOE" dates almost
-  // always.
-  .transform((d) => d.replaceAll("-", "/"));
+  .transform((d): CalendarDate => d.replaceAll("-", "/") as CalendarDate);
 
-const TBD = z.literal("TBD");
-
-export const MaybeDate = z.union([TBD, DateSchema]);
+export const MaybeDate = z.union([z.literal("TBD"), DateSchema]);
 export type MaybeDate = z.infer<typeof MaybeDate>;
 
 export const DateName = z.enum([
@@ -104,14 +104,12 @@ export const ScheduledEvent = z
       path: ["importantDateUrl"],
     }
   )
+  // Zero-padded "YYYY/MM/DD" strings compare and slice as dates do.
   .refine(
-    (data) => {
-      if (data.date?.start === "TBD" || data.date?.end === "TBD") return true;
-      return (
-        data.date?.start === data.date?.end ||
-        isBefore(data.date?.start, data.date?.end)
-      );
-    },
+    (data) =>
+      data.date.start === "TBD" ||
+      data.date.end === "TBD" ||
+      data.date.start <= data.date.end,
     {
       message: "Event's start must be the same or before the end",
       path: ["date"],
@@ -121,7 +119,7 @@ export const ScheduledEvent = z
     (data) =>
       [data.date.start, data.date.end]
         .filter((d) => d !== "TBD")
-        .every((d) => getYear(d) === data.year),
+        .every((d) => Number(d.slice(0, 4)) === data.year),
     {
       message:
         "Event's dates must fall within the year of its containing directory",

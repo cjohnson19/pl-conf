@@ -1,14 +1,14 @@
 import clsx from "clsx";
 import Link from "next/link";
 import {
+  calendarDate,
   eventKey,
   eventPath,
   eventYear2,
   hasOpenSubmissionAt,
 } from "../lib/event";
 import type { DisplayEvent } from "../lib/event-list-view";
-import { findNextDeadline, isMidMultiRound } from "../lib/deadline";
-import { dayNum, yearNum } from "../lib/date-formatters";
+import { isMidMultiRound, nextDeadline } from "../lib/deadline";
 import { StarButton } from "./star-button";
 import { CalendarMenu } from "./calendar-menu";
 import { ConnectedEventTags } from "./event-tags";
@@ -34,11 +34,12 @@ export function EventRow({
   showDate: boolean;
   now: Date;
 }) {
-  const next = findNextDeadline(e, now);
+  const next = nextDeadline(e, now);
   const totalRounds = e.rounds.length;
 
   const year2 = eventYear2(e);
   const openSubmission = hasOpenSubmissionAt(now)(e);
+  const start = e.date.start === "TBD" ? undefined : calendarDate(e.date.start);
 
   return (
     <div
@@ -58,13 +59,13 @@ export function EventRow({
           style={{ gridArea: "date" }}
         >
           <div className="font-ui text-[22px] font-semibold leading-none tracking-[-0.025em] text-ink tabular-nums @[420px]/row:text-[24px] @[680px]/row:text-[32px]">
-            {dayNum(e.date.start)}
+            {start?.getDate() ?? "—"}
           </div>
           <div className="font-mono text-[11px] font-medium leading-none tracking-[0.08em] text-ink-2">
             <LocalDate date={e.date.start} style="monthShort" />
           </div>
           <div className="font-mono text-[10px] font-medium leading-none tracking-[0.06em] text-ink-3">
-            {yearNum(e.date.start)}
+            {start?.getFullYear()}
           </div>
         </div>
       )}

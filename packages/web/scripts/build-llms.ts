@@ -1,10 +1,10 @@
 import {
-  type DateName,
-  dateNameToReadable,
+  dateNames,
   eventKey,
   eventPath,
   type MaybeDate,
   type Round,
+  roundEntries,
   type ScheduledEvent,
 } from "@pl-conf/core";
 import { events } from "@pl-conf/data";
@@ -32,16 +32,12 @@ function dateRange(e: ScheduledEvent): string {
   return start === end ? start : `${start} to ${end}`;
 }
 
-function importantDates(r: Round): [DateName, MaybeDate][] {
-  return Object.entries(r.importantDates) as [DateName, MaybeDate][];
-}
-
 function roundSection(r: Round, index: number, rounds: Round[]): string {
   const label =
     r.name ?? (rounds.length > 1 ? `Round ${index + 1}` : undefined);
   const heading = label ? `Important dates (${label}):` : "Important dates:";
-  const lines = importantDates(r).map(
-    ([name, date]) => `- ${dateNameToReadable(name)}: ${iso(date)}`
+  const lines = roundEntries(r).map(
+    ([name, date]) => `- ${dateNames[name].label}: ${iso(date)}`
   );
   return [heading, ...lines].join("\n");
 }
@@ -64,7 +60,7 @@ function eventMarkdown(e: ScheduledEvent): string {
   ].filter(Boolean);
 
   const roundSections = e.rounds
-    .filter((r) => Object.keys(r.importantDates).length > 0)
+    .filter((r) => roundEntries(r).length > 0)
     .map((r, i, rounds) => roundSection(r, i, rounds));
 
   const notes =
@@ -140,7 +136,7 @@ const jsonEvents = sorted.map((e) => ({
   rounds: e.rounds.map((r) => ({
     name: r.name,
     importantDates: Object.fromEntries(
-      importantDates(r).map(([name, date]) => [name, iso(date)])
+      roundEntries(r).map(([name, date]) => [name, iso(date)])
     ),
   })),
   notes: e.notes,

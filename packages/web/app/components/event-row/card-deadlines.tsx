@@ -1,6 +1,6 @@
 import clsx from "clsx";
-import type { Round } from "../../lib/event";
-import { dateNameShort, roundShortDate } from "../../lib/date-formatters";
+import { type Round, dateNames } from "../../lib/event";
+import { formatDate } from "../../lib/date-formatters";
 import { shortCountdown } from "../../lib/countdown";
 import {
   type RailRow,
@@ -50,16 +50,15 @@ function CardDeadlineRow({ row: r, now }: { row: RailRow; now: Date }) {
           next && "font-medium text-ink"
         )}
       >
-        {dateNameShort(r.name)}
+        {dateNames[r.name].short}
       </td>
       <td
         className={clsx(
           "py-1 pr-2 align-baseline whitespace-nowrap font-mono",
           next ? "text-ink" : "text-ink-3"
         )}
-        suppressHydrationWarning
       >
-        {roundShortDate(r.date)}
+        {formatDate(r.date, "monthDay")}
       </td>
       <td
         className={clsx(

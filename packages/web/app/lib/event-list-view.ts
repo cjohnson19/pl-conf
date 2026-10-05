@@ -1,26 +1,30 @@
 import {
-  type DateName,
+  type CalendarDate,
   type ScheduledEvent,
+  calendarDate,
   eventKey,
   eventPathFromSlug,
   eventSlug,
   hasEndedAt,
   hasOpenSubmissionAt,
   isActiveAt,
-  toCalendarDate,
 } from "./event";
 import { type Counts, computeCounts, matchesChips } from "./counts";
 import {
+  type DatedEntry,
+  type DeadlineStanding,
   deadlineStanding,
-  findAllUpcomingDeadlines,
   findNextStart,
+  upcomingEntries,
 } from "./deadline";
 import type { FilterParams } from "./filter-params";
 import type { ListRow } from "./list-visibility";
 import {
   type Group,
-  buildArchiveGroups,
-  buildGroups,
+  type GroupHeading,
+  groupConsecutive,
+  liveHeading,
+  monthHeading,
 } from "../components/event-list/grouping";
 
 export type HeroEvent = {
@@ -31,8 +35,8 @@ export type HeroEvent = {
   // All deadlines future-at-SSR, sorted ascending. Hero picks the first one
   // still future as of live `now`, so as the user keeps the tab open and a
   // round elapses, the alert rolls to the next round instead of disappearing.
-  upcomingDeadlines: { name: DateName; date: string; time: number }[];
-  upcomingStart?: { date: string; time: number };
+  upcomingDeadlines: DatedEntry[];
+  upcomingStart?: { date: CalendarDate; time: number };
 };
 
 // A partOf/colocatedWith reference paired with the dedicated-page path it
@@ -103,26 +107,22 @@ export type EventListView = {
   // client counts the starred tab against these.
   liveKeys: string[];
   counts: Counts;
-  lastUpdatedDate: string | undefined;
+  lastUpdatedDate: CalendarDate | undefined;
 };
 
 function buildHeroEvents(events: ScheduledEvent[], now: Date): HeroEvent[] {
   return events.flatMap((e) => {
-    const deadlines = findAllUpcomingDeadlines(e, now);
-    const start = findNextStart(e, now);
-    if (deadlines.length === 0 && !start) return [];
+    const upcomingDeadlines = upcomingEntries(e, now);
+    const upcomingStart = findNextStart(e, now);
+    if (upcomingDeadlines.length === 0 && !upcomingStart) return [];
     return [
       {
         key: eventKey(e),
         abbreviation: e.abbreviation,
         type: e.type,
         location: e.location,
-        upcomingDeadlines: deadlines.map((d) => ({
-          name: d.name,
-          date: d.date,
-          time: d.time,
-        })),
-        upcomingStart: start ?? undefined,
+        upcomingDeadlines,
+        upcomingStart,
       },
     ];
   });
@@ -153,32 +153,30 @@ function sortArchived(events: ScheduledEvent[]): ScheduledEvent[] {
 }
 
 function startTime(e: ScheduledEvent): number {
-  return toCalendarDate(e.date.start)?.getTime() ?? Number.NEGATIVE_INFINITY;
+  return e.date.start === "TBD"
+    ? Number.NEGATIVE_INFINITY
+    : calendarDate(e.date.start).getTime();
 }
 
 // Soonest next deadline first; then events with no deadline listed yet; then
 // events past every listed deadline. Within the last two, alphabetical.
 const standingRank = { upcoming: 0, unlisted: 1, closed: 2 } as const;
+const nextTime = (s: DeadlineStanding) =>
+  s.kind === "upcoming" ? s.next.time : 0;
 
 function sortByNextDeadline(
   events: ScheduledEvent[],
   now: Date
-): ScheduledEvent[] {
-  const decorated = events.map((e) => {
-    const standing = deadlineStanding(e, now);
-    return {
-      e,
-      rank: standingRank[standing.kind],
-      time: standing.kind === "upcoming" ? standing.next.time : 0,
-    };
-  });
-  decorated.sort(
-    (a, b) =>
-      a.rank - b.rank ||
-      a.time - b.time ||
-      a.e.abbreviation.localeCompare(b.e.abbreviation)
-  );
-  return decorated.map((d) => d.e);
+): { event: ScheduledEvent; heading: GroupHeading }[] {
+  return events
+    .map((event) => ({ event, standing: deadlineStanding(event, now) }))
+    .sort(
+      (a, b) =>
+        standingRank[a.standing.kind] - standingRank[b.standing.kind] ||
+        nextTime(a.standing) - nextTime(b.standing) ||
+        a.event.abbreviation.localeCompare(b.event.abbreviation)
+    )
+    .map(({ event, standing }) => ({ event, heading: liveHeading(standing) }));
 }
 
 export function computeEventListView(
@@ -193,23 +191,22 @@ export function computeEventListView(
   const activeEvents = events.filter(isActiveAt(now));
   const liveEvents = activeEvents.filter(matchesChips(filters));
   const listed = isArchive
-    ? events.filter(hasEndedAt(now)).filter(matchesChips(filters))
-    : liveEvents;
-
-  const sorted = isArchive
-    ? sortArchived(listed)
-    : sortByNextDeadline(listed, now);
-  const displayEvents = sorted.map((e) => toDisplayEvent(e, validEventPaths));
+    ? sortArchived(
+        events.filter(hasEndedAt(now)).filter(matchesChips(filters))
+      ).map((event) => ({ event, heading: monthHeading(event) }))
+    : sortByNextDeadline(liveEvents, now);
+  const displayed = listed.map(({ event, heading }) => ({
+    event: toDisplayEvent(event, validEventPaths),
+    heading,
+  }));
 
   const hasOpenSubmission = hasOpenSubmissionAt(now);
 
   return {
-    displayEvents,
+    displayEvents: displayed.map((d) => d.event),
     heroEvents: buildHeroEvents(activeEvents, now),
-    groups: isArchive
-      ? buildArchiveGroups(displayEvents)
-      : buildGroups(displayEvents, now),
-    rows: sorted.map((e) => ({
+    groups: groupConsecutive(displayed),
+    rows: listed.map(({ event: e }) => ({
       key: eventKey(e),
       open: !isArchive && hasOpenSubmission(e),
       haystack: searchHaystack(e),

@@ -1,4 +1,5 @@
 import type {
+  CalendarDate,
   DateName,
   MaybeDate,
   Round,
@@ -33,6 +34,7 @@ export const tagValues = [
 ] as const;
 
 export type {
+  CalendarDate,
   MaybeDate,
   DateName,
   EventType,
@@ -98,7 +100,9 @@ export function eventPath(
   return eventPathFromSlug(e.year, eventSlug(e.abbreviation));
 }
 
-export function hasConcreteDates(e: Pick<ScheduledEvent, "date">): boolean {
+export function hasConcreteDates<E extends Pick<ScheduledEvent, "date">>(
+  e: E
+): e is E & { date: { start: CalendarDate; end: CalendarDate } } {
   return e.date.start !== "TBD" && e.date.end !== "TBD";
 }
 
@@ -132,178 +136,73 @@ export function allDeadlines(e: Pick<ScheduledEvent, "rounds">): MaybeDate[] {
   return e.rounds.flatMap(roundDeadlines);
 }
 
-export function isDeadline(name: DateName): boolean {
-  // Some date-name entries describe an event the author receives rather than
-  // a date they must submit by. Those aren't "deadlines" — surface them as
-  // milestones instead of countdowns. Exhaustive switch on purpose so a new
-  // DateName fails to compile until it's classified.
-  switch (name) {
-    case "abstract":
-    case "paper":
-    case "rebuttal":
-    case "revisions":
-    case "camera-ready":
-      return true;
-    case "notification":
-    case "conditional-acceptance":
-      return false;
-  }
-}
-
-export function dateNameToReadable(name: DateName): string {
-  switch (name) {
-    case "abstract":
-      return "Abstract";
-    case "paper":
-      return "Paper Submission";
-    case "notification":
-      return "Notification";
-    case "conditional-acceptance":
-      return "Conditional Acceptance Notification";
-    case "revisions":
-      return "Revisions";
-    case "camera-ready":
-      return "Camera Ready";
-    case "rebuttal":
-      return "Rebuttal";
-  }
-}
-
-type LocaleArg = string | string[] | undefined;
-
-export const dateFormatStyles = {
-  long: { year: "numeric", month: "long", day: "numeric" },
-  short: { year: "numeric", month: "short", day: "numeric" },
-  compact: { year: "2-digit", month: "2-digit", day: "2-digit" },
-  "long-with-time": {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-    hour: "numeric",
-    minute: "2-digit",
-    timeZoneName: "short",
+// Some date-name entries describe an event the author receives rather than a
+// date they must submit by; those are milestones, not deadlines. `label` is
+// the full name, `short` the one the rows and rails use.
+export const dateNames: Record<
+  DateName,
+  { label: string; short: string; deadline: boolean }
+> = {
+  abstract: { label: "Abstract", short: "Abstract", deadline: true },
+  paper: { label: "Paper Submission", short: "Paper", deadline: true },
+  notification: {
+    label: "Notification",
+    short: "Notification",
+    deadline: false,
   },
-  "compact-with-time": {
-    year: "2-digit",
-    month: "2-digit",
-    day: "2-digit",
-    hour: "numeric",
-    minute: "2-digit",
+  "conditional-acceptance": {
+    label: "Conditional Acceptance Notification",
+    short: "Conditional Acceptance",
+    deadline: false,
   },
-} as const satisfies Record<string, Intl.DateTimeFormatOptions>;
+  rebuttal: { label: "Rebuttal", short: "Rebuttal", deadline: true },
+  revisions: { label: "Revisions", short: "Revisions", deadline: true },
+  "camera-ready": {
+    label: "Camera Ready",
+    short: "Camera-ready",
+    deadline: true,
+  },
+};
 
-export type DateFormatStyle = keyof typeof dateFormatStyles;
-
-const timeBearingStyles = new Set<DateFormatStyle>([
-  "long-with-time",
-  "compact-with-time",
-]);
-
-const aoeInstantCache = new Map<string, Date>();
-
-export function toAoeInstant(date: MaybeDate): Date | null {
-  if (date === "TBD") return null;
-  const cached = aoeInstantCache.get(date);
-  if (cached !== undefined) return cached;
-  const iso = date.replaceAll("/", "-");
-  const result = new Date(`${iso}T23:59:59.999-12:00`);
-  aoeInstantCache.set(date, result);
-  return result;
-}
-
-export function parseDateParts(date: string): [number, number, number] | null {
-  const [y, m, d] = date.split(/[-/]/).map(Number);
-  if (!y || !m || !d) return null;
+export function parseDateParts(date: CalendarDate): [number, number, number] {
+  const [y, m, d] = date.split("/").map(Number);
   return [y, m, d];
 }
 
-const calendarDateCache = new Map<string, Date>();
+// The instant a deadline on this date expires: end of day Anywhere on Earth
+// (UTC-12), i.e. 11:59:59.999 UTC the following day.
+export function aoeTime(date: CalendarDate): number {
+  const [y, m, d] = parseDateParts(date);
+  return Date.UTC(y, m - 1, d + 1, 11, 59, 59, 999);
+}
 
-// Local-tz midnight of the YAML calendar date — for *display*, where "May 25"
-// should read "May 25" regardless of viewer tz. Distinct from toAoeInstant,
-// which is the AOE moment and rolls the calendar day forward east of UTC-12.
-export function toCalendarDate(date: MaybeDate): Date | null {
-  if (date === "TBD") return null;
-  const cached = calendarDateCache.get(date);
-  if (cached !== undefined) return cached;
-  const parts = parseDateParts(date);
-  if (!parts) return null;
-  const [y, m, d] = parts;
-  const result = new Date(y, m - 1, d);
-  calendarDateCache.set(date, result);
-  return result;
+// Local-tz midnight of the calendar date, for display: "May 25" should read
+// "May 25" regardless of viewer tz. Distinct from aoeTime, which rolls the
+// calendar day forward east of UTC-12.
+export function calendarDate(date: CalendarDate): Date {
+  const [y, m, d] = parseDateParts(date);
+  return new Date(y, m - 1, d);
 }
 
 export function isDeadlinePast(date: MaybeDate, now: Date): boolean {
-  const instant = toAoeInstant(date);
-  if (instant === null) return false;
-  return instant.getTime() < now.getTime();
+  return date !== "TBD" && aoeTime(date) < now.getTime();
 }
 
-// 14 days
 const URGENT_WINDOW_MS = 14 * 86_400_000;
 
 export function isDeadlineUrgent(date: MaybeDate, now: Date): boolean {
-  const instant = toAoeInstant(date);
-  if (instant === null) return false;
-  const ms = instant.getTime() - now.getTime();
+  if (date === "TBD") return false;
+  const ms = aoeTime(date) - now.getTime();
   return ms > 0 && ms <= URGENT_WINDOW_MS;
-}
-
-const formatterCache = new Map<string, Intl.DateTimeFormat>();
-
-function getFormatter(
-  style: DateFormatStyle,
-  locale: LocaleArg
-): Intl.DateTimeFormat {
-  const localeKey = Array.isArray(locale) ? locale.join(",") : (locale ?? "");
-  const key = `${style}|${localeKey}`;
-  let fmt = formatterCache.get(key);
-  if (fmt === undefined) {
-    fmt = new Intl.DateTimeFormat(locale, dateFormatStyles[style]);
-    formatterCache.set(key, fmt);
-  }
-  return fmt;
-}
-
-export function formatDate(
-  date: MaybeDate,
-  style: DateFormatStyle,
-  locale?: LocaleArg
-): string {
-  if (date === "TBD") return "TBD";
-  const instant = timeBearingStyles.has(style)
-    ? toAoeInstant(date)!
-    : toCalendarDate(date)!;
-  return getFormatter(style, locale).format(instant);
-}
-
-export function formatDateRange(
-  start: MaybeDate,
-  end: MaybeDate,
-  style: DateFormatStyle,
-  locale?: LocaleArg
-): string {
-  if (start === "TBD" || end === "TBD") return "TBD";
-  return getFormatter(style, locale).formatRange(
-    toCalendarDate(start)!,
-    toCalendarDate(end)!
-  );
 }
 
 export function toGoogleCalendarLink(
   e: Pick<ScheduledEvent, "abbreviation" | "date" | "name" | "location">
 ): string {
-  if (!hasConcreteDates(e)) {
-    return "";
-  }
-  const startParts = parseDateParts(e.date.start);
-  const endParts = parseDateParts(e.date.end);
-  if (!startParts || !endParts) return "";
-  const encode = ([y, m, d]: [number, number, number]) =>
-    `${y}${String(m).padStart(2, "0")}${String(d).padStart(2, "0")}`;
-  const start = encode(startParts);
-  const end = encode(endParts);
+  if (!hasConcreteDates(e)) return "";
+  const compact = (d: CalendarDate) => d.replaceAll("/", "");
+  const start = compact(e.date.start);
+  const end = compact(e.date.end);
   const url = new URL("https://www.google.com/calendar/render");
   url.searchParams.append("action", "TEMPLATE");
   url.searchParams.append("text", e.abbreviation);

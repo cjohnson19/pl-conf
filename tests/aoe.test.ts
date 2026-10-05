@@ -1,67 +1,37 @@
 import { describe, expect, it } from "vitest";
 import {
+  aoeTime,
+  calendarDate,
   hasOpenSubmissionAt,
   isDeadlinePast,
-  toAoeInstant,
-  toCalendarDate,
 } from "@pl-conf/core";
 import type { ScheduledEvent } from "@pl-conf/core";
 
-describe("toAoeInstant", () => {
-  it("converts a date to 11:59:59.999 UTC on the following day", () => {
-    expect(toAoeInstant("2026/05/01")?.toISOString()).toBe(
-      "2026-05-02T11:59:59.999Z"
-    );
+const iso = (ms: number) => new Date(ms).toISOString();
+
+describe("aoeTime", () => {
+  it("is 11:59:59.999 UTC on the following day", () => {
+    expect(iso(aoeTime("2026/05/01"))).toBe("2026-05-02T11:59:59.999Z");
   });
 
-  it("handles month rollover", () => {
-    expect(toAoeInstant("2026/01/31")?.toISOString()).toBe(
-      "2026-02-01T11:59:59.999Z"
-    );
-  });
-
-  it("handles year rollover", () => {
-    expect(toAoeInstant("2026/12/31")?.toISOString()).toBe(
-      "2027-01-01T11:59:59.999Z"
-    );
-  });
-
-  it("accepts both hyphen- and slash-separated dates", () => {
-    expect(toAoeInstant("2026-05-01")?.toISOString()).toBe(
-      "2026-05-02T11:59:59.999Z"
-    );
-  });
-
-  it("returns null for TBD", () => {
-    expect(toAoeInstant("TBD")).toBeNull();
+  it("handles month and year rollover", () => {
+    expect(iso(aoeTime("2026/01/31"))).toBe("2026-02-01T11:59:59.999Z");
+    expect(iso(aoeTime("2026/12/31"))).toBe("2027-01-01T11:59:59.999Z");
   });
 });
 
-describe("toCalendarDate", () => {
-  it("returns a local-midnight Date whose calendar components match the YAML date", () => {
-    const d = toCalendarDate("2026/05/25");
-    expect(d).not.toBeNull();
-    expect(d?.getFullYear()).toBe(2026);
-    expect(d?.getMonth()).toBe(4);
-    expect(d?.getDate()).toBe(25);
-    expect(d?.getHours()).toBe(0);
+describe("calendarDate", () => {
+  it("is local midnight of the calendar date", () => {
+    const d = calendarDate("2026/05/25");
+    expect([d.getFullYear(), d.getMonth(), d.getDate(), d.getHours()]).toEqual([
+      2026, 4, 25, 0,
+    ]);
   });
 
-  it("accepts hyphen-separated dates", () => {
-    const d = toCalendarDate("2026-05-25");
-    expect(d?.getDate()).toBe(25);
-    expect(d?.getMonth()).toBe(4);
-  });
-
-  it("does not roll the calendar date forward the way toAoeInstant does", () => {
-    // toAoeInstant("2026/05/25") is 2026-05-25T23:59:59.999-12:00, which in
-    // any timezone east of UTC-12 reads as 2026-05-26 on the local calendar.
-    // toCalendarDate must always read as the 25th regardless of viewer tz.
-    expect(toCalendarDate("2026/05/25")?.getDate()).toBe(25);
-  });
-
-  it("returns null for TBD", () => {
-    expect(toCalendarDate("TBD")).toBeNull();
+  it("does not roll the calendar date forward the way aoeTime does", () => {
+    // aoeTime("2026/05/25") is 2026-05-25T23:59:59.999-12:00, which in any
+    // timezone east of UTC-12 reads as 2026-05-26 on the local calendar.
+    expect(calendarDate("2026/05/25").getDate()).toBe(25);
   });
 });
 

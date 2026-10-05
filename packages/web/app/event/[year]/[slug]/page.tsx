@@ -11,10 +11,10 @@ import {
   eventPathFromSlug,
   eventSlug,
   eventYear2,
-  formatDateRange,
   hasConcreteDates,
   roundsWithDates,
 } from "../../../lib/event";
+import { formatDateRange } from "../../../lib/date-formatters";
 import { toDisplayEvent } from "../../../lib/event-list-view";
 import {
   type RelatedEvent,
@@ -54,10 +54,10 @@ function lookup(year: string, slug: string): ScheduledEvent | undefined {
   return eventByPath.get(eventPathFromSlug(year, slug));
 }
 
-function dateRange(e: Pick<ScheduledEvent, "date">): string | null {
+function dateRange(e: Pick<ScheduledEvent, "date">): string | undefined {
   return hasConcreteDates(e)
     ? formatDateRange(e.date.start, e.date.end, "long")
-    : null;
+    : undefined;
 }
 
 export async function generateMetadata({
@@ -237,10 +237,10 @@ export default async function EventPage({ params }: { params: Params }) {
   );
 }
 
-function relationDates(r: RelatedEvent): string | null {
+function relationDates(r: RelatedEvent): string | undefined {
   return hasConcreteDates(r)
     ? formatDateRange(r.date.start, r.date.end, "short")
-    : null;
+    : undefined;
 }
 
 function showsLocation(r: RelatedEvent, parentLocation?: string): boolean {

@@ -1,29 +1,49 @@
 import {
+  type CalendarDate,
   type DateName,
   type ScheduledEvent,
-  allDeadlines,
-  isDeadline,
+  aoeTime,
+  dateNames,
   isDeadlinePast,
   roundDeadlines,
   roundEntries,
-  toAoeInstant,
 } from "./event";
 
-export type NextDeadline = {
+// One listed, non-TBD date of an event with the AoE instant it expires at.
+export type DatedEntry = {
   roundIdx: number;
   name: DateName;
-  date: string;
+  date: CalendarDate;
   time: number;
 };
 
 export type DeadlineEvent = Pick<ScheduledEvent, "rounds">;
-type StartEvent = Pick<ScheduledEvent, "date">;
 
-export function findNextDeadline(
+// Every dated entry across rounds, soonest first: the one walk that sorting,
+// grouping, heroes and the row badge all read from.
+export function datedEntries(e: DeadlineEvent): DatedEntry[] {
+  return e.rounds
+    .flatMap((r, roundIdx) =>
+      roundEntries(r).flatMap(([name, date]) =>
+        date === "TBD" ? [] : [{ roundIdx, name, date, time: aoeTime(date) }]
+      )
+    )
+    .sort((a, b) => a.time - b.time);
+}
+
+// A deadline stays open through its final millisecond, matching
+// `isDeadlinePast` for a bare date.
+const isPast = (d: DatedEntry, now: Date) => d.time < now.getTime();
+
+export function upcomingEntries(e: DeadlineEvent, now: Date): DatedEntry[] {
+  return datedEntries(e).filter((d) => !isPast(d, now));
+}
+
+export function nextDeadline(
   e: DeadlineEvent,
   now: Date
-): NextDeadline | undefined {
-  return findAllUpcomingDeadlines(e, now)[0];
+): DatedEntry | undefined {
+  return upcomingEntries(e, now)[0];
 }
 
 // Where an event stands in the live list: counting down to its next listed
@@ -31,7 +51,7 @@ export function findNextDeadline(
 // Past dates alongside TBD entries count as closed — the event has had its
 // deadlines go by, so it isn't waiting on a first one.
 export type DeadlineStanding =
-  | { kind: "upcoming"; next: NextDeadline }
+  | { kind: "upcoming"; next: DatedEntry }
   | { kind: "unlisted" }
   | { kind: "closed" };
 
@@ -39,49 +59,36 @@ export function deadlineStanding(
   e: DeadlineEvent,
   now: Date
 ): DeadlineStanding {
-  const next = findNextDeadline(e, now);
+  const entries = datedEntries(e);
+  const next = entries.find((d) => !isPast(d, now));
   if (next) return { kind: "upcoming", next };
-  const listed = allDeadlines(e).some((d) => d !== "TBD");
-  return { kind: listed ? "closed" : "unlisted" };
-}
-
-export function findAllUpcomingDeadlines(
-  e: DeadlineEvent,
-  now: Date
-): NextDeadline[] {
-  const nowTime = now.getTime();
-  const out: NextDeadline[] = [];
-  e.rounds.forEach((r, roundIdx) => {
-    roundEntries(r).forEach(([name, date]) => {
-      if (date === "TBD") return;
-      const time = toAoeInstant(date)!.getTime();
-      if (time > nowTime) out.push({ roundIdx, name, date, time });
-    });
-  });
-  out.sort((a, b) => a.time - b.time);
-  return out;
+  return { kind: entries.length > 0 ? "closed" : "unlisted" };
 }
 
 export function isDueThisWeek(e: DeadlineEvent, now: Date): boolean {
-  const weekMs = 7 * 86_400_000;
-  return e.rounds.some((r) =>
-    roundEntries(r).some(([name, date]) => {
-      if (!isDeadline(name)) return false;
-      if (date === "TBD") return false;
-      const diff = toAoeInstant(date)!.getTime() - now.getTime();
-      return diff > 0 && diff <= weekMs;
-    })
+  const weekFromNow = now.getTime() + 7 * 86_400_000;
+  return upcomingEntries(e, now).some(
+    (d) => dateNames[d.name].deadline && d.time <= weekFromNow
   );
 }
 
 export function findNextStart(
-  e: StartEvent,
+  e: Pick<ScheduledEvent, "date">,
   now: Date
-): { date: string; time: number } | null {
-  if (e.date.start === "TBD") return null;
-  const time = toAoeInstant(e.date.start)!.getTime();
-  if (time <= now.getTime()) return null;
-  return { date: e.date.start, time };
+): { date: CalendarDate; time: number } | undefined {
+  if (e.date.start === "TBD") return undefined;
+  const time = aoeTime(e.date.start);
+  return time < now.getTime() ? undefined : { date: e.date.start, time };
+}
+
+// A multi-round event with at least one date behind it and one ahead.
+export function isMidMultiRound(e: DeadlineEvent, now: Date): boolean {
+  const entries = datedEntries(e);
+  return (
+    e.rounds.length > 1 &&
+    entries.some((d) => isPast(d, now)) &&
+    entries.some((d) => !isPast(d, now))
+  );
 }
 
 export type RoundSlotStatus = "done" | "active" | "next";
@@ -103,13 +110,4 @@ export function roundStatuses(e: DeadlineEvent, now: Date): RoundSlotStatus[] {
     if (f.hasPassed) return "active";
     return facts.slice(0, idx).every((p) => p.done) ? "active" : "next";
   });
-}
-
-export function isMidMultiRound(e: DeadlineEvent, now: Date): boolean {
-  const dates = e.rounds.flatMap(roundDeadlines).filter((d) => d !== "TBD");
-  return (
-    e.rounds.length > 1 &&
-    dates.some((d) => isDeadlinePast(d, now)) &&
-    dates.some((d) => !isDeadlinePast(d, now))
-  );
 }

@@ -1,11 +1,11 @@
 "use client";
 
 import { useSyncExternalStore } from "react";
-import type { DateFormatStyle } from "@pl-conf/core";
-import { formatDateRange, type MaybeDate } from "../lib/event";
+import type { MaybeDate } from "../lib/event";
 import {
-  type CalendarStyle,
-  formatCalendar,
+  type DateStyle,
+  formatDate,
+  formatDateRange,
   SERVER_LOCALE,
 } from "../lib/date-formatters";
 
@@ -16,15 +16,15 @@ import {
 // viewer's locale when it differs.
 const never = () => () => {};
 
-export function useLocalDate(date: MaybeDate, style: CalendarStyle): string {
+export function useLocalDate(date: MaybeDate, style: DateStyle): string {
   return useSyncExternalStore(
     never,
-    () => formatCalendar(date, style),
-    () => formatCalendar(date, style, SERVER_LOCALE)
+    () => formatDate(date, style),
+    () => formatDate(date, style, SERVER_LOCALE)
   );
 }
 
-export function LocalDate(props: { date: MaybeDate; style: CalendarStyle }) {
+export function LocalDate(props: { date: MaybeDate; style: DateStyle }) {
   return useLocalDate(props.date, props.style);
 }
 
@@ -35,7 +35,7 @@ export function LocalDateRange({
 }: {
   start: MaybeDate;
   end: MaybeDate;
-  style: DateFormatStyle;
+  style: DateStyle;
 }) {
   return useSyncExternalStore(
     never,

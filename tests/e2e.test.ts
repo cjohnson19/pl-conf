@@ -2,13 +2,12 @@ import fs from "node:fs";
 import path from "node:path";
 import { events } from "@pl-conf/data";
 import {
-  dateFormatStyles,
   eventKey,
   eventPath,
-  formatDateRange,
   isActiveAt,
   type ScheduledEvent,
 } from "@pl-conf/core";
+import { dateStyles, formatDateRange } from "@/lib/date-formatters";
 import puppeteer, { type Browser, type Page } from "puppeteer";
 import { afterAll, beforeAll, describe, expect, test as base } from "vitest";
 import { DEFERRED_CHUNK_ATTR } from "@/lib/deferred-chunks";
@@ -374,7 +373,7 @@ describe("viewer locale", () => {
         },
         e.date.start,
         e.date.end,
-        dateFormatStyles.short
+        dateStyles.short
       );
       expect(expected).not.toBe(server);
       await page.waitForFunction(
@@ -1454,9 +1453,9 @@ describe.concurrent("persistence settle", () => {
     page,
   }) => {
     // MOCKE has paper deadline 2026-06-01 in YAML, but the Zod parse rewrites
-    // `-` to `/` (the date-fns AOE handling note in CLAUDE.md). The string
-    // round-tripped through sessionStorage by toggleCollapsed uses the slash
-    // form, so the seed must match.
+    // `-` to `/` (CalendarDate). The string round-tripped through
+    // sessionStorage by toggleCollapsed uses the slash form, so the seed must
+    // match.
     const collapseDate = "2026/06/01";
     await seedStorage(page, {
       session: { [COLLAPSED_KEY]: [collapseDate] },

@@ -1,6 +1,6 @@
 import clsx from "clsx";
 import type { DisplayEvent } from "../../lib/event-list-view";
-import { dateNameShort } from "../../lib/date-formatters";
+import { dateNames } from "../../lib/event";
 import { type RoundSlot, type RoundSlots, pickRailSlots } from "./rail-slots";
 import { type RailRow, buildRoundRows, deadlineToneClass } from "./shared";
 import { LocalDate } from "../local-date";
@@ -45,7 +45,7 @@ function DateRow({ row: r }: { row: RailRow }) {
         r.kind === "next" ? "font-medium text-ink" : "text-ink-2"
       )}
     >
-      <span>{dateNameShort(r.name)}</span>
+      <span>{dateNames[r.name].short}</span>
       <span className={clsx("font-mono text-[11px]", deadlineToneClass(r))}>
         <LocalDate date={r.date} style="monthDay" />
       </span>

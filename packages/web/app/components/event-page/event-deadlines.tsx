@@ -1,8 +1,7 @@
 "use client";
 
 import clsx from "clsx";
-import { type Round, roundsWithDates } from "../../lib/event";
-import { dateNameShort } from "../../lib/date-formatters";
+import { type Round, dateNames, roundsWithDates } from "../../lib/event";
 import { LocalDate } from "../local-date";
 import { shortCountdown } from "../../lib/countdown";
 import { useNow } from "../event-list/now-provider";
@@ -45,7 +44,7 @@ export function EventDeadlines({ rounds }: { rounds: Round[] }) {
                             : "text-ink-2"
                       )}
                     >
-                      {dateNameShort(r.name)}
+                      {dateNames[r.name].short}
                     </span>
                     <span
                       aria-hidden

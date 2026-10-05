@@ -6,10 +6,10 @@ import {
   eventKey,
   eventPath,
   eventYear2,
-  formatDateRange,
   hasOpenSubmissionAt,
   roundsWithDates,
 } from "../lib/event";
+import { formatDateRange } from "../lib/date-formatters";
 import type { DisplayEvent } from "../lib/event-list-view";
 import { FavoriteButton } from "./favorite-button";
 import { CalendarMenu } from "./calendar-menu";
@@ -28,7 +28,7 @@ function EventCardImpl({ event: e }: { event: DisplayEvent }) {
   const startStr =
     e.date.start !== "TBD" && e.date.end !== "TBD"
       ? formatDateRange(e.date.start, e.date.end, "short")
-      : null;
+      : undefined;
 
   const deadlineRounds = roundsWithDates(e.rounds);
   const hasRelationships =
@@ -61,7 +61,7 @@ function EventCardImpl({ event: e }: { event: DisplayEvent }) {
       <EventNameLink event={e} />
 
       <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1 text-[12px] text-ink-3">
-        {startStr && <span suppressHydrationWarning>{startStr}</span>}
+        {startStr && <span>{startStr}</span>}
         {startStr && e.location && (
           <span aria-hidden className="text-ink-3/60">
             ·
