@@ -3,7 +3,8 @@ import clsx from "clsx";
 import { Github } from "lucide-react";
 import { eventKey } from "../../lib/event";
 import type { EventListView } from "../../lib/event-list-view";
-import type { View } from "../../lib/filter-params";
+import { ArchiveHeader } from "./archive-header";
+import { ArchiveNote } from "./archive-note";
 import { Hero } from "./heroes";
 import { CollapsibleGroup } from "./group-display";
 import { EventRow } from "../event-row";
@@ -11,10 +12,8 @@ import { LastUpdated } from "../last-updated";
 import { LayoutSwitcher } from "./layout-switcher";
 import { ListEmptyState } from "./list-empty-state";
 import { ListFilterProvider } from "./list-filter";
-import { ListSkeletonBoundary } from "./list-skeleton";
 import { NowProvider } from "./now-provider";
 import { StarredEmptyState } from "./starred-empty-state";
-import { ViewNavProvider } from "./view-nav-provider";
 import {
   FilterChips,
   LayoutToggle,
@@ -25,12 +24,12 @@ import {
 
 export function EventListShell({
   defaultQuery,
-  view,
+  archive,
   list,
   serverNowMs,
 }: {
   defaultQuery: string;
-  view: View;
+  archive: boolean;
   list: EventListView;
   serverNowMs: number;
 }) {
@@ -44,69 +43,74 @@ export function EventListShell({
         rows={rows}
         liveKeys={liveKeys}
         defaultQuery={defaultQuery}
+        archive={archive}
       >
         <NowProvider initialMs={serverNowMs}>
-          <ViewNavProvider>
-            <Hero events={heroEvents} />
+          <Hero events={heroEvents} />
 
-            <div className="flex flex-col gap-2 px-5 pt-7 sm:flex-row sm:flex-wrap sm:items-center md:px-8">
-              <SearchPill />
-              <div className="flex flex-wrap items-center gap-2">
-                <FilterChips counts={counts.categoryCounts} />
-                <TagsFilter counts={counts.tagCounts} />
-              </div>
+          <div className="flex flex-col gap-2 px-5 pt-7 sm:flex-row sm:flex-wrap sm:items-center md:px-8">
+            <SearchPill />
+            <div className="flex flex-wrap items-center gap-2">
+              <FilterChips counts={counts.categoryCounts} />
+              <TagsFilter counts={counts.tagCounts} />
             </div>
+          </div>
 
-            <ViewTabs
-              counts={counts.viewCounts}
+          {archive ? (
+            <ArchiveHeader
               trailing={
                 <>
-                  <SortNote view={view} dueThisWeek={counts.dueThisWeek} />
+                  <SortNote archive dueThisWeek={counts.dueThisWeek} />
                   <LayoutToggle />
                 </>
               }
             />
+          ) : (
+            <ViewTabs
+              counts={counts.viewCounts}
+              trailing={
+                <>
+                  <SortNote archive={false} dueThisWeek={counts.dueThisWeek} />
+                  <LayoutToggle />
+                </>
+              }
+            />
+          )}
 
-            <ListSkeletonBoundary>
-              <LayoutSwitcher
-                events={displayEvents}
-                listChildren={groups.map((g, gi) => {
-                  // A dated heading already states the deadline, so its
-                  // rows drop their own date.
-                  const dated = g.heading.kind === "deadline";
-                  return (
-                    <CollapsibleGroup
-                      key={g.key}
-                      groupKey={g.key}
-                      heading={g.heading}
-                      groupKeys={g.events.map((e) => eventKey(e))}
-                      isFirst={gi === 0}
-                      showCollapseHint={gi === 0 && hasMultipleGroups}
+          <LayoutSwitcher
+            events={displayEvents}
+            listChildren={groups.map((g, gi) => {
+              // A dated heading already states the deadline, so its
+              // rows drop their own date.
+              const dated = g.heading.kind === "deadline";
+              return (
+                <CollapsibleGroup
+                  key={g.key}
+                  groupKey={g.key}
+                  heading={g.heading}
+                  groupKeys={g.events.map((e) => eventKey(e))}
+                  isFirst={gi === 0}
+                  showCollapseHint={gi === 0 && hasMultipleGroups}
+                >
+                  {g.events.map((e, i) => (
+                    <div
+                      key={eventKey(e)}
+                      className={clsx(
+                        "@container/row",
+                        i === 0 && "[&>*]:border-t-0"
+                      )}
                     >
-                      {g.events.map((e, i) => (
-                        <div
-                          key={eventKey(e)}
-                          className={clsx(
-                            "@container/row",
-                            i === 0 && "[&>*]:border-t-0"
-                          )}
-                        >
-                          <EventRow
-                            event={e}
-                            showDate={!dated}
-                            now={serverNow}
-                          />
-                        </div>
-                      ))}
-                    </CollapsibleGroup>
-                  );
-                })}
-              />
-            </ListSkeletonBoundary>
+                      <EventRow event={e} showDate={!dated} now={serverNow} />
+                    </div>
+                  ))}
+                </CollapsibleGroup>
+              );
+            })}
+          />
 
-            <ListEmptyState />
-            <StarredEmptyState totalActive={counts.totalActive} />
-          </ViewNavProvider>
+          <ListEmptyState />
+          <StarredEmptyState totalActive={counts.totalActive} />
+          {!archive && <ArchiveNote count={counts.viewCounts.archive} />}
         </NowProvider>
       </ListFilterProvider>
       <footer className="mt-14 flex items-center justify-between gap-4 border-t border-rule px-5 py-6 text-[12px] text-ink-3 md:px-8">
@@ -134,10 +138,16 @@ export function EventListShell({
   );
 }
 
-function SortNote({ view, dueThisWeek }: { view: View; dueThisWeek: number }) {
+function SortNote({
+  archive,
+  dueThisWeek,
+}: {
+  archive: boolean;
+  dueThisWeek: number;
+}) {
   return (
     <span className="hidden text-[13px] text-ink-3 lg:inline">
-      {view === "archive" ? (
+      {archive ? (
         "past events · most recent first"
       ) : (
         <>

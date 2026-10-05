@@ -25,7 +25,6 @@ import type { DisplayPreferences } from "../../lib/user-prefs";
 import { useTagFilter } from "../../hooks/use-tag-filter";
 import { useDisplayPref } from "../../hooks/use-preferences";
 import { useListFilter } from "./list-filter";
-import { useViewNav } from "./view-nav-provider";
 
 type Layout = DisplayPreferences["layout"];
 
@@ -223,18 +222,15 @@ export function ViewTabs({
   trailing: React.ReactNode;
 }) {
   const { view: active, starredCount } = useListFilter();
-  const { pending, navigateView } = useViewNav();
-  const select = (next: View) => {
-    const url = withParams({ view: next === "all" ? undefined : next });
-    // Starred / submissions are CSS filters over rows the page already shipped,
-    // so they switch with a bare history entry. Archived rows aren't in the DOM
-    // at all — entering or leaving the archive needs a real render.
-    if (next === "archive" || active === "archive") {
-      navigateView(url);
-    } else {
-      window.history.replaceState(null, "", url);
-    }
-  };
+  // Every view is a CSS filter over rows the page already shipped, so a tab
+  // switch is a bare history entry; the archive is a separate page, linked
+  // from below the list.
+  const select = (next: View) =>
+    window.history.replaceState(
+      null,
+      "",
+      withParams({ view: next === "all" ? undefined : next })
+    );
   const tabs: {
     key: View;
     label: string;
@@ -255,30 +251,19 @@ export function ViewTabs({
     },
     { key: "all", label: "All events", shortLabel: "All" },
     { key: "submissions", label: "Submissions open", shortLabel: "Open" },
-    { key: "archive", label: "Archive", shortLabel: "Past" },
   ];
   return (
     <div className="flex flex-wrap items-end gap-x-2 gap-y-2 border-b border-rule px-5 pt-8 sm:gap-x-4 md:px-8">
-      <div
-        aria-busy={pending}
-        className={clsx(
-          "-mx-5 flex flex-1 gap-0.5 overflow-x-auto overflow-y-hidden px-5 transition-opacity [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:gap-1 md:mx-0 md:overflow-visible md:px-0",
-          pending && "opacity-60"
-        )}
-      >
+      <div className="-mx-5 flex flex-1 gap-0.5 overflow-x-auto overflow-y-hidden px-5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:gap-1 md:mx-0 md:overflow-visible md:px-0">
         {tabs.map((t) => {
           const on = t.key === active;
           const count = t.key === "starred" ? starredCount : counts[t.key];
-          return (
-            <button
-              key={t.key}
-              type="button"
-              onClick={() => select(t.key)}
-              className={clsx(
-                "-mb-px inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap border-b-2 border-transparent bg-transparent px-2 py-2.5 text-[13px] font-medium transition-colors sm:gap-2 sm:px-3.5",
-                on ? "border-ink text-ink" : "text-ink-3 hover:text-ink-2"
-              )}
-            >
+          const className = clsx(
+            "-mb-px inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap border-b-2 border-transparent bg-transparent px-2 py-2.5 text-[13px] font-medium no-underline transition-colors sm:gap-2 sm:px-3.5",
+            on ? "border-ink text-ink" : "text-ink-3 hover:text-ink-2"
+          );
+          const content = (
+            <>
               {t.icon}
               {t.shortLabel ? (
                 <>
@@ -298,6 +283,16 @@ export function ViewTabs({
                   {count}
                 </span>
               )}
+            </>
+          );
+          return (
+            <button
+              key={t.key}
+              type="button"
+              onClick={() => select(t.key)}
+              className={className}
+            >
+              {content}
             </button>
           );
         })}

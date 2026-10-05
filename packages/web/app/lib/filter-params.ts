@@ -4,7 +4,8 @@ export type Category = "all" | (typeof eventTypes)[number];
 export type View = "starred" | "all" | "submissions" | "archive";
 
 const categories = new Set<string>(["all", ...eventTypes]);
-const views = new Set<string>(["starred", "all", "submissions", "archive"]);
+// The archive is its own route (/archive/), never a query value.
+const views = new Set<string>(["starred", "all", "submissions"]);
 const knownTags = new Set<string>(tagValues);
 
 export type FilterParams = {

@@ -86,6 +86,7 @@ export function ListFilterProvider({
   rows,
   liveKeys,
   defaultQuery,
+  archive,
   children,
 }: {
   rows: ListRow[];
@@ -93,9 +94,11 @@ export function ListFilterProvider({
   // the starred tab counts against these even from the archive.
   liveKeys: string[];
   defaultQuery: string;
+  archive: boolean;
   children: ReactNode;
 }) {
-  const view = parseViewParam(useSearchParams().get("view"));
+  const searchParams = useSearchParams();
+  const view = archive ? "archive" : parseViewParam(searchParams.get("view"));
   const [query, setQuery] = useSearchQuery(defaultQuery);
   const eventPrefs = useEventPrefs();
   const hydrated = useHydrated();

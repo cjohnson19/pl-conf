@@ -634,13 +634,12 @@ describe("submissions open view", () => {
 
 describe("archive view", () => {
   const openArchive = async (page: Page) => {
-    await clickButtonStartingWith(page, "Archive");
-    // Unlike the other tabs, the archive is a real navigation: its rows are
-    // not in the DOM until the server renders them.
-    await page.waitForFunction(
-      () => new URLSearchParams(location.search).get("view") === "archive",
-      { timeout: 8000 }
-    );
+    // Unlike the other tabs, the archive is its own page: its rows are not in
+    // the DOM until the server renders them.
+    await page.click('a[href^="/archive/"]');
+    await page.waitForFunction(() => location.pathname === "/archive/", {
+      timeout: 8000,
+    });
     await waitForRows(page, 2);
   };
 
@@ -652,34 +651,36 @@ describe("archive view", () => {
     ]);
   });
 
-  test("swaps the list for a skeleton while the archive render is in flight", async ({
+  test("is cacheable at the edge on the same terms as the live list", async () => {
+    const [live, archive] = await Promise.all(
+      ["/", "/archive/"].map((p) => fetch(`${BASE_URL}${p}`))
+    );
+    expect(live.headers.get("cache-control")).toContain("s-maxage=");
+    expect(archive.headers.get("cache-control")).toBe(
+      live.headers.get("cache-control")
+    );
+  });
+
+  test("the old ?view=archive URL redirects to the archive page", async ({
     page,
   }) => {
-    // Slow the flight response down enough to observe the pending state.
-    const cdp = await page.createCDPSession();
-    await cdp.send("Network.enable");
-    await cdp.send("Network.emulateNetworkConditions", {
-      offline: false,
-      latency: 800,
-      downloadThroughput: -1,
-      uploadThroughput: -1,
+    await page.goto(`${BASE_URL}/?view=archive&c=workshop`, {
+      waitUntil: "networkidle2",
     });
-    await clickButtonStartingWith(page, "Archive");
-    await page.waitForSelector("[data-list-skeleton]");
-    await cdp.send("Network.emulateNetworkConditions", {
-      offline: false,
-      latency: 0,
-      downloadThroughput: -1,
-      uploadThroughput: -1,
+    expect(new URL(page.url()).pathname).toBe("/archive/");
+    expect(new URL(page.url()).searchParams.get("c")).toBe("workshop");
+    await waitForRows(page, 1);
+  });
+
+  test("leaving the archive returns to the live list with its chips", async ({
+    page,
+  }) => {
+    await openArchive(page);
+    await page.click('main a[href="/"]');
+    await page.waitForFunction(() => location.pathname === "/", {
+      timeout: 8000,
     });
-    // The skeleton resolves into the archive rows once the render lands.
-    await page.waitForFunction(
-      () =>
-        !document.querySelector("[data-list-skeleton]") &&
-        new URLSearchParams(location.search).get("view") === "archive" &&
-        document.querySelectorAll("[data-event-key]").length > 0,
-      { timeout: 8000 }
-    );
+    await waitForRows(page, activeEvents().length);
   });
 
   test("heads each group with the month the events took place in", async ({

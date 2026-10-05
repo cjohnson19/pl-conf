@@ -1,28 +1,26 @@
-import { events } from "@pl-conf/data";
-import { EventListShell } from "./components/event-list/event-list-shell";
-import { eventPath } from "./lib/event";
-import { computeEventListView } from "./lib/event-list-view";
-import { parseFilterParams, type RawSearchParams } from "./lib/filter-params";
-import { serverNow as resolveServerNow } from "./lib/server-now";
+import { permanentRedirect } from "next/navigation";
+import { ListPage } from "./components/event-list/list-page";
+import type { RawSearchParams } from "./lib/filter-params";
 
-const validEventPaths = new Set(Object.values(events).map((e) => eventPath(e)));
+// The archive used to be `/?view=archive`; send old links to its own route,
+// keeping the chips and tags they carried.
+function archiveRedirect(sp: RawSearchParams): string | undefined {
+  const { view, ...rest } = sp;
+  if (view !== "archive") return undefined;
+  const qs = new URLSearchParams(
+    Object.entries(rest).flatMap(([k, v]) =>
+      v === undefined ? [] : [[k, Array.isArray(v) ? v[0] : v]]
+    )
+  ).toString();
+  return `/archive/${qs ? `?${qs}` : ""}`;
+}
 
 export default async function Home({
   searchParams,
 }: {
   searchParams: Promise<RawSearchParams>;
 }) {
-  const filters = parseFilterParams(await searchParams);
-  const serverNow = resolveServerNow();
-  const view = computeEventListView(Object.values(events), filters, serverNow, {
-    validEventPaths,
-  });
-  return (
-    <EventListShell
-      defaultQuery={filters.q}
-      view={filters.view}
-      list={view}
-      serverNowMs={serverNow.getTime()}
-    />
-  );
+  const target = archiveRedirect(await searchParams);
+  if (target) permanentRedirect(target);
+  return <ListPage searchParams={searchParams} archive={false} />;
 }

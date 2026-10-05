@@ -46,17 +46,6 @@
     --shadow-md: 0 0 0 transparent;
     --shadow-pop: 0 0 0 transparent;
   }
-
-  /* Referenced only from an inline style string in
-     event-list/list-skeleton.tsx, so it is invisible to class scanning. */
-  @keyframes skeleton-in {
-    from {
-      opacity: 0;
-    }
-    to {
-      opacity: 1;
-    }
-  }
 }
 
 @layer base {

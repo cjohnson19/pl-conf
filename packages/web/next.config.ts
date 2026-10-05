@@ -16,8 +16,9 @@ const nextConfig: NextConfig = {
   trailingSlash: true,
   async headers() {
     return [
-      {
-        source: "/",
+      // The live list and the archive render the same view on demand.
+      ...["/", "/archive"].map((source) => ({
+        source,
         headers: [
           {
             key: "Cache-Control",
@@ -37,7 +38,7 @@ const nextConfig: NextConfig = {
               "public, s-maxage=60, stale-while-revalidate=3600, stale-if-error=86400",
           },
         ],
-      },
+      })),
       {
         // Written once by `prebuild` and only change on redeploy, but they are
         // fetched on every .ics download and polled by subscribed calendar
