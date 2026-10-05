@@ -1,8 +1,8 @@
 "use client";
 
 import clsx from "clsx";
-import { Star } from "lucide-react";
 import { useFavorite } from "../hooks/use-favorite";
+import { Icon } from "./icons";
 import { rowIconButtonClass } from "./icon-button";
 
 export function FavoriteButton({ prefKey }: { prefKey: string }) {
@@ -23,7 +23,12 @@ export function FavoriteButton({ prefKey }: { prefKey: string }) {
         on ? "text-accent hover:text-accent" : "text-ink-3 hover:text-ink"
       )}
     >
-      <Star size={18} strokeWidth={1.75} fill={on ? "currentColor" : "none"} />
+      <Icon
+        name="star"
+        size={18}
+        strokeWidth={1.75}
+        fill={on ? "currentColor" : "none"}
+      />
     </button>
   );
 }

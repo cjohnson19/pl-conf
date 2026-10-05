@@ -18,6 +18,7 @@ import {
   test as base,
   vi,
 } from "vitest";
+import { deferChunkScripts } from "@/lib/deferred-chunks";
 import { FROZEN_NOW_ISO } from "./frozen-now";
 
 const URL = process.env.E2E_BASE_URL ?? "http://localhost:3000";
@@ -300,6 +301,72 @@ describe("starring", () => {
     );
     const keys = await renderedKeys();
     expect(keys).not.toContain(key);
+  });
+});
+
+describe("deferred hydration chunks", () => {
+  // Production nginx rewrites the chunk <script> tags so they load after first
+  // paint (docker/nginx.conf, app/lib/deferred-chunks.ts). The fixture server
+  // has no nginx, so apply the identical substitution to the document here and
+  // check that the inline loader still brings the page to a hydrated state,
+  // with every chunk fetched only after the load event.
+  test("hydrates with every chunk requested after load", async () => {
+    const context = await browser.createBrowserContext();
+    const page = await context.newPage();
+    try {
+      await installFrozenClock(page);
+      await page.setRequestInterception(true);
+      page.on("request", (req) => {
+        if (req.resourceType() !== "document") {
+          void req.continue();
+          return;
+        }
+        void fetch(req.url())
+          .then((res) => res.text())
+          .then((html) =>
+            req.respond({
+              status: 200,
+              contentType: "text/html; charset=utf-8",
+              body: deferChunkScripts(html),
+            })
+          );
+      });
+      await page.goto(URL, { waitUntil: "domcontentloaded" });
+      await page.waitForFunction(
+        () => document.documentElement.dataset.plConfHydrated === "1",
+        { timeout: 10000 }
+      );
+      const timing = await page.evaluate(() => {
+        const [nav] = performance.getEntriesByType(
+          "navigation"
+        ) as PerformanceNavigationTiming[];
+        // Next may also <link rel="preload"> a chunk, which is allowed to
+        // fetch early; only the script tags themselves must wait.
+        const chunkStarts = (
+          performance.getEntriesByType(
+            "resource"
+          ) as PerformanceResourceTiming[]
+        )
+          .filter(
+            (e) =>
+              e.initiatorType === "script" &&
+              e.name.includes("/_next/static/chunks/")
+          )
+          .map((e) => e.startTime);
+        return {
+          loadEventStart: nav?.loadEventStart ?? Number.NaN,
+          chunkStarts,
+          inert: document.querySelectorAll("script[data-pl-defer]").length,
+        };
+      });
+      expect(timing.chunkStarts.length).toBeGreaterThan(0);
+      expect(timing.inert).toBe(0);
+      timing.chunkStarts.forEach((start) => {
+        expect(start).toBeGreaterThanOrEqual(timing.loadEventStart);
+      });
+    } finally {
+      await context.close();
+    }
   });
 });
 

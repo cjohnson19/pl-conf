@@ -5,8 +5,10 @@ import "./typography.css";
 import { events } from "@pl-conf/data";
 import { isActiveAt } from "@pl-conf/core";
 import { Header } from "./components/header";
+import { IconSprite } from "./components/icons";
 import { ThemeProvider } from "./components/theme-provider";
 import { PreferencesProvider } from "./components/preferences-provider";
+import { deferredChunksLoaderScript } from "./lib/deferred-chunks";
 import { serverNow } from "./lib/server-now";
 
 const prePaintScript = `try {
@@ -119,8 +121,13 @@ export default function RootLayout({
           // biome-ignore lint/security/noDangerouslySetInnerHtml: pre-hydration script reads localStorage prefs and emits CSS so hidden/starred events match the user's saved state before React boots
           dangerouslySetInnerHTML={{ __html: prePaintScript }}
         />
+        <script
+          // biome-ignore lint/security/noDangerouslySetInnerHtml: re-activates the hydration chunks nginx marks inert (see lib/deferred-chunks.ts)
+          dangerouslySetInnerHTML={{ __html: deferredChunksLoaderScript }}
+        />
       </head>
       <body>
+        <IconSprite />
         <ThemeProvider>
           <PreferencesProvider>
             <Header totalActive={totalActive} />

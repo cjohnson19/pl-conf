@@ -1,6 +1,5 @@
 "use client";
 
-import { MoreHorizontal } from "lucide-react";
 import clsx from "clsx";
 import {
   anyVisible,
@@ -8,6 +7,7 @@ import {
   useDeferred,
 } from "../lib/deferred-component";
 import type { DisplayEvent } from "../lib/event-list-view";
+import { Icon } from "./icons";
 
 type SheetProps = { event: DisplayEvent; prefKey: string };
 
@@ -46,7 +46,7 @@ export function RowActionSheet({ event, prefKey }: SheetProps) {
       title="Actions"
       className={triggerClass}
     >
-      <MoreHorizontal size={16} strokeWidth={1.75} />
+      <Icon name="ellipsis" size={16} strokeWidth={1.75} />
     </button>
   );
 }

@@ -2,7 +2,7 @@
 
 import { useRef, useState } from "react";
 import clsx from "clsx";
-import { ChevronDown, X } from "lucide-react";
+import { X } from "lucide-react";
 import {
   isDeadlinePast,
   isDeadlineUrgent,
@@ -19,6 +19,7 @@ import { useSessionStorageStringSet } from "../../hooks/use-session-storage";
 import { useNow } from "./now-provider";
 import { useCounts } from "./counts-context";
 import { type GroupHeading, headingId } from "./grouping";
+import { Icon } from "../icons";
 import { useDisplayPref } from "../preferences-provider";
 
 const SESSION_COLLAPSED_KEY = "collapsedDateGroups";
@@ -85,8 +86,8 @@ function HeaderRail({
           {count === 1 ? "" : "s"}
         </div>
       </div>
-      <ChevronDown
-        aria-hidden
+      <Icon
+        name="chevron-down"
         size={16}
         strokeWidth={1.75}
         className={clsx(

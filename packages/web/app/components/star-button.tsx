@@ -1,4 +1,4 @@
-import { Star } from "lucide-react";
+import { Icon } from "./icons";
 import { rowIconButtonClass } from "./icon-button";
 
 export function StarButton({ prefKey }: { prefKey: string }) {
@@ -13,7 +13,7 @@ export function StarButton({ prefKey }: { prefKey: string }) {
       title="Star"
       className={`${rowIconButtonClass} text-ink-3 hover:text-ink`}
     >
-      <Star size={18} strokeWidth={1.75} fill="none" />
+      <Icon name="star" size={18} strokeWidth={1.75} />
     </button>
   );
 }
