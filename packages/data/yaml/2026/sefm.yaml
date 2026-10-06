@@ -2,7 +2,7 @@ name: International Conference on Software Engineering and Formal Methods
 abbreviation: SEFM
 type: conference
 date:
-  start: 2026-11-23
+  start: 2026-11-25
   end: 2026-11-27
 location: Valletta, Malta
 url: "https://sefm-conference.github.io/2026/"
