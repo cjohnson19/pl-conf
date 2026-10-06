@@ -188,7 +188,8 @@ export function isDeadlinePast(date: MaybeDate, now: Date): boolean {
   return date !== "TBD" && aoeTime(date) < now.getTime();
 }
 
-const URGENT_WINDOW_MS = 14 * 86_400_000;
+// Deadlines this close are highlighted in the list and surfaced in the hero.
+export const URGENT_WINDOW_MS = 14 * 86_400_000;
 
 export function isDeadlineUrgent(date: MaybeDate, now: Date): boolean {
   if (date === "TBD") return false;

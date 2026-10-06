@@ -1,13 +1,14 @@
 "use client";
 
 import clsx from "clsx";
+import { MoreHorizontal } from "lucide-react";
+import type { ComponentProps } from "react";
 import {
   anyVisible,
   deferredComponent,
   useDeferred,
 } from "../lib/deferred-component";
 import type { DisplayEvent } from "../lib/event-list-view";
-import { MoreHorizontal } from "lucide-react";
 
 type SheetProps = { event: DisplayEvent; prefKey: string };
 
@@ -24,12 +25,27 @@ const TRIGGER_SELECTOR = `button[aria-label^="${ACTIONS_LABEL} "]`;
 // desktop window preloads and a wide tablet doesn't.
 sheet.preloadWhenIdle(() => anyVisible(TRIGGER_SELECTOR));
 
-// Also the trigger chrome for the lazily-loaded dialog — the two must stay in
-// sync so the swap is invisible.
-export const triggerClass = clsx(
-  "grid h-11 w-11 shrink-0 place-items-center rounded-full border border-rule bg-transparent text-ink-2 transition-colors",
-  "hover:border-ink hover:bg-ink hover:text-paper data-[state=open]:border-ink data-[state=open]:bg-ink data-[state=open]:text-paper"
-);
+// Rendered both before the dialog loads and as its real trigger afterwards,
+// so the swap is invisible.
+export function SheetTrigger({
+  event,
+  ...props
+}: ComponentProps<"button"> & { event: DisplayEvent }) {
+  return (
+    <button
+      type="button"
+      aria-label={`${ACTIONS_LABEL} ${event.abbreviation}`}
+      title="Actions"
+      className={clsx(
+        "grid h-11 w-11 shrink-0 place-items-center rounded-full border border-rule bg-transparent text-ink-2 transition-colors",
+        "hover:border-ink hover:bg-ink hover:text-paper data-[state=open]:border-ink data-[state=open]:bg-ink data-[state=open]:text-paper"
+      )}
+      {...props}
+    >
+      <MoreHorizontal size={16} strokeWidth={1.75} />
+    </button>
+  );
+}
 
 export function RowActionSheet({ event, prefKey }: SheetProps) {
   const { Component: Sheet, open, warm } = useDeferred(sheet);
@@ -37,16 +53,11 @@ export function RowActionSheet({ event, prefKey }: SheetProps) {
   if (Sheet) return <Sheet event={event} prefKey={prefKey} />;
 
   return (
-    <button
-      type="button"
+    <SheetTrigger
+      event={event}
       onClick={open}
       onPointerDown={warm}
       onFocus={warm}
-      aria-label={`${ACTIONS_LABEL} ${event.abbreviation}`}
-      title="Actions"
-      className={triggerClass}
-    >
-      <MoreHorizontal size={16} strokeWidth={1.75} />
-    </button>
+    />
   );
 }

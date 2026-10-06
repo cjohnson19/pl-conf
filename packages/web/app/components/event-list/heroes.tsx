@@ -9,7 +9,7 @@ import {
   useState,
 } from "react";
 import { MoreHorizontal, X } from "lucide-react";
-import { dateNames } from "../../lib/event";
+import { URGENT_WINDOW_MS, dateNames } from "../../lib/event";
 import { humanCountdown } from "../../lib/countdown";
 import type { HeroEvent } from "../../lib/event-list-view";
 import { formatDate, localDeadlineString } from "../../lib/date-formatters";
@@ -25,8 +25,6 @@ import { collectStarredKeys } from "../../lib/user-prefs";
 import { useSessionStorageStringSet } from "../../hooks/use-session-storage";
 import { useNow } from "./now-provider";
 
-const MS_PER_DAY = 24 * 60 * 60 * 1000;
-const HERO_CUTOFF_DAYS = 14;
 const HERO_TRANSITION_MS = 300;
 const SESSION_DISMISSED_KEY = "dismissedHeroKeys";
 
@@ -65,7 +63,7 @@ export function Hero({ events }: { events: HeroEvent[] }) {
   ];
   const { upcomingDeadlines, upcomingStarts } = useMemo(() => {
     const nowMs = now.getTime();
-    const horizon = nowMs + HERO_CUTOFF_DAYS * MS_PER_DAY;
+    const horizon = nowMs + URGENT_WINDOW_MS;
     const starred = events.filter((e) => starredKeys.has(e.key));
     return {
       upcomingDeadlines: starred.flatMap((event) => {

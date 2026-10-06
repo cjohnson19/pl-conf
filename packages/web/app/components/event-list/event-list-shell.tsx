@@ -9,18 +9,11 @@ import { Hero } from "./heroes";
 import { CollapsibleGroup } from "./group-display";
 import { EventRow } from "../event-row";
 import { LastUpdated } from "../last-updated";
-import { LayoutSwitcher } from "./layout-switcher";
 import { ListEmptyState } from "./list-empty-state";
 import { ListFilterProvider } from "./list-filter";
 import { NowProvider } from "./now-provider";
 import { StarredEmptyState } from "./starred-empty-state";
-import {
-  FilterChips,
-  LayoutToggle,
-  SearchPill,
-  TagsFilter,
-  ViewTabs,
-} from "./filters";
+import { FilterChips, SearchPill, TagsFilter, ViewTabs } from "./filters";
 
 export function EventListShell({
   defaultQuery,
@@ -33,7 +26,7 @@ export function EventListShell({
   list: EventListView;
   serverNowMs: number;
 }) {
-  const { displayEvents, heroEvents, groups, rows, liveKeys, counts } = list;
+  const { heroEvents, groups, rows, liveKeys, counts } = list;
   const hasMultipleGroups = groups.length > 1;
   const serverNow = new Date(serverNowMs);
 
@@ -58,55 +51,44 @@ export function EventListShell({
 
           {archive ? (
             <ArchiveHeader
-              trailing={
-                <>
-                  <SortNote archive dueThisWeek={counts.dueThisWeek} />
-                  <LayoutToggle />
-                </>
-              }
+              trailing={<SortNote archive dueThisWeek={counts.dueThisWeek} />}
             />
           ) : (
             <ViewTabs
               counts={counts.viewCounts}
               trailing={
-                <>
-                  <SortNote archive={false} dueThisWeek={counts.dueThisWeek} />
-                  <LayoutToggle />
-                </>
+                <SortNote archive={false} dueThisWeek={counts.dueThisWeek} />
               }
             />
           )}
 
-          <LayoutSwitcher
-            events={displayEvents}
-            listChildren={groups.map((g, gi) => {
-              // A dated heading already states the deadline, so its
-              // rows drop their own date.
-              const dated = g.heading.kind === "deadline";
-              return (
-                <CollapsibleGroup
-                  key={g.key}
-                  groupKey={g.key}
-                  heading={g.heading}
-                  groupKeys={g.events.map((e) => eventKey(e))}
-                  isFirst={gi === 0}
-                  showCollapseHint={gi === 0 && hasMultipleGroups}
-                >
-                  {g.events.map((e, i) => (
-                    <div
-                      key={eventKey(e)}
-                      className={clsx(
-                        "@container/row",
-                        i === 0 && "[&>*]:border-t-0"
-                      )}
-                    >
-                      <EventRow event={e} showDate={!dated} now={serverNow} />
-                    </div>
-                  ))}
-                </CollapsibleGroup>
-              );
-            })}
-          />
+          {groups.map((g, gi) => {
+            // A dated heading already states the deadline, so its rows drop
+            // their own date.
+            const dated = g.heading.kind === "deadline";
+            return (
+              <CollapsibleGroup
+                key={g.key}
+                groupKey={g.key}
+                heading={g.heading}
+                groupKeys={g.events.map((e) => eventKey(e))}
+                isFirst={gi === 0}
+                showCollapseHint={gi === 0 && hasMultipleGroups}
+              >
+                {g.events.map((e, i) => (
+                  <div
+                    key={eventKey(e)}
+                    className={clsx(
+                      "@container/row",
+                      i === 0 && "[&>*]:border-t-0"
+                    )}
+                  >
+                    <EventRow event={e} showDate={!dated} now={serverNow} />
+                  </div>
+                ))}
+              </CollapsibleGroup>
+            );
+          })}
 
           <ListEmptyState />
           <StarredEmptyState totalActive={counts.totalActive} />

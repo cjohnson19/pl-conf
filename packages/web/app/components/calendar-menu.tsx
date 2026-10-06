@@ -9,6 +9,7 @@ import {
 import { hasConcreteDates } from "../lib/event";
 import type { DisplayEvent } from "../lib/event-list-view";
 import { Calendar } from "lucide-react";
+import type { ComponentProps } from "react";
 import { rowIconButtonClass } from "./icon-button";
 
 type PopoverProps = { event: DisplayEvent; label?: string };
@@ -25,15 +26,33 @@ const TRIGGER_SELECTOR =
 // trigger rather than assuming a viewport.
 popover.preloadWhenIdle(() => anyVisible(TRIGGER_SELECTOR));
 
-export const triggerClass = clsx(
-  rowIconButtonClass,
-  "text-ink-3 outline-none hover:text-ink data-[state=open]:text-ink"
-);
-
-export const labeledTriggerClass = clsx(
-  "inline-flex h-9 items-center gap-2 rounded-xs border border-rule bg-transparent px-3 font-ui text-[13px] font-medium text-ink-2 outline-none transition-colors",
-  "hover:border-ink hover:text-ink data-[state=open]:border-ink data-[state=open]:text-ink"
-);
+// Rendered both before the menu loads and as its real trigger afterwards, so
+// the swap is invisible. With a label it is the event page's outlined button.
+export function CalendarTrigger({
+  event,
+  label,
+  ...props
+}: ComponentProps<"button"> & { event: DisplayEvent; label?: string }) {
+  return (
+    <button
+      type="button"
+      aria-label={`Add ${event.abbreviation} to calendar`}
+      title="Add to calendar"
+      className={
+        label
+          ? "inline-flex h-9 items-center gap-2 rounded-xs border border-rule bg-transparent px-3 font-ui text-[13px] font-medium text-ink-2 outline-none transition-colors hover:border-ink hover:text-ink data-[state=open]:border-ink data-[state=open]:text-ink"
+          : clsx(
+              rowIconButtonClass,
+              "text-ink-3 outline-none hover:text-ink data-[state=open]:text-ink"
+            )
+      }
+      {...props}
+    >
+      <Calendar size={label ? 15 : 14} strokeWidth={1.75} />
+      {label}
+    </button>
+  );
+}
 
 export function CalendarMenu({
   event,
@@ -67,18 +86,13 @@ export function CalendarMenu({
   if (Popover) return <Popover event={event} label={label} />;
 
   return (
-    <button
-      type="button"
+    <CalendarTrigger
+      event={event}
+      label={label}
       onClick={open}
       onPointerDown={warm}
       onMouseEnter={warm}
       onFocus={warm}
-      aria-label={`Add ${event.abbreviation} to calendar`}
-      title="Add to calendar"
-      className={label ? labeledTriggerClass : triggerClass}
-    >
-      <Calendar size={label ? 15 : 14} strokeWidth={1.75} />
-      {label}
-    </button>
+    />
   );
 }

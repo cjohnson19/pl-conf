@@ -50,7 +50,8 @@ export function EventRow({
         "group grid items-center rounded-xs border-t border-rule",
         showDate ? "event-row-grid" : "event-row-grid--no-date",
         "py-[22px] px-5 md:px-8 transition-colors",
-        "hover:bg-[color-mix(in_srgb,var(--card)_70%,transparent)]"
+        "hover:bg-[color-mix(in_srgb,var(--card)_70%,transparent)]",
+        ""
       )}
     >
       {showDate && (

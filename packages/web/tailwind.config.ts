@@ -3,6 +3,7 @@ import plugin from "tailwindcss/plugin";
 import tailwindcssAnimate from "tailwindcss-animate";
 import containerQueries from "@tailwindcss/container-queries";
 
+// Set on <html> before first paint by lib/pre-paint.ts.
 const osVariant = plugin(({ addVariant }) => {
   addVariant("os-mac", '[data-os="mac"] &');
 });

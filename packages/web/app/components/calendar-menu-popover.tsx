@@ -1,8 +1,7 @@
 "use client";
 
 import { useState, useSyncExternalStore } from "react";
-import { Calendar } from "lucide-react";
-import { labeledTriggerClass, triggerClass } from "./calendar-menu";
+import { CalendarTrigger } from "./calendar-menu";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -82,17 +81,7 @@ export function CalendarMenuPopover({
     isMobileViewport,
     () => false
   );
-  const trigger = (
-    <button
-      type="button"
-      aria-label={`Add ${event.abbreviation} to calendar`}
-      title="Add to calendar"
-      className={label ? labeledTriggerClass : triggerClass}
-    >
-      <Calendar size={label ? 15 : 14} strokeWidth={1.75} />
-      {label}
-    </button>
-  );
+  const trigger = <CalendarTrigger event={event} label={label} />;
 
   if (mobile) {
     return (

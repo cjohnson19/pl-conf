@@ -1,13 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import { MoreHorizontal, Star } from "lucide-react";
+import { Star } from "lucide-react";
 import clsx from "clsx";
 import type { DisplayEvent } from "../lib/event-list-view";
 import { useCalendarExport } from "../hooks/use-calendar-export";
 import { useFavorite } from "../hooks/use-favorite";
 import { CalendarSheet } from "./calendar-sheet";
-import { triggerClass } from "./row-action-sheet";
+import { SheetTrigger } from "./row-action-sheet";
 
 export function RowActionSheetDialog({
   event,
@@ -27,16 +27,7 @@ export function RowActionSheetDialog({
       data={data}
       open={open}
       onOpenChange={setOpen}
-      trigger={
-        <button
-          type="button"
-          aria-label={`Actions for ${event.abbreviation}`}
-          title="Actions"
-          className={triggerClass}
-        >
-          <MoreHorizontal size={16} strokeWidth={1.75} />
-        </button>
-      }
+      trigger={<SheetTrigger event={event} />}
     >
       <button
         type="button"

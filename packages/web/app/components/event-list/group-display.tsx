@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useRef } from "react";
 import clsx from "clsx";
 import {
   type CalendarDate,
@@ -247,38 +247,20 @@ export function CollapsibleGroup({
   const onDismissHint = () => setDisplayPref("collapseHintDismissed", true);
 
   const sectionRef = useRef<HTMLElement>(null);
-  const innerRef = useRef<HTMLDivElement>(null);
-  // Measured lazily: groups that are never toggled never run a ResizeObserver
-  // or store a height. Until the first toggle, `height: undefined` lets the
-  // content render at its natural height.
-  const [contentHeight, setContentHeight] = useState<number | undefined>(
-    undefined
-  );
   const contentId = `group-content-${groupKey.replace(/[^a-zA-Z0-9_-]/g, "-")}`;
 
   const handleToggle = () => {
     const willCollapse = !collapsed;
-    const el = innerRef.current;
-    // Capture a fresh measurement on every toggle so the animation
-    // reflects the current rendered height (handles viewport changes
-    // between toggles without a long-lived observer).
-    const measured = el?.scrollHeight ?? contentHeight;
-    if (willCollapse && measured !== undefined) {
-      setContentHeight(measured);
-      requestAnimationFrame(() => toggleCollapsed());
-    } else {
-      if (measured !== undefined) setContentHeight(measured);
-      toggleCollapsed();
-    }
+    toggleCollapsed();
+    // Collapsing a group whose header has scrolled off the top would drop the
+    // reader into the middle of the next one; bring the header back.
     const sectionEl = sectionRef.current;
-    const shouldRestoreScroll =
+    if (
       willCollapse &&
-      sectionEl !== null &&
-      sectionEl.getBoundingClientRect().top < 0;
-    if (shouldRestoreScroll) {
-      requestAnimationFrame(() => {
-        sectionRef.current?.scrollIntoView({ block: "start" });
-      });
+      sectionEl &&
+      sectionEl.getBoundingClientRect().top < 0
+    ) {
+      requestAnimationFrame(() => sectionEl.scrollIntoView({ block: "start" }));
     }
   };
 
@@ -297,19 +279,22 @@ export function CollapsibleGroup({
         onToggle={handleToggle}
         controlsId={contentId}
       />
+      {/* Going between 0fr and 1fr animates to whatever the content's height
+          is at the time, so nothing has to be measured or kept in step. */}
       <div
         id={contentId}
-        className="overflow-hidden transition-[height] duration-200 ease-out motion-reduce:transition-none"
+        className="grid transition-[grid-template-rows] duration-200 ease-out motion-reduce:transition-none"
         style={{
-          height: collapsed ? 0 : contentHeight,
+          gridTemplateRows: collapsed ? "0fr" : "1fr",
           maskImage:
             "linear-gradient(to bottom, black calc(100% - 22px), transparent)",
           WebkitMaskImage:
             "linear-gradient(to bottom, black calc(100% - 22px), transparent)",
         }}
         aria-hidden={collapsed}
+        inert={collapsed}
       >
-        <div ref={innerRef}>
+        <div className="min-h-0 overflow-hidden">
           {showHint && <CollapseHint onDismiss={onDismissHint} />}
           {children}
         </div>

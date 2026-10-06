@@ -27,6 +27,7 @@ export {
   calendarDate,
   isDeadlinePast,
   isDeadlineUrgent,
+  URGENT_WINDOW_MS,
   toGoogleCalendarLink,
   icalFileName,
   icalFeedPath,

@@ -3,14 +3,7 @@
 import { useEffect, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import clsx from "clsx";
-import {
-  Command,
-  LayoutGrid,
-  Rows3,
-  Search,
-  Star,
-  Tags as TagsIcon,
-} from "lucide-react";
+import { Command, Search, Star, Tags as TagsIcon } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 import { type Tag, tagDisplayName, tagValues } from "../../lib/event";
 import {
@@ -19,14 +12,9 @@ import {
   parseCategoryParam,
   withParams,
 } from "../../lib/filter-params";
-import { setDisplayPref } from "../../lib/preferences-store";
 import type { Counts } from "../../lib/counts";
-import type { DisplayPreferences } from "../../lib/user-prefs";
 import { useTagFilter } from "../../hooks/use-tag-filter";
-import { useDisplayPref } from "../../hooks/use-preferences";
 import { useListFilter } from "./list-filter";
-
-type Layout = DisplayPreferences["layout"];
 
 const CATEGORY_CHIPS: { key: Category; label: string }[] = [
   { key: "all", label: "All" },
@@ -298,51 +286,6 @@ export function ViewTabs({
         })}
       </div>
       <div className="flex shrink-0 items-center gap-4 pb-2">{trailing}</div>
-    </div>
-  );
-}
-
-export function LayoutToggle() {
-  const layout = useDisplayPref("layout");
-  const options: {
-    key: Layout;
-    icon: React.ReactNode;
-    label: string;
-  }[] = [
-    {
-      key: "list",
-      icon: <Rows3 size={14} strokeWidth={1.75} />,
-      label: "List view",
-    },
-    {
-      key: "grid",
-      icon: <LayoutGrid size={14} strokeWidth={1.75} />,
-      label: "Grid view",
-    },
-  ];
-  return (
-    <div className="inline-flex items-center rounded-full border border-rule p-0.5">
-      {options.map((o) => {
-        const on = o.key === layout;
-        return (
-          <button
-            key={o.key}
-            type="button"
-            onClick={() => setDisplayPref("layout", o.key)}
-            aria-label={o.label}
-            aria-pressed={on}
-            title={o.label}
-            className={clsx(
-              "grid h-7 w-8 place-items-center rounded-full transition-colors",
-              on
-                ? "bg-ink text-paper"
-                : "bg-transparent text-ink-3 hover:text-ink"
-            )}
-          >
-            {o.icon}
-          </button>
-        );
-      })}
     </div>
   );
 }

@@ -7,7 +7,6 @@ export type DisplayPreferences = {
   deadlineHeroDismissed: boolean;
   collapseHintDismissed: boolean;
   permanentlyHiddenEventHeroes: string[];
-  layout: "list" | "grid";
 };
 
 export type PreferenceCollection = {
@@ -22,7 +21,6 @@ export const defaultPreferences: PreferenceCollection = {
     deadlineHeroDismissed: false,
     collapseHintDismissed: false,
     permanentlyHiddenEventHeroes: [],
-    layout: "list",
   },
 };
 

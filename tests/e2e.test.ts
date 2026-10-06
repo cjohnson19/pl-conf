@@ -799,16 +799,6 @@ describe("calendar menu", () => {
     ).toBe(true);
   });
 
-  test("grid calendar uses the mobile sheet", async ({ page }) => {
-    await page.setViewport({ width: 375, height: 800 });
-    await goToAllEvents(page);
-    await page.click('button[aria-label="Grid view"]');
-    await page.click(calendarTrigger);
-    await page.waitForSelector('[role="dialog"]');
-    expect(await page.$('[role="menu"]')).toBeNull();
-    expect((await bounds(page, '[role="dialog"]')).width).toBe(375);
-  });
-
   test("calendar presentation follows resizing without reopening a closed menu", async ({
     page,
   }) => {
@@ -1345,14 +1335,13 @@ describe.concurrent("persistence settle", () => {
       deadlineHeroDismissed: false,
       collapseHintDismissed: false,
       permanentlyHiddenEventHeroes: [],
-      layout: "list",
       ...display,
     },
   });
 
   const starred = (key: string) => ({ [key]: { favorite: true } });
 
-  test("empty storage settles to defaults: All events, list layout, no hero", async ({
+  test("empty storage settles to defaults: All events, no hero", async ({
     page,
   }) => {
     await waitForSettled(page);
@@ -1361,12 +1350,6 @@ describe.concurrent("persistence settle", () => {
 
     const keys = await renderedKeys(page);
     expect(keys.length).toBe(activeEvents().length);
-
-    const listPressed = await page.$eval(
-      'button[aria-label="List view"]',
-      (el) => (el as HTMLButtonElement).getAttribute("aria-pressed")
-    );
-    expect(listPressed).toBe("true");
   });
 
   test("view=all (default) is honored even when the user has starred events", async ({
@@ -1425,18 +1408,6 @@ describe.concurrent("persistence settle", () => {
     expect(keys).toContain(key);
     const body = await page.evaluate(() => document.body.innerText);
     expect(body).not.toMatch(/your next deadline/i);
-  });
-
-  test("layout=grid persists across reload", async ({ page }) => {
-    await seedStorage(page, {
-      local: { [PREFS_KEY]: prefs({ layout: "grid" }) },
-    });
-    await waitForSettled(page);
-    const gridPressed = await page.$eval(
-      'button[aria-label="Grid view"]',
-      (el) => (el as HTMLButtonElement).getAttribute("aria-pressed")
-    );
-    expect(gridPressed).toBe("true");
   });
 
   test("collapseHintDismissed suppresses the 'tap any date heading' tip", async ({
@@ -1522,16 +1493,13 @@ describe.concurrent("persistence settle", () => {
     // fill in defaults for missing keys rather than throwing or rendering
     // an undefined-driven UI.
     await seedStorage(page, {
-      local: { [PREFS_KEY]: { display: { layout: "grid" } } },
+      local: { [PREFS_KEY]: { display: { collapseHintDismissed: true } } },
     });
     await waitForSettled(page);
     const keys = await renderedKeys(page);
     expect(keys.length).toBe(activeEvents().length);
-    const gridPressed = await page.$eval(
-      'button[aria-label="Grid view"]',
-      (el) => (el as HTMLButtonElement).getAttribute("aria-pressed")
-    );
-    expect(gridPressed).toBe("true");
+    const body = await page.evaluate(() => document.body.innerText);
+    expect(body).not.toMatch(/tap any heading/i);
   });
 
   test("invalid JSON in localStorage falls back to defaults", async ({
