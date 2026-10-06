@@ -50,14 +50,14 @@ export function EventDeadlines({ rounds }: { rounds: Round[] }) {
                       aria-hidden
                       className="min-w-6 flex-1 translate-y-[-0.28rem] border-b border-dotted border-rule"
                     />
-                    <span
+                    <LocalDate
+                      date={r.date}
+                      style="monthDay"
                       className={clsx(
                         "shrink-0 font-mono text-[13px] tabular-nums",
                         next ? "text-ink" : "text-ink-2"
                       )}
-                    >
-                      <LocalDate date={r.date} style="monthDay" />
-                    </span>
+                    />
                     <span className="flex w-20 shrink-0 items-baseline gap-2">
                       {r.date !== "TBD" && (
                         <>

@@ -46,9 +46,11 @@ function DateRow({ row: r }: { row: RailRow }) {
       )}
     >
       <span>{dateNames[r.name].short}</span>
-      <span className={clsx("font-mono text-[11px]", deadlineToneClass(r))}>
-        <LocalDate date={r.date} style="monthDay" />
-      </span>
+      <LocalDate
+        date={r.date}
+        style="monthDay"
+        className={clsx("font-mono text-[11px]", deadlineToneClass(r))}
+      />
     </div>
   );
 }

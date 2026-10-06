@@ -22,9 +22,10 @@ function relative(date: CalendarDate): string | undefined {
 // "today" / "3 days ago" within the last week, otherwise the date in the
 // viewer's locale; hydrates with the server's en-US string like LocalDate.
 export function LastUpdated({ date }: { date: CalendarDate }) {
-  return useSyncExternalStore(
+  const text = useSyncExternalStore(
     never,
     () => relative(date) ?? formatDate(date, "short"),
     () => formatDate(date, "short", SERVER_LOCALE)
   );
+  return <span suppressHydrationWarning>{text}</span>;
 }

@@ -62,9 +62,11 @@ export function EventRow({
           <div className="font-ui text-[22px] font-semibold leading-none tracking-[-0.025em] text-ink tabular-nums @[420px]/row:text-[24px] @[680px]/row:text-[32px]">
             {start?.getDate() ?? "—"}
           </div>
-          <div className="font-mono text-[11px] font-medium leading-none tracking-[0.08em] text-ink-2">
-            <LocalDate date={e.date.start} style="monthShort" />
-          </div>
+          <LocalDate
+            date={e.date.start}
+            style="monthShort"
+            className="font-mono text-[11px] font-medium leading-none tracking-[0.08em] text-ink-2"
+          />
           <div className="font-mono text-[10px] font-medium leading-none tracking-[0.06em] text-ink-3">
             {start?.getFullYear()}
           </div>
@@ -133,9 +135,7 @@ function RowMetadata({ event: e }: { event: DisplayEvent }) {
   if (e.date.start !== "TBD" && e.date.end !== "TBD")
     items.push({
       node: (
-        <span>
-          <LocalDateRange start={e.date.start} end={e.date.end} style="short" />
-        </span>
+        <LocalDateRange start={e.date.start} end={e.date.end} style="short" />
       ),
       wideOnly: false,
     });

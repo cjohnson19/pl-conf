@@ -99,13 +99,17 @@ function MonthGroupHeader({
 }: HeaderChrome & { month: string; count: number }) {
   const known = month !== "unknown";
   const [y, m] = month.split("-").map(Number);
-  const localMonth = useLocalDate(known ? `${y}/${m}/1` : "TBD", "monthLong");
-  const monthName = known ? localMonth : "Date unknown";
-  const label = known ? `${monthName} ${y}` : monthName;
+  const monthDate = known ? (`${y}/${m}/1` as const) : "TBD";
+  const localMonth = useLocalDate(monthDate, "monthLong");
+  const label = known ? `${localMonth} ${y}` : "Date unknown";
   return (
     <GroupHeaderShell label={label} {...chrome}>
       <h2 className="flex items-baseline gap-2.5 font-ui text-[18px] font-semibold leading-none tracking-[-0.02em] text-ink-2 sm:text-[22px]">
-        <span>{monthName}</span>{" "}
+        {known ? (
+          <LocalDate date={monthDate} style="monthLong" />
+        ) : (
+          <span>Date unknown</span>
+        )}{" "}
         {known && (
           <span className="font-mono text-[12px] font-medium tracking-[0.06em] text-ink-3">
             {y}
@@ -164,9 +168,7 @@ function DeadlineGroupHeader({
           <span className="font-mono text-[12px] font-medium tracking-[0.08em] text-ink sm:text-[13px]">
             <LocalDate date={date} style="monthLong" /> {cal.getFullYear()}
           </span>
-          <span className={SUBLINE_TEXT}>
-            <LocalDate date={date} style="weekdayLong" />
-          </span>
+          <LocalDate date={date} style="weekdayLong" className={SUBLINE_TEXT} />
         </span>
       </h2>
       <HeaderRail

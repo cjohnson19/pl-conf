@@ -101,13 +101,11 @@ export default async function EventPage({ params }: { params: Params }) {
       ? {
           key: "dates",
           node: (
-            <span>
-              <LocalDateRange
-                start={e.date.start}
-                end={e.date.end}
-                style="long"
-              />
-            </span>
+            <LocalDateRange
+              start={e.date.start}
+              end={e.date.end}
+              style="long"
+            />
           ),
         }
       : undefined,
@@ -294,13 +292,12 @@ function RelationRow({
       {(dates || location) && (
         <span className="flex shrink-0 flex-col items-end gap-0.5 text-right">
           {dates && (
-            <span className="font-mono text-[12px] text-ink-3">
-              <LocalDateRange
-                start={r.date.start}
-                end={r.date.end}
-                style="short"
-              />
-            </span>
+            <LocalDateRange
+              start={r.date.start}
+              end={r.date.end}
+              style="short"
+              className="font-mono text-[12px] text-ink-3"
+            />
           )}
           {location && (
             <span className="font-mono text-[11px] tracking-[0.04em] text-ink-3">
