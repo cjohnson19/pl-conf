@@ -64,10 +64,12 @@ export default function RootLayout({
         />
       </head>
       <body>
+        {/* Kept off <main>: the theme context changes on mount, which would
+            force the list beneath it to hydrate in one blocking task. */}
         <ThemeProvider>
           <Header totalActive={totalActive} />
-          <main>{children}</main>
         </ThemeProvider>
+        <main>{children}</main>
       </body>
     </html>
   );

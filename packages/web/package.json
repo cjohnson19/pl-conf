@@ -8,6 +8,7 @@
     "dev": "next dev --turbopack",
     "prebuild": "tsx scripts/build-ical.ts && tsx scripts/build-llms.ts",
     "build": "next build",
+    "postbuild": "tsx scripts/add-compile-hints.ts",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {

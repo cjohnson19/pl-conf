@@ -341,6 +341,61 @@ describe("deferred hydration chunks", () => {
     }));
 });
 
+describe("hydration priority", () => {
+  // A context that changes on mount forces everything beneath it to hydrate
+  // in one blocking task; next-themes does, so it must not wrap the list.
+  test("the theme context wraps the toggle but not the list", async ({
+    page,
+  }) => {
+    await waitForHydration(page);
+    const insideThemeContext = (selector: string) =>
+      page.$eval(selector, (el) => {
+        type Fiber = {
+          return: Fiber | null;
+          memoizedProps: { value?: unknown } | null;
+        };
+        const fiberKey = Object.keys(el).find((k) =>
+          k.startsWith("__reactFiber$")
+        );
+        if (!fiberKey) throw new Error("element has no React fiber");
+        const providesTheme = (fiber: Fiber | null): boolean => {
+          if (fiber === null) return false;
+          const value = fiber.memoizedProps?.value;
+          return (
+            (typeof value === "object" &&
+              value !== null &&
+              "setTheme" in value) ||
+            providesTheme(fiber.return)
+          );
+        };
+        return providesTheme(
+          (el as unknown as Record<string, Fiber>)[fiberKey]
+        );
+      });
+    expect(await insideThemeContext('button[aria-label="Toggle theme"]')).toBe(
+      true
+    );
+    expect(await insideThemeContext("main")).toBe(false);
+  });
+});
+
+describe("chunk compile hints", () => {
+  // Added by packages/web/scripts/add-compile-hints.ts after the build.
+  test("every chunk the page loads starts with the hint", async ({ page }) => {
+    const urls = await page.$$eval(
+      'script[src*="/_next/static/chunks/"]',
+      (scripts) => scripts.map((s) => (s as HTMLScriptElement).src)
+    );
+    expect(urls.length).toBeGreaterThan(0);
+    const sources = await Promise.all(
+      urls.map((url) => fetch(url).then((res) => res.text()))
+    );
+    sources.forEach((source) => {
+      expect(source.slice(0, 40)).toMatch(/^\/\/# allFunctionsCalledOnLoad\n/);
+    });
+  });
+});
+
 describe("viewer locale", () => {
   // Dates are server-rendered in en-US; LocalDate hydrates with that string
   // and then re-renders in the browser's locale (components/local-date.tsx).
