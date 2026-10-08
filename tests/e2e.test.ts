@@ -1129,6 +1129,27 @@ describe("event pages", () => {
     expect(href).toBe(eventPath(mocka));
   });
 
+  test("clicking the row away from its controls opens the event page", async ({
+    page,
+  }) => {
+    await goToAllEvents(page);
+    const mocka = findFixture("MOCKA");
+    const key = eventKey(mocka);
+    const rect = await page.$$eval(`[data-event-key="${key}"]`, (rows) => {
+      const row = rows.find((n) => (n as HTMLElement).offsetParent !== null);
+      if (!row) throw new Error("no visible row");
+      row.scrollIntoView({ block: "center" });
+      const r = row.getBoundingClientRect();
+      return { left: r.left, bottom: r.bottom };
+    });
+    await page.mouse.click(rect.left + 8, rect.bottom - 8);
+    await page.waitForFunction(
+      (p) => location.pathname === p,
+      {},
+      eventPath(mocka)
+    );
+  });
+
   test("the dedicated page renders the event heading, back link, and website link", async ({
     page,
   }) => {

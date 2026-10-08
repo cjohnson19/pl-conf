@@ -23,6 +23,10 @@ export type RailRow = {
 export const hoverUnderlineClass =
   "underline decoration-rule decoration-1 underline-offset-[3px] transition-[text-decoration-color] duration-200 ease-out";
 
+// Lifts a row's nested links and buttons above the abbreviation's stretched
+// link overlay (see EventRow).
+export const rowControlClass = "relative z-10";
+
 export function deadlineToneClass(r: Pick<RailRow, "kind">): string {
   return r.kind === "next" ? "text-hot" : "text-ink-3";
 }
@@ -66,7 +70,7 @@ export function EventNameLink({ event: e }: { event: DisplayEvent }) {
       href={e.url}
       target="_blank"
       aria-label={`Open ${e.abbreviation} website`}
-      className="group/url flex w-fit min-w-0 max-w-full items-baseline gap-1.5 text-[13px] text-ink-2 no-underline"
+      className={`group/url flex w-fit min-w-0 max-w-full items-baseline gap-1.5 text-[13px] text-ink-2 no-underline ${rowControlClass}`}
       rel="noopener"
     >
       <span
@@ -93,7 +97,7 @@ export function RelatedLinks({ links }: { links: RelatedLink[] }) {
           {l.path ? (
             <Link
               href={l.path}
-              className="font-medium text-ink-2 underline decoration-rule decoration-1 underline-offset-2 transition-[text-decoration-color,color] duration-200 ease-out hover:text-ink hover:decoration-ink"
+              className={`font-medium text-ink-2 underline decoration-rule decoration-1 underline-offset-2 transition-[text-decoration-color,color] duration-200 ease-out hover:text-ink hover:decoration-ink ${rowControlClass}`}
             >
               {l.abbreviation}
             </Link>
@@ -112,7 +116,7 @@ export function DatesDeadlinesLink({ href }: { href: string }) {
       href={href}
       target="_blank"
       aria-label="View important dates"
-      className="group/dates inline-flex items-center gap-1 self-start text-[12px] font-medium text-ink no-underline"
+      className={`group/dates inline-flex items-center gap-1 self-start text-[12px] font-medium text-ink no-underline ${rowControlClass}`}
       rel="noopener"
     >
       <span

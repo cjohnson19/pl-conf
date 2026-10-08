@@ -17,9 +17,17 @@ import {
   DatesDeadlinesLink,
   EventNameLink,
   RelatedLinks,
+  rowControlClass,
 } from "./event-row/shared";
 import { RoundRail } from "./event-row/rail";
 import { LocalDate, LocalDateRange } from "./local-date";
+
+// Stretched link: the abbreviation's ::after covers the whole row (which is
+// `relative isolate`), so a click anywhere opens the event page. Other controls
+// sit above it via `rowControlClass`, and the row's hover tint is the only
+// hover cue — the link itself carries none so it reads as one target.
+// https://getbootstrap.com/docs/5.3/helpers/stretched-link/
+const rowCoverClass = "after:absolute after:inset-0 after:content-['']";
 
 // `now` freezes per render — the round badge and has-open-submission do not
 // tick. Group headers handle the live clock.
@@ -47,11 +55,10 @@ export function EventRow({
       data-event-abbrev={e.abbreviation}
       data-has-open-submission={openSubmission ? "" : undefined}
       className={clsx(
-        "group grid items-center rounded-xs border-t border-rule",
+        "group relative isolate grid items-center rounded-xs border-t border-rule",
         showDate ? "event-row-grid" : "event-row-grid--no-date",
         "py-[22px] px-5 md:px-8 transition-colors",
-        "hover:bg-[color-mix(in_srgb,var(--card)_70%,transparent)]",
-        ""
+        "hover:bg-[color-mix(in_srgb,var(--ink)_8%,transparent)]"
       )}
     >
       {showDate && (
@@ -80,7 +87,8 @@ export function EventRow({
         <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1 font-ui text-[22px] font-bold leading-none tracking-[-0.015em]">
           <Link
             href={eventPath(e)}
-            className="text-ink no-underline decoration-1 underline-offset-[3px] transition-colors hover:text-accent hover:underline hover:decoration-accent"
+            aria-label={`${e.abbreviation} ${e.year}`}
+            className={clsx("text-ink no-underline", rowCoverClass)}
           >
             {e.abbreviation}
           </Link>
@@ -95,7 +103,7 @@ export function EventRow({
               Round {next.roundIdx + 1} / {totalRounds}
             </span>
           )}
-          <ConnectedEventTags tags={e.tags} />
+          <ConnectedEventTags tags={e.tags} className={rowControlClass} />
         </div>
         <EventNameLink event={e} />
         <RowMetadata event={e} />
@@ -110,7 +118,10 @@ export function EventRow({
       </div>
 
       <div
-        className="flex items-center justify-end gap-1 self-start @[680px]/row:self-auto"
+        className={clsx(
+          "flex items-center justify-end gap-1 self-start @[680px]/row:self-auto",
+          rowControlClass
+        )}
         style={{ gridArea: "actions" }}
       >
         <div className="hidden @[680px]/row:contents">

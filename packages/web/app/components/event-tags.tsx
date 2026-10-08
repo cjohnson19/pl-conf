@@ -5,9 +5,22 @@ import { useTagFilter } from "../hooks/use-tag-filter";
 import { type Tag, tagDisplayName } from "../lib/event";
 
 // Row tags that toggle the list's tag filter.
-export function ConnectedEventTags({ tags }: { tags: Tag[] }) {
+export function ConnectedEventTags({
+  tags,
+  className,
+}: {
+  tags: Tag[];
+  className?: string;
+}) {
   const { activeTags, toggle } = useTagFilter();
-  return <EventTags tags={tags} activeTags={activeTags} onToggle={toggle} />;
+  return (
+    <EventTags
+      tags={tags}
+      activeTags={activeTags}
+      onToggle={toggle}
+      className={className}
+    />
+  );
 }
 
 export function EventTags({
