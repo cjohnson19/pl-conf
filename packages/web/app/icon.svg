@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" aria-label="PL Conferences Logo">
   <style>
-    .bg { fill: #fffdf7; }
+    .bg { fill: #ffffff; }
     .fg { fill: #14130f; }
     @media (prefers-color-scheme: dark) {
       .bg { fill: #14120d; }

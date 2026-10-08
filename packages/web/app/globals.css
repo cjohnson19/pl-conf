@@ -12,7 +12,7 @@
     --font-mono: var(--font-ui);
 
     /* Paper + ink palette */
-    --paper: #fffdf7;
+    --paper: #ffffff;
     --paper-2: #eae5da;
     --card: #faf9f6;
     --ink: #14130f;
@@ -91,7 +91,7 @@
   }
   @container row (min-width: 1080px) {
     .event-row-grid {
-      grid-template-columns: 100px minmax(0, 1.6fr) minmax(0, 2fr) 104px;
+      grid-template-columns: 100px minmax(0, 1.6fr) minmax(0, 2fr) 252px;
       gap: 1.75rem;
     }
   }
@@ -117,7 +117,7 @@
   }
   @container row (min-width: 1080px) {
     .event-row-grid--no-date {
-      grid-template-columns: minmax(0, 1.6fr) minmax(0, 2fr) 104px;
+      grid-template-columns: minmax(0, 1.6fr) minmax(0, 2fr) 252px;
       gap: 1.75rem;
     }
   }
