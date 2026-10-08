@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import clsx from "clsx";
 import {
   type CalendarDate,
@@ -19,6 +19,9 @@ import { LocalDate, useLocalDate } from "../local-date";
 import { useDisplayPref } from "../../hooks/use-preferences";
 
 const SESSION_COLLAPSED_KEY = "collapsedDateGroups";
+
+const COLLAPSE_FADE_MASK =
+  "linear-gradient(to bottom, black calc(100% - 22px), transparent)";
 
 const SUBLINE_TEXT = "text-[10px] tracking-[0.06em] text-fg-3 sm:text-[11px]";
 
@@ -249,10 +252,15 @@ export function CollapsibleGroup({
 
   const sectionRef = useRef<HTMLElement>(null);
   const contentId = `group-content-${groupKey.replace(/[^a-zA-Z0-9_-]/g, "-")}`;
+  // The bottom fade only runs while rows are being clipped by the height
+  // animation; left on, it would also fade the last row's hover tint.
+  const [animating, setAnimating] = useState(false);
 
   const handleToggle = () => {
     const willCollapse = !collapsed;
     toggleCollapsed();
+    if (!window.matchMedia("(prefers-reduced-motion: reduce)").matches)
+      setAnimating(true);
     // Collapsing a group whose header has scrolled off the top would drop the
     // reader into the middle of the next one; bring the header back.
     const sectionEl = sectionRef.current;
@@ -287,10 +295,13 @@ export function CollapsibleGroup({
         className="grid transition-[grid-template-rows] duration-200 ease-out motion-reduce:transition-none"
         style={{
           gridTemplateRows: collapsed ? "0fr" : "1fr",
-          maskImage:
-            "linear-gradient(to bottom, black calc(100% - 22px), transparent)",
-          WebkitMaskImage:
-            "linear-gradient(to bottom, black calc(100% - 22px), transparent)",
+          ...(animating && {
+            maskImage: COLLAPSE_FADE_MASK,
+            WebkitMaskImage: COLLAPSE_FADE_MASK,
+          }),
+        }}
+        onTransitionEnd={(e) => {
+          if (e.target === e.currentTarget) setAnimating(false);
         }}
         aria-hidden={collapsed}
         inert={collapsed}
