@@ -55,10 +55,10 @@ export function EventRow({
       data-event-abbrev={e.abbreviation}
       data-has-open-submission={openSubmission ? "" : undefined}
       className={clsx(
-        "group relative isolate grid items-center rounded-xs border-t border-rule",
+        "group relative isolate grid items-center rounded-xs border-t border-border",
         showDate ? "event-row-grid" : "event-row-grid--no-date",
         "py-[22px] px-5 md:px-8 transition-colors",
-        "hover:bg-[color-mix(in_srgb,var(--ink)_8%,transparent)]"
+        "hover:bg-[color-mix(in_srgb,var(--fg)_8%,transparent)]"
       )}
     >
       {showDate && (
@@ -66,15 +66,15 @@ export function EventRow({
           className="flex flex-col items-start gap-1.5 self-start @[680px]/row:self-auto"
           style={{ gridArea: "date" }}
         >
-          <div className="font-ui text-[22px] font-semibold leading-none tracking-[-0.025em] text-ink tabular-nums @[420px]/row:text-[24px] @[680px]/row:text-[32px]">
+          <div className="text-[22px] font-semibold leading-none tracking-[-0.025em] text-fg tabular-nums @[420px]/row:text-[24px] @[680px]/row:text-[32px]">
             {start?.getDate() ?? "—"}
           </div>
           <LocalDate
             date={e.date.start}
             style="monthShort"
-            className="font-mono text-[11px] font-medium leading-none tracking-[0.08em] text-ink-2"
+            className="text-[11px] font-medium leading-none tracking-[0.08em] text-fg-2"
           />
-          <div className="font-mono text-[10px] font-medium leading-none tracking-[0.06em] text-ink-3">
+          <div className="text-[10px] font-medium leading-none tracking-[0.06em] text-fg-3">
             {start?.getFullYear()}
           </div>
         </div>
@@ -84,20 +84,20 @@ export function EventRow({
         className="flex min-w-0 flex-col gap-1.5"
         style={{ gridArea: "title" }}
       >
-        <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1 font-ui text-[22px] font-bold leading-none tracking-[-0.015em]">
+        <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1 text-[22px] font-bold leading-none tracking-[-0.015em]">
           <Link
             href={eventPath(e)}
             aria-label={`${e.abbreviation} ${e.year}`}
-            className={clsx("text-ink no-underline", rowCoverClass)}
+            className={clsx("text-fg no-underline", rowCoverClass)}
           >
             {e.abbreviation}
           </Link>
-          <span className="font-mono text-[14px] font-medium text-ink-3">
+          <span className="text-[14px] font-medium text-fg-3">
             &rsquo;{year2}
           </span>
           {next && isMidMultiRound(e, now) && (
             <span
-              className="inline-flex h-[18px] items-center rounded-xs border px-1.5 font-mono text-[10px] font-medium tracking-[0.06em] text-hot"
+              className="inline-flex h-[18px] items-center rounded-xs border px-1.5 text-[10px] font-medium tracking-[0.06em] text-urgent"
               style={{ borderColor: "currentColor" }}
             >
               Round {next.roundIdx + 1} / {totalRounds}
@@ -140,7 +140,7 @@ function RowMetadata({ event: e }: { event: DisplayEvent }) {
   const items: { node: React.ReactNode; wideOnly: boolean }[] = [];
   if (e.location)
     items.push({
-      node: <span className="text-ink-2">{e.location}</span>,
+      node: <span className="text-fg-2">{e.location}</span>,
       wideOnly: false,
     });
   if (e.date.start !== "TBD" && e.date.end !== "TBD")
@@ -169,7 +169,7 @@ function RowMetadata({ event: e }: { event: DisplayEvent }) {
       wideOnly: true,
     });
   return (
-    <div className="flex flex-wrap items-center gap-x-3 gap-y-1 whitespace-nowrap font-mono text-[11px] tracking-[0.04em] text-ink-3">
+    <div className="flex flex-wrap items-center gap-x-3 gap-y-1 whitespace-nowrap text-[11px] tracking-[0.04em] text-fg-3">
       {items.flatMap((item, i) => {
         const nodes: React.ReactNode[] = [];
         if (i > 0) {
@@ -178,10 +178,7 @@ function RowMetadata({ event: e }: { event: DisplayEvent }) {
               // biome-ignore lint/suspicious/noArrayIndexKey: items list is built fresh each render with no preserved state
               key={`sep-${i}`}
               aria-hidden
-              className={clsx(
-                "text-ink-3/60",
-                item.wideOnly && "hidden xl:inline"
-              )}
+              className={item.wideOnly ? "hidden xl:inline" : undefined}
             >
               ·
             </span>
@@ -191,7 +188,7 @@ function RowMetadata({ event: e }: { event: DisplayEvent }) {
           <span
             // biome-ignore lint/suspicious/noArrayIndexKey: items list is built fresh each render with no preserved state
             key={`item-${i}`}
-            className={clsx(item.wideOnly && "hidden xl:inline")}
+            className={item.wideOnly ? "hidden xl:inline" : undefined}
           >
             {item.node}
           </span>

@@ -25,7 +25,7 @@ export function BackToList() {
     <Link
       href="/"
       onClick={onClick}
-      className="group/back mb-8 inline-flex items-center gap-1.5 text-[13px] text-ink-3 no-underline transition-colors hover:text-ink"
+      className="group/back mb-8 inline-flex items-center gap-1.5 text-[13px] text-fg-3 no-underline transition-colors hover:text-fg"
     >
       <ArrowLeft
         size={14}

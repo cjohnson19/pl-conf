@@ -10,7 +10,7 @@ export function HeaderActions({ totalActive }: { totalActive: number }) {
       <HelpPopover totalActive={totalActive} />
       <SettingsPopover />
       <span
-        className="mx-1 hidden h-[18px] w-px bg-rule sm:inline-block"
+        className="mx-1 hidden h-[18px] w-px bg-border sm:inline-block"
         aria-hidden
       />
       <SubmitEventPopover />

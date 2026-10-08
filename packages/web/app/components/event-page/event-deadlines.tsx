@@ -24,7 +24,7 @@ export function EventDeadlines({ rounds }: { rounds: Round[] }) {
         return (
           <div key={round.name ?? idx} className="flex flex-col gap-3">
             {deadlineRounds.length > 1 && (
-              <div className="font-mono text-[11px] font-medium tracking-[0.06em] text-ink-3">
+              <div className="text-[11px] font-medium tracking-[0.06em] text-fg-3">
                 {roundLabel(round, idx)}
               </div>
             )}
@@ -38,24 +38,24 @@ export function EventDeadlines({ rounds }: { rounds: Round[] }) {
                       className={clsx(
                         "shrink-0 text-[14px]",
                         next
-                          ? "font-medium text-ink"
+                          ? "font-medium text-fg"
                           : past
-                            ? "text-ink-3"
-                            : "text-ink-2"
+                            ? "text-fg-3"
+                            : "text-fg-2"
                       )}
                     >
                       {dateNames[r.name].short}
                     </span>
                     <span
                       aria-hidden
-                      className="min-w-6 flex-1 translate-y-[-0.28rem] border-b border-dotted border-rule"
+                      className="min-w-6 flex-1 translate-y-[-0.28rem] border-b border-dotted border-border"
                     />
                     <LocalDate
                       date={r.date}
                       style="monthDay"
                       className={clsx(
-                        "shrink-0 font-mono text-[13px] tabular-nums",
-                        next ? "text-ink" : "text-ink-2"
+                        "shrink-0 text-[13px] tabular-nums",
+                        next ? "text-fg" : "text-fg-2"
                       )}
                     />
                     <span className="flex w-20 shrink-0 items-baseline gap-2">
@@ -63,11 +63,11 @@ export function EventDeadlines({ rounds }: { rounds: Round[] }) {
                         <>
                           <span
                             aria-hidden
-                            className="min-w-3 flex-1 translate-y-[-0.28rem] border-b border-dotted border-rule"
+                            className="min-w-3 flex-1 translate-y-[-0.28rem] border-b border-dotted border-border"
                           />
                           <span
                             className={clsx(
-                              "whitespace-nowrap font-mono text-[11px]",
+                              "whitespace-nowrap text-[11px]",
                               deadlineToneClass(r)
                             )}
                             suppressHydrationWarning

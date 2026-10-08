@@ -21,7 +21,7 @@ export function FavoriteButton({ prefKey }: { prefKey: string }) {
       onClick={toggle}
       className={clsx(
         rowIconButtonClass,
-        on ? "text-accent hover:text-accent" : "text-ink-3 hover:text-ink"
+        on ? "text-accent hover:text-accent" : "text-fg-3 hover:text-fg"
       )}
     >
       <Star size={18} strokeWidth={1.75} fill={on ? "currentColor" : "none"} />

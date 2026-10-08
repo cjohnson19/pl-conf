@@ -11,19 +11,19 @@ export function StarredEmptyState({ totalActive }: { totalActive: number }) {
   const goAll = () =>
     window.history.replaceState(null, "", withParams({ view: undefined }));
   return (
-    <div className="mx-5 mt-8 flex flex-col items-start gap-4 border border-dashed border-rule p-5 sm:p-7 md:mx-8 min-[480px]:flex-row min-[480px]:items-center min-[480px]:justify-between min-[480px]:gap-6">
-      <div className="text-[13px] text-ink-2">
+    <div className="mx-5 mt-8 flex flex-col items-start gap-4 border border-dashed border-border p-5 sm:p-7 md:mx-8 min-[480px]:flex-row min-[480px]:items-center min-[480px]:justify-between min-[480px]:gap-6">
+      <div className="text-[13px] text-fg-2">
         {starred.size === 0 ? (
           <>
             Nothing starred yet —{" "}
-            <b className="font-semibold text-ink">{totalActive} events</b>{" "}
+            <b className="font-semibold text-fg">{totalActive} events</b>{" "}
             tracked across conferences, workshops, and symposia. Tap the star
             icon on any row to follow it.
           </>
         ) : (
           <>
             Looking for something else?{" "}
-            <b className="font-semibold text-ink">{totalActive} events</b>{" "}
+            <b className="font-semibold text-fg">{totalActive} events</b>{" "}
             tracked across conferences, workshops, and symposia.
           </>
         )}
@@ -31,7 +31,7 @@ export function StarredEmptyState({ totalActive }: { totalActive: number }) {
       <button
         type="button"
         onClick={goAll}
-        className="inline-flex h-[38px] flex-shrink-0 items-center gap-2 rounded-full bg-ink px-4 text-[13px] font-medium text-paper transition-colors hover:bg-accent"
+        className="inline-flex h-[38px] flex-shrink-0 items-center gap-2 rounded-full bg-fg px-4 text-[13px] font-medium text-bg transition-colors hover:bg-accent"
       >
         Browse all events →
       </button>

@@ -20,7 +20,7 @@ export function DropdownMenuContent({
       <DropdownMenuPrimitive.Content
         sideOffset={sideOffset}
         className={clsx(
-          "z-50 min-w-[8rem] border border-rule bg-card p-1 text-ink shadow-pop",
+          "z-50 min-w-[8rem] border border-border bg-card p-1 text-fg shadow-lg",
           "data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2",
           className
         )}
@@ -37,7 +37,7 @@ export function DropdownMenuItem({
   return (
     <DropdownMenuPrimitive.Item
       className={clsx(
-        "relative flex cursor-pointer select-none text-[13px] text-ink outline-none transition-colors focus:bg-paper-2 focus:text-ink data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
+        "relative flex cursor-pointer select-none text-[13px] text-fg outline-none transition-colors focus:bg-bg-2 focus:text-fg data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
         className
       )}
       {...props}
@@ -51,7 +51,7 @@ export function DropdownMenuSeparator({
 }: ComponentProps<typeof DropdownMenuPrimitive.Separator>) {
   return (
     <DropdownMenuPrimitive.Separator
-      className={clsx("my-1 h-px bg-rule", className)}
+      className={clsx("my-1 h-px bg-border", className)}
       {...props}
     />
   );

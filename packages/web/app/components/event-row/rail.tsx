@@ -29,7 +29,7 @@ function SingleRoundRail({
   const rows = buildRoundRows(round, now);
   if (rows.length === 0) return null;
   return (
-    <div className="mt-2 flex max-w-xs flex-col gap-1 border-l-2 border-rule pl-2.5">
+    <div className="mt-2 flex max-w-xs flex-col gap-1 border-l-2 border-border pl-2.5">
       {rows.map((r) => (
         <DateRow key={r.name} row={r} />
       ))}
@@ -42,14 +42,14 @@ function DateRow({ row: r }: { row: RailRow }) {
     <div
       className={clsx(
         "grid grid-cols-[1fr_auto] gap-2 text-[12px]",
-        r.kind === "next" ? "font-medium text-ink" : "text-ink-2"
+        r.kind === "next" ? "font-medium text-fg" : "text-fg-2"
       )}
     >
       <span>{dateNames[r.name].short}</span>
       <LocalDate
         date={r.date}
         style="monthDay"
-        className={clsx("font-mono text-[11px]", deadlineToneClass(r))}
+        className={clsx("text-[11px]", deadlineToneClass(r))}
       />
     </div>
   );
@@ -89,13 +89,13 @@ function RoundColumn({
     <div
       className={clsx(
         "flex flex-col gap-1 border-l-2 pl-2.5",
-        active ? "border-hot" : "border-rule"
+        active ? "border-urgent" : "border-border"
       )}
     >
       <div
         className={clsx(
-          "flex items-baseline gap-2 font-mono text-[10px] font-medium tracking-[0.08em]",
-          active ? "text-hot" : "text-ink-3"
+          "flex items-baseline gap-2 text-[10px] font-medium tracking-[0.08em]",
+          active ? "text-urgent" : "text-fg-3"
         )}
       >
         Round {slot.idx + 1}

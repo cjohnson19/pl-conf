@@ -215,7 +215,7 @@ function HeroShell({
   }[];
 }) {
   return (
-    <section className="relative mx-5 border border-rule bg-card p-5 sm:p-7 md:mx-8">
+    <section className="relative mx-5 border border-border bg-card p-5 sm:p-7 md:mx-8">
       {(onDismissOnce || (menuItems && menuItems.length > 0)) && (
         <div className="absolute right-3 top-3 flex items-center gap-0.5">
           {menuItems && menuItems.length > 0 && (
@@ -223,7 +223,7 @@ function HeroShell({
               <DropdownMenuTrigger
                 aria-label="Alert options"
                 title="More options"
-                className="grid h-8 w-8 place-items-center rounded-full text-ink-3 transition-colors hover:bg-paper-2 hover:text-ink data-[state=open]:bg-paper-2 data-[state=open]:text-ink"
+                className="grid h-8 w-8 place-items-center rounded-full text-fg-3 transition-colors hover:bg-bg-2 hover:text-fg data-[state=open]:bg-bg-2 data-[state=open]:text-fg"
               >
                 <MoreHorizontal size={16} strokeWidth={1.75} />
               </DropdownMenuTrigger>
@@ -238,9 +238,9 @@ function HeroShell({
                     onSelect={item.onSelect}
                     className="flex-col items-start gap-0.5 rounded-sm px-2 py-1.5"
                   >
-                    <span className="font-medium text-ink">{item.label}</span>
+                    <span className="font-medium text-fg">{item.label}</span>
                     {item.description && (
-                      <span className="text-[11px] text-ink-3">
+                      <span className="text-[11px] text-fg-3">
                         {item.description}
                       </span>
                     )}
@@ -255,18 +255,18 @@ function HeroShell({
               onClick={onDismissOnce}
               aria-label="Dismiss this alert"
               title="Hide for this session (returns next time you visit)"
-              className="grid h-8 w-8 place-items-center rounded-full text-ink-3 transition-colors hover:bg-paper-2 hover:text-ink"
+              className="grid h-8 w-8 place-items-center rounded-full text-fg-3 transition-colors hover:bg-bg-2 hover:text-fg"
             >
               <X size={16} strokeWidth={1.75} />
             </button>
           )}
         </div>
       )}
-      <p className="label-cap mb-3.5 flex items-center gap-2">{label}</p>
+      <p className="section-label mb-3.5 flex items-center gap-2">{label}</p>
       <h1 className="pr-20">{headline}</h1>
       {footer && (
         <div
-          className="mt-4 font-mono text-[11px] tracking-[0.04em] text-ink-3"
+          className="mt-4 text-[11px] tracking-[0.04em] text-fg-3"
           title={footerTitle}
           suppressHydrationWarning
         >

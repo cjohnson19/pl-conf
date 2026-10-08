@@ -42,8 +42,8 @@ export function ExportRowContent({
     <>
       <span
         className={clsx(
-          "grid shrink-0 place-items-center rounded-sm bg-paper-2",
-          variant === "sheet" ? "h-9 w-9 text-ink-3" : "h-[22px] w-[22px]"
+          "grid shrink-0 place-items-center rounded-sm bg-bg-2",
+          variant === "sheet" ? "h-9 w-9 text-fg-3" : "h-[22px] w-[22px]"
         )}
       >
         {icon}
@@ -51,15 +51,13 @@ export function ExportRowContent({
       <span className="flex min-w-0 flex-1 flex-col gap-px">
         <span
           className={clsx(
-            "font-medium text-ink",
+            "font-medium text-fg",
             variant === "sheet" ? "text-[14px]" : "text-[13px]"
           )}
         >
           {title}
         </span>
-        <span className="font-mono text-[11px] tracking-[0.02em] text-ink-3">
-          {sub}
-        </span>
+        <span className="text-[11px] tracking-[0.02em] text-fg-3">{sub}</span>
       </span>
     </>
   );
@@ -88,7 +86,7 @@ export function ExportOptions({
 
   if (datesTBD) {
     return (
-      <div className="px-3 py-3 text-[13px] text-ink-3">
+      <div className="px-3 py-3 text-[13px] text-fg-3">
         Calendar export unavailable — dates TBD.
       </div>
     );
@@ -171,7 +169,7 @@ function IncludeDeadlinesToggle({
   return (
     <label
       className={clsx(
-        "flex cursor-pointer items-center justify-between gap-3 rounded-md border border-rule text-ink-2 hover:bg-paper-2",
+        "flex cursor-pointer items-center justify-between gap-3 rounded-md border border-border text-fg-2 hover:bg-bg-2",
         isSheet
           ? "mx-2 mt-2 px-3 py-2.5 text-[13px]"
           : "mx-1 mt-1 px-3 py-2 text-[12px]"
@@ -180,10 +178,7 @@ function IncludeDeadlinesToggle({
       <span className="flex flex-col gap-0.5">
         <span>Include submission deadlines</span>
         <span
-          className={clsx(
-            "font-mono text-ink-3",
-            isSheet ? "text-[11px]" : "text-[10px]"
-          )}
+          className={clsx("text-fg-3", isSheet ? "text-[11px]" : "text-[10px]")}
         >
           in exports & subscriptions
         </span>
@@ -193,7 +188,7 @@ function IncludeDeadlinesToggle({
         checked={checked}
         onChange={(e) => onChange(e.target.checked)}
         className={clsx(
-          "shrink-0 accent-ink",
+          "shrink-0 accent-fg",
           isSheet ? "h-4 w-4" : "h-3.5 w-3.5"
         )}
         onClick={isSheet ? undefined : (e) => e.stopPropagation()}
@@ -212,7 +207,7 @@ function SectionHeading({
   return (
     <div
       className={clsx(
-        "px-3 pb-1 font-mono text-[11px] tracking-[0.06em] text-ink-3",
+        "px-3 pb-1 text-[11px] tracking-[0.06em] text-fg-3",
         variant === "sheet" ? "pt-3" : "pt-2"
       )}
     >

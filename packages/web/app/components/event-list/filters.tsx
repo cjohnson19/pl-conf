@@ -27,8 +27,8 @@ const chipClass = (on: boolean) =>
   clsx(
     "inline-flex h-8 items-center gap-1.5 rounded-full border px-3.5 text-[13px] transition-colors",
     on
-      ? "border-ink bg-ink text-paper"
-      : "border-rule bg-transparent text-ink-2 hover:text-ink"
+      ? "border-fg bg-fg text-bg"
+      : "border-border bg-transparent text-fg-2 hover:text-fg"
   );
 
 export function SearchPill() {
@@ -52,7 +52,7 @@ export function SearchPill() {
       <Search
         size={14}
         strokeWidth={1.75}
-        className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-ink-3"
+        className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-fg-3"
       />
       <input
         ref={inputRef}
@@ -60,12 +60,12 @@ export function SearchPill() {
         value={value}
         onChange={(e) => setValue(e.target.value)}
         placeholder="Search events…"
-        className="h-[38px] w-full rounded-full border border-rule bg-card pl-[38px] pr-12 text-[14px] text-ink outline-none transition-colors placeholder:text-ink-3 focus:border-ink"
+        className="h-[38px] w-full rounded-full border border-border bg-card pl-[38px] pr-12 text-[14px] text-fg outline-none transition-colors placeholder:text-fg-3 focus:border-fg"
         aria-keyshortcuts="Meta+K Control+K"
       />
       <kbd
         aria-hidden
-        className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 hidden select-none items-center gap-0.5 rounded-full bg-paper-2 px-1.5 py-[3px] font-mono text-[10px] font-medium text-ink-2 sm:inline-flex"
+        className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 hidden select-none items-center gap-0.5 rounded-full bg-bg-2 px-1.5 py-[3px] text-[10px] font-medium text-fg-2 sm:inline-flex"
       >
         <Command size={10} className="hidden os-mac:inline" />
         <span className="os-mac:hidden">Ctrl</span>
@@ -92,9 +92,7 @@ export function FilterChips({ counts }: { counts: Record<Category, number> }) {
           className={chipClass(key === active)}
         >
           {label}
-          <span className="font-mono text-[10px] opacity-90">
-            {counts[key]}
-          </span>
+          <span className="text-[10px] opacity-90">{counts[key]}</span>
         </button>
       ))}
     </>
@@ -115,9 +113,7 @@ export function TagsFilter({ counts }: { counts: Record<Tag, number> }) {
           <TagsIcon size={13} strokeWidth={1.75} />
           Tags
           {activeCount > 0 && (
-            <span className="font-mono text-[10px] opacity-80">
-              {activeCount}
-            </span>
+            <span className="text-[10px] opacity-80">{activeCount}</span>
           )}
         </button>
       </PopoverTrigger>
@@ -126,13 +122,13 @@ export function TagsFilter({ counts }: { counts: Record<Tag, number> }) {
         sideOffset={8}
         className="w-[min(320px,calc(100vw-2rem))]"
       >
-        <div className="flex items-center justify-between gap-3 border-b border-rule px-4 py-3">
-          <p className="label-cap">Filter by tags</p>
+        <div className="flex items-center justify-between gap-3 border-b border-border px-4 py-3">
+          <p className="section-label">Filter by tags</p>
           <button
             type="button"
             onClick={clear}
             disabled={activeCount === 0}
-            className="text-[11px] font-medium text-ink-2 transition-colors hover:text-ink disabled:cursor-not-allowed disabled:text-ink-3"
+            className="text-[11px] font-medium text-fg-2 transition-colors hover:text-fg disabled:cursor-not-allowed disabled:text-fg-3"
           >
             Clear
           </button>
@@ -153,8 +149,8 @@ export function TagsFilter({ counts }: { counts: Record<Tag, number> }) {
                   className={clsx(
                     "flex w-full items-center justify-between gap-3 px-4 py-1.5 text-left text-[13px] transition-colors",
                     disabled
-                      ? "cursor-not-allowed text-ink-3"
-                      : "text-ink-2 hover:bg-paper-2 hover:text-ink"
+                      ? "cursor-not-allowed text-fg-3"
+                      : "text-fg-2 hover:bg-bg-2 hover:text-fg"
                   )}
                 >
                   <span className="flex min-w-0 items-center gap-2.5">
@@ -163,8 +159,8 @@ export function TagsFilter({ counts }: { counts: Record<Tag, number> }) {
                       className={clsx(
                         "inline-flex h-3.5 w-3.5 shrink-0 items-center justify-center rounded-xs border transition-colors",
                         checked
-                          ? "border-ink bg-ink"
-                          : "border-rule bg-transparent"
+                          ? "border-fg bg-fg"
+                          : "border-border bg-transparent"
                       )}
                     >
                       {checked && (
@@ -179,7 +175,7 @@ export function TagsFilter({ counts }: { counts: Record<Tag, number> }) {
                           <title>Checked</title>
                           <path
                             d="M1.5 4.25 3.25 6 6.5 2"
-                            stroke="var(--paper)"
+                            stroke="var(--bg)"
                             strokeWidth="1.5"
                             strokeLinecap="round"
                             strokeLinejoin="round"
@@ -189,7 +185,7 @@ export function TagsFilter({ counts }: { counts: Record<Tag, number> }) {
                     </span>
                     <span className="truncate">{tagDisplayName(tag)}</span>
                   </span>
-                  <span className="shrink-0 font-mono text-[10px] text-ink-3">
+                  <span className="shrink-0 text-[10px] text-fg-3">
                     {count}
                   </span>
                 </button>
@@ -241,14 +237,14 @@ export function ViewTabs({
     { key: "submissions", label: "Submissions open", shortLabel: "Open" },
   ];
   return (
-    <div className="flex flex-wrap items-end gap-x-2 gap-y-2 border-b border-rule px-5 pt-8 sm:gap-x-4 md:px-8">
+    <div className="flex flex-wrap items-end gap-x-2 gap-y-2 border-b border-border px-5 pt-8 sm:gap-x-4 md:px-8">
       <div className="-mx-5 flex flex-1 gap-0.5 overflow-x-auto overflow-y-hidden px-5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:gap-1 md:mx-0 md:overflow-visible md:px-0">
         {tabs.map((t) => {
           const on = t.key === active;
           const count = t.key === "starred" ? starredCount : counts[t.key];
           const className = clsx(
             "-mb-px inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap border-b-2 border-transparent bg-transparent px-2 py-2.5 text-[13px] font-medium no-underline transition-colors sm:gap-2 sm:px-3.5",
-            on ? "border-ink text-ink" : "text-ink-3 hover:text-ink-2"
+            on ? "border-fg text-fg" : "text-fg-3 hover:text-fg-2"
           );
           const content = (
             <>
@@ -264,8 +260,8 @@ export function ViewTabs({
               {count !== undefined && (
                 <span
                   className={clsx(
-                    "hidden font-mono text-[11px] sm:inline",
-                    on ? "text-ink-2" : "text-ink-3"
+                    "hidden text-[11px] sm:inline",
+                    on ? "text-fg-2" : "text-fg-3"
                   )}
                 >
                   {count}

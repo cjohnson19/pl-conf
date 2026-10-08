@@ -95,12 +95,12 @@ export function EventListShell({
           {!archive && <ArchiveNote count={counts.viewCounts.archive} />}
         </NowProvider>
       </ListFilterProvider>
-      <footer className="mt-14 flex items-center justify-between gap-4 border-t border-rule px-5 py-6 text-[12px] text-ink-3 md:px-8">
+      <footer className="mt-14 flex items-center justify-between gap-4 border-t border-border px-5 py-6 text-[12px] text-fg-3 md:px-8">
         <a
           href="https://github.com/cjohnson19/pl-conf"
           target="_blank"
           aria-label="Source on GitHub"
-          className="inline-flex items-center gap-1.5 text-ink-3 no-underline transition-colors hover:text-ink"
+          className="inline-flex items-center gap-1.5 text-fg-3 no-underline transition-colors hover:text-fg"
           rel="noopener"
         >
           <Github size={13} strokeWidth={1.75} />
@@ -128,13 +128,13 @@ function SortNote({
   dueThisWeek: number;
 }) {
   return (
-    <span className="hidden text-[13px] text-ink-3 lg:inline">
+    <span className="hidden text-[13px] text-fg-3 lg:inline">
       {archive ? (
         "past events · most recent first"
       ) : (
         <>
           sorted by next deadline ·{" "}
-          <b className="font-medium text-ink-2">{dueThisWeek}</b> deadline
+          <b className="font-medium text-fg-2">{dueThisWeek}</b> deadline
           {dueThisWeek === 1 ? "" : "s"} this week
         </>
       )}

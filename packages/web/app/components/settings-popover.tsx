@@ -24,11 +24,11 @@ function ToggleRow({
       role="switch"
       aria-checked={checked}
       onClick={() => onChange(!checked)}
-      className="flex w-full items-start justify-between gap-3 rounded-sm px-2 py-2 text-left transition-colors hover:bg-paper-2"
+      className="flex w-full items-start justify-between gap-3 rounded-sm px-2 py-2 text-left transition-colors hover:bg-bg-2"
     >
       <span className="min-w-0">
-        <span className="block text-[13px] font-medium text-ink">{label}</span>
-        <span className="mt-0.5 block text-[11px] leading-[1.45] text-ink-3">
+        <span className="block text-[13px] font-medium text-fg">{label}</span>
+        <span className="mt-0.5 block text-[11px] leading-[1.45] text-fg-3">
           {description}
         </span>
       </span>
@@ -36,13 +36,13 @@ function ToggleRow({
         aria-hidden
         className={clsx(
           "mt-0.5 inline-flex h-5 w-9 shrink-0 items-center rounded-full border transition-colors",
-          checked ? "border-ink bg-ink" : "border-rule bg-paper"
+          checked ? "border-fg bg-fg" : "border-border bg-bg"
         )}
       >
         <span
           className={clsx(
             "ml-0.5 inline-block h-4 w-4 rounded-full transition-transform",
-            checked ? "translate-x-4 bg-paper" : "translate-x-0 bg-ink-3"
+            checked ? "translate-x-4 bg-bg" : "translate-x-0 bg-fg-3"
           )}
         />
       </span>
@@ -71,7 +71,7 @@ export function SettingsPopover() {
         sideOffset={8}
         className="w-[min(320px,calc(100vw-2rem))] p-4"
       >
-        <p className="label-cap mb-3">Deadline alerts</p>
+        <p className="section-label mb-3">Deadline alerts</p>
 
         <ToggleRow
           label="Show deadline alerts"
@@ -81,7 +81,7 @@ export function SettingsPopover() {
         />
 
         <div className="mt-2 flex items-center justify-between gap-3 px-2">
-          <p className="text-[11px] leading-[1.45] text-ink-3">
+          <p className="text-[11px] leading-[1.45] text-fg-3">
             {hiddenCount > 0
               ? `Alerts hidden for ${hiddenCount} event${hiddenCount === 1 ? "" : "s"}.`
               : "No event alerts hidden."}
@@ -90,7 +90,7 @@ export function SettingsPopover() {
             type="button"
             onClick={() => setDisplayPref("permanentlyHiddenEventHeroes", [])}
             disabled={hiddenCount === 0}
-            className="inline-flex h-8 items-center gap-1.5 rounded-full border border-rule bg-transparent px-3 text-[12px] font-medium text-ink-2 transition-colors hover:border-ink hover:text-ink disabled:cursor-not-allowed disabled:border-rule disabled:text-ink-3 disabled:hover:border-rule"
+            className="inline-flex h-8 items-center gap-1.5 rounded-full border border-border bg-transparent px-3 text-[12px] font-medium text-fg-2 transition-colors hover:border-fg hover:text-fg disabled:cursor-not-allowed disabled:border-border disabled:text-fg-3 disabled:hover:border-border"
           >
             <RotateCcw size={12} strokeWidth={1.75} />
             Reset

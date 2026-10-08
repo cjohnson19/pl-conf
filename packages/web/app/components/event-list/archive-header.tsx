@@ -10,11 +10,11 @@ import { useListHref } from "../../hooks/use-list-href";
 export function ArchiveHeader({ trailing }: { trailing: ReactNode }) {
   const href = useListHref("/");
   return (
-    <div className="flex flex-wrap items-end justify-between gap-x-4 gap-y-3 border-b border-rule px-5 pb-3 pt-8 md:px-8">
+    <div className="flex flex-wrap items-end justify-between gap-x-4 gap-y-3 border-b border-border px-5 pb-3 pt-8 md:px-8">
       <div className="flex flex-col gap-2">
         <Link
           href={href}
-          className="group/back inline-flex items-center gap-1.5 text-[13px] text-ink-3 no-underline transition-colors hover:text-ink"
+          className="group/back inline-flex items-center gap-1.5 text-[13px] text-fg-3 no-underline transition-colors hover:text-fg"
         >
           <ArrowLeft
             size={14}
@@ -24,7 +24,7 @@ export function ArchiveHeader({ trailing }: { trailing: ReactNode }) {
           />
           Live events
         </Link>
-        <h2 className="font-ui text-[18px] font-semibold leading-none tracking-[-0.02em] text-ink">
+        <h2 className="text-[18px] font-semibold leading-none tracking-[-0.02em] text-fg">
           Past events
         </h2>
       </div>

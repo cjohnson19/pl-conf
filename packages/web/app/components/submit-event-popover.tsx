@@ -79,8 +79,8 @@ export function SubmitEventPopover() {
           inputRef.current?.focus();
         }}
       >
-        <p className="label-cap mb-2">Submit event</p>
-        <p className="mb-4 text-[13px] leading-[1.55] text-ink-2">
+        <p className="section-label mb-2">Submit event</p>
+        <p className="mb-4 text-[13px] leading-[1.55] text-fg-2">
           Paste a link to the event&apos;s site. I&apos;ll review it and add it
           to the list.
         </p>
@@ -96,13 +96,13 @@ export function SubmitEventPopover() {
             required
             disabled={status.kind === "submitting"}
             aria-label="Conference URL"
-            className="flex h-9 w-full rounded-sm border border-rule bg-paper px-3 text-[13px] text-ink placeholder:text-ink-3 transition-colors focus-visible:border-ink focus-visible:outline-none disabled:opacity-50"
+            className="flex h-9 w-full rounded-sm border border-border bg-bg px-3 text-[13px] text-fg placeholder:text-fg-3 transition-colors focus-visible:border-fg focus-visible:outline-none disabled:opacity-50"
           />
 
           <button
             type="submit"
             disabled={status.kind === "submitting" || url.trim().length === 0}
-            className="inline-flex h-9 w-full items-center justify-center gap-2 rounded-full bg-ink px-3 text-[13px] font-medium text-paper transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
+            className="inline-flex h-9 w-full items-center justify-center gap-2 rounded-full bg-fg px-3 text-[13px] font-medium text-bg transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
           >
             {status.kind === "submitting" ? "Submitting…" : "Submit"}
           </button>
@@ -113,7 +113,7 @@ export function SubmitEventPopover() {
             role="status"
             className={clsx(
               "mt-3 text-[12px] leading-[1.5]",
-              status.kind === "success" ? "text-ink-2" : "text-hot"
+              status.kind === "success" ? "text-fg-2" : "text-urgent"
             )}
           >
             {status.kind === "success"

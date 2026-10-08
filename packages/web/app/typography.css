@@ -13,7 +13,7 @@ h2 {
   font-size: 13px;
   line-height: 1;
   letter-spacing: 0.06em;
-  color: var(--ink-2);
+  color: var(--fg-2);
   margin: 0;
 }
 
@@ -21,7 +21,7 @@ p {
   font-family: var(--font-ui);
   font-size: 14px;
   line-height: 1.55;
-  color: var(--ink);
+  color: var(--fg);
   margin: 0;
 }
 
@@ -33,7 +33,7 @@ a {
 
 code,
 kbd {
-  font-family: var(--font-mono);
+  font-family: var(--font-ui);
   font-feature-settings:
     "tnum" 1,
     "ss01" 1;
@@ -43,10 +43,10 @@ code {
   font-size: 0.95em;
 }
 
-.label-cap {
-  font-family: var(--font-mono);
+.section-label {
+  font-family: var(--font-ui);
   font-weight: 500;
   font-size: 11px;
   letter-spacing: 0.08em;
-  color: var(--ink-3);
+  color: var(--fg-3);
 }

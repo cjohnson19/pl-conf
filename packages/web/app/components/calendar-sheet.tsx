@@ -14,7 +14,7 @@ import {
 } from "./export-options";
 
 const itemClass =
-  "flex items-center gap-3 rounded-md px-3 py-2.5 no-underline hover:bg-paper-2";
+  "flex items-center gap-3 rounded-md px-3 py-2.5 no-underline hover:bg-bg-2";
 
 function SheetItem({ href, download, icon, title, sub }: ExportItemProps) {
   return (
@@ -44,7 +44,7 @@ function SheetCopyItem({ onSelect, icon, title, sub }: CopyItemProps) {
 }
 
 function SheetSeparator() {
-  return <div className="my-1 h-px bg-rule" />;
+  return <div className="my-1 h-px bg-border" />;
 }
 
 export function CalendarSheet({
@@ -75,24 +75,24 @@ export function CalendarSheet({
         <Dialog.Content
           aria-describedby={undefined}
           className={clsx(
-            "fixed inset-x-0 bottom-0 z-50 max-h-[85vh] overflow-y-auto overscroll-contain rounded-t-2xl border-t border-rule bg-card p-2 pb-[max(env(safe-area-inset-bottom),0.5rem)] shadow-pop supports-[height:100dvh]:max-h-[85dvh]",
+            "fixed inset-x-0 bottom-0 z-50 max-h-[85vh] overflow-y-auto overscroll-contain rounded-t-2xl border-t border-border bg-card p-2 pb-[max(env(safe-area-inset-bottom),0.5rem)] shadow-lg supports-[height:100dvh]:max-h-[85dvh]",
             "data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:slide-out-to-bottom data-[state=open]:slide-in-from-bottom duration-200"
           )}
         >
           <div className="flex items-center justify-between px-3 py-2">
             <Dialog.Title asChild>
               <div className="flex min-w-0 flex-1 flex-col gap-1">
-                <div className="font-ui text-[18px] font-bold leading-none tracking-[-0.015em] text-ink">
+                <div className="text-[18px] font-bold leading-none tracking-[-0.015em] text-fg">
                   {event.abbreviation}
                 </div>
-                <div className="truncate text-[12px] font-normal text-ink-2">
+                <div className="truncate text-[12px] font-normal text-fg-2">
                   {event.name}
                 </div>
               </div>
             </Dialog.Title>
             <Dialog.Close
               aria-label="Close"
-              className="grid h-9 w-9 shrink-0 place-items-center rounded-full text-ink-2 hover:bg-paper-2"
+              className="grid h-9 w-9 shrink-0 place-items-center rounded-full text-fg-2 hover:bg-bg-2"
             >
               <X size={16} strokeWidth={1.75} />
             </Dialog.Close>

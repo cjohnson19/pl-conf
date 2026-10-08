@@ -8,50 +8,48 @@
     --font-ui:
       var(--font-inter), -apple-system, BlinkMacSystemFont, "SF Pro Text",
       sans-serif;
-    --font-display: var(--font-ui);
-    --font-mono: var(--font-ui);
 
-    /* Paper + ink palette */
-    --paper: #ffffff;
-    --paper-2: #eae5da;
+    /* Background + foreground palette */
+    --bg: #ffffff;
+    --bg-2: #eae5da;
     --card: #faf9f6;
-    --ink: #14130f;
-    --ink-2: #54514a;
-    --ink-3: #6e6b62;
-    --rule: #d9d3c5;
+    --fg: #14130f;
+    --fg-2: #54514a;
+    --fg-3: #6e6b62;
+    --border: #d9d3c5;
 
     /* Accents (used sparingly) */
     --accent: #26221a;
-    --hot: #763ebd;
+    --urgent: #763ebd;
 
     /* Shadow */
     --shadow-sm: 0 1px 2px rgba(20, 19, 15, 0.04);
     --shadow-md: 0 4px 16px rgba(20, 19, 15, 0.06);
-    --shadow-pop: 0 8px 32px rgba(20, 19, 15, 0.1);
+    --shadow-lg: 0 8px 32px rgba(20, 19, 15, 0.1);
   }
 
   .dark {
-    --paper: #14120d;
-    --paper-2: #25221b;
+    --bg: #14120d;
+    --bg-2: #25221b;
     --card: #1c1914;
-    --ink: #f4f1ea;
-    --ink-2: #b8b1a0;
-    --ink-3: #918b79;
-    --rule: #2e2a22;
+    --fg: #f4f1ea;
+    --fg-2: #b8b1a0;
+    --fg-3: #918b79;
+    --border: #2e2a22;
 
     --accent: #e8e2d4;
-    --hot: #b191ea;
+    --urgent: #b191ea;
 
     --shadow-sm: 0 0 0 transparent;
     --shadow-md: 0 0 0 transparent;
-    --shadow-pop: 0 0 0 transparent;
+    --shadow-lg: 0 0 0 transparent;
   }
 }
 
 @layer base {
   body {
-    background: var(--paper);
-    color: var(--ink);
+    background: var(--bg);
+    color: var(--fg);
     font-family: var(--font-ui);
     font-size: 14px;
     line-height: 1.5;

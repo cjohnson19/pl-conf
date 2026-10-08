@@ -32,12 +32,12 @@ export function RowActionSheetDialog({
       <button
         type="button"
         onClick={toggleStar}
-        className="flex w-full items-center gap-3 rounded-md px-3 py-3 text-left text-[14px] hover:bg-paper-2"
+        className="flex w-full items-center gap-3 rounded-md px-3 py-3 text-left text-[14px] hover:bg-bg-2"
       >
         <span
           className={clsx(
-            "grid h-9 w-9 place-items-center rounded-sm bg-paper-2",
-            starred ? "text-accent" : "text-ink-3"
+            "grid h-9 w-9 place-items-center rounded-sm bg-bg-2",
+            starred ? "text-accent" : "text-fg-3"
           )}
         >
           <Star
@@ -46,11 +46,11 @@ export function RowActionSheetDialog({
             fill={starred ? "currentColor" : "none"}
           />
         </span>
-        <span className="flex-1 font-medium text-ink">
+        <span className="flex-1 font-medium text-fg">
           {starred ? "Unstar" : "Star this event"}
         </span>
       </button>
-      <div className="my-1 h-px bg-rule" />
+      <div className="my-1 h-px bg-border" />
     </CalendarSheet>
   );
 }

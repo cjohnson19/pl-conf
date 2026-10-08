@@ -24,10 +24,10 @@ export function EventActions({
         }
         onClick={toggle}
         className={clsx(
-          "inline-flex h-9 items-center gap-2 rounded-xs border bg-transparent px-3 font-ui text-[13px] font-medium outline-none transition-colors",
+          "inline-flex h-9 items-center gap-2 rounded-xs border bg-transparent px-3 text-[13px] font-medium outline-none transition-colors",
           on
             ? "border-accent text-accent"
-            : "border-rule text-ink-2 hover:border-ink hover:text-ink"
+            : "border-border text-fg-2 hover:border-fg hover:text-fg"
         )}
       >
         <Star

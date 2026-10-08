@@ -37,8 +37,8 @@ export function SheetTrigger({
       aria-label={`${ACTIONS_LABEL} ${event.abbreviation}`}
       title="Actions"
       className={clsx(
-        "grid h-11 w-11 shrink-0 place-items-center rounded-full border border-rule bg-transparent text-ink-2 transition-colors",
-        "hover:border-ink hover:bg-ink hover:text-paper data-[state=open]:border-ink data-[state=open]:bg-ink data-[state=open]:text-paper"
+        "grid h-11 w-11 shrink-0 place-items-center rounded-full border border-border bg-transparent text-fg-2 transition-colors",
+        "hover:border-fg hover:bg-fg hover:text-bg data-[state=open]:border-fg data-[state=open]:bg-fg data-[state=open]:text-bg"
       )}
       {...props}
     >

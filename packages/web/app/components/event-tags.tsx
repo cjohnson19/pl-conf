@@ -36,7 +36,7 @@ export function EventTags({
 }) {
   if (tags.length === 0) return null;
   const base =
-    "inline-flex h-[18px] items-center rounded-xs border px-1.5 font-mono text-[10px] font-medium leading-none tracking-[0.06em]";
+    "inline-flex h-[18px] items-center rounded-xs border px-1.5 text-[10px] font-medium leading-none tracking-[0.06em]";
   return (
     <ul
       className={clsx("flex flex-wrap items-center gap-1", className)}
@@ -52,7 +52,7 @@ export function EventTags({
             <li key={tag}>
               <span
                 data-tag={tag}
-                className={clsx(base, "border-rule bg-transparent text-ink-2")}
+                className={clsx(base, "border-border bg-transparent text-fg-2")}
               >
                 {tagDisplayName(tag)}
               </span>
@@ -70,8 +70,8 @@ export function EventTags({
                 base,
                 "cursor-pointer transition-colors",
                 active
-                  ? "border-ink bg-ink text-paper"
-                  : "border-rule bg-transparent text-ink-2 hover:border-ink hover:text-ink"
+                  ? "border-fg bg-fg text-bg"
+                  : "border-border bg-transparent text-fg-2 hover:border-fg hover:text-fg"
               )}
             >
               {tagDisplayName(tag)}

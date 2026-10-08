@@ -19,16 +19,16 @@ export type RailRow = {
 };
 
 // Base classes for the animated hover underline; compose with the caller's
-// group-hover/<name>:decoration-ink variant.
+// group-hover/<name>:decoration-fg variant.
 export const hoverUnderlineClass =
-  "underline decoration-rule decoration-1 underline-offset-[3px] transition-[text-decoration-color] duration-200 ease-out";
+  "underline decoration-border decoration-1 underline-offset-[3px] transition-[text-decoration-color] duration-200 ease-out";
 
 // Lifts a row's nested links and buttons above the abbreviation's stretched
 // link overlay (see EventRow).
 export const rowControlClass = "relative z-10";
 
 export function deadlineToneClass(r: Pick<RailRow, "kind">): string {
-  return r.kind === "next" ? "text-hot" : "text-ink-3";
+  return r.kind === "next" ? "text-urgent" : "text-fg-3";
 }
 
 export function roundLabel(round: Round, idx: number): string {
@@ -60,7 +60,7 @@ export function buildRoundRows(
 export function EventNameLink({ event: e }: { event: DisplayEvent }) {
   if (!e.url) {
     return (
-      <div className="overflow-hidden text-ellipsis whitespace-nowrap text-[13px] text-ink-2">
+      <div className="overflow-hidden text-ellipsis whitespace-nowrap text-[13px] text-fg-2">
         {e.name}
       </div>
     );
@@ -70,18 +70,18 @@ export function EventNameLink({ event: e }: { event: DisplayEvent }) {
       href={e.url}
       target="_blank"
       aria-label={`Open ${e.abbreviation} website`}
-      className={`group/url flex w-fit min-w-0 max-w-full items-baseline gap-1.5 text-[13px] text-ink-2 no-underline ${rowControlClass}`}
+      className={`group/url flex w-fit min-w-0 max-w-full items-baseline gap-1.5 text-[13px] text-fg-2 no-underline ${rowControlClass}`}
       rel="noopener"
     >
       <span
-        className={`min-w-0 truncate ${hoverUnderlineClass} group-hover/url:decoration-ink`}
+        className={`min-w-0 truncate ${hoverUnderlineClass} group-hover/url:decoration-fg`}
       >
         {e.name}
       </span>
       <ArrowUpRight
         size={11}
         strokeWidth={1.75}
-        className="shrink-0 self-center text-ink-3 transition-all duration-200 ease-out group-hover/url:translate-x-0.5 group-hover/url:-translate-y-0.5 group-hover/url:text-ink"
+        className="shrink-0 self-center text-fg-3 transition-all duration-200 ease-out group-hover/url:translate-x-0.5 group-hover/url:-translate-y-0.5 group-hover/url:text-fg"
         aria-hidden
       />
     </a>
@@ -97,12 +97,12 @@ export function RelatedLinks({ links }: { links: RelatedLink[] }) {
           {l.path ? (
             <Link
               href={l.path}
-              className={`font-medium text-ink-2 underline decoration-rule decoration-1 underline-offset-2 transition-[text-decoration-color,color] duration-200 ease-out hover:text-ink hover:decoration-ink ${rowControlClass}`}
+              className={`font-medium text-fg-2 underline decoration-border decoration-1 underline-offset-2 transition-[text-decoration-color,color] duration-200 ease-out hover:text-fg hover:decoration-fg ${rowControlClass}`}
             >
               {l.abbreviation}
             </Link>
           ) : (
-            <b className="font-medium text-ink-2">{l.abbreviation}</b>
+            <b className="font-medium text-fg-2">{l.abbreviation}</b>
           )}
         </Fragment>
       ))}
@@ -116,18 +116,18 @@ export function DatesDeadlinesLink({ href }: { href: string }) {
       href={href}
       target="_blank"
       aria-label="View important dates"
-      className={`group/dates inline-flex items-center gap-1 self-start text-[12px] font-medium text-ink no-underline ${rowControlClass}`}
+      className={`group/dates inline-flex items-center gap-1 self-start text-[12px] font-medium text-fg no-underline ${rowControlClass}`}
       rel="noopener"
     >
       <span
-        className={`${hoverUnderlineClass} group-hover/dates:decoration-ink`}
+        className={`${hoverUnderlineClass} group-hover/dates:decoration-fg`}
       >
         Dates &amp; Deadlines
       </span>
       <ArrowUpRight
         size={12}
         strokeWidth={1.75}
-        className="text-ink-3 transition-all duration-200 ease-out group-hover/dates:-translate-y-0.5 group-hover/dates:translate-x-0.5 group-hover/dates:text-ink"
+        className="text-fg-3 transition-all duration-200 ease-out group-hover/dates:-translate-y-0.5 group-hover/dates:translate-x-0.5 group-hover/dates:text-fg"
         aria-hidden
       />
     </a>

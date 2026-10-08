@@ -40,10 +40,10 @@ export function CalendarTrigger({
       title="Add to calendar"
       className={
         label
-          ? "inline-flex h-9 items-center gap-2 rounded-xs border border-rule bg-transparent px-3 font-ui text-[13px] font-medium text-ink-2 outline-none transition-colors hover:border-ink hover:text-ink data-[state=open]:border-ink data-[state=open]:text-ink"
+          ? "inline-flex h-9 items-center gap-2 rounded-xs border border-border bg-transparent px-3 text-[13px] font-medium text-fg-2 outline-none transition-colors hover:border-fg hover:text-fg data-[state=open]:border-fg data-[state=open]:text-fg"
           : clsx(
               rowIconButtonClass,
-              "text-ink-3 outline-none hover:text-ink data-[state=open]:text-ink"
+              "text-fg-3 outline-none hover:text-fg data-[state=open]:text-fg"
             )
       }
       {...props}
@@ -71,9 +71,9 @@ export function CalendarMenu({
         aria-label="Add to calendar (dates TBD)"
         title="Dates TBD"
         className={clsx(
-          "cursor-not-allowed text-ink-3 opacity-40",
+          "cursor-not-allowed text-fg-3 opacity-40",
           label
-            ? "inline-flex h-9 items-center gap-2 rounded-xs border border-rule px-3 font-ui text-[13px] font-medium"
+            ? "inline-flex h-9 items-center gap-2 rounded-xs border border-border px-3 text-[13px] font-medium"
             : "grid h-11 w-11 shrink-0 place-items-center border-0 bg-transparent sm:h-8 sm:w-8"
         )}
       >

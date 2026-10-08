@@ -1,11 +1,11 @@
 export default function About() {
   return (
     <article className="mx-auto max-w-[640px] px-5 pb-24 pt-14 md:px-8">
-      <p className="mb-10 font-display text-[32px] font-normal leading-[1.2] tracking-[-0.01em] text-ink">
+      <p className="mb-10 text-[32px] font-normal leading-[1.2] tracking-[-0.01em] text-fg">
         A small, open-source aggregator for programming-language conferences.
       </p>
 
-      <div className="space-y-5 text-[15px] leading-[1.7] text-ink-2">
+      <div className="space-y-5 text-[15px] leading-[1.7] text-fg-2">
         <p>
           I wanted a site that aggregated conferences and workshops in PL but
           couldn&apos;t find one that seemed maintained enough for my liking. So
@@ -22,7 +22,7 @@ export default function About() {
             href="https://chasej.dev"
             target="_blank"
             rel="noopener"
-            className="text-ink underline underline-offset-[3px]"
+            className="text-fg underline underline-offset-[3px]"
           >
             chasej.dev
           </a>
@@ -30,10 +30,10 @@ export default function About() {
         </p>
       </div>
 
-      <hr className="my-14 border-rule" />
+      <hr className="my-14 border-border" />
 
       <section>
-        <h2 className="mb-8 font-display text-[28px] font-normal leading-[1.15] tracking-[-0.01em] text-ink">
+        <h2 className="mb-8 text-[28px] font-normal leading-[1.15] tracking-[-0.01em] text-fg">
           Questions
         </h2>
 
@@ -46,13 +46,13 @@ export default function About() {
             }
           >
             Yes. The easiest way is to use the{" "}
-            <code className="font-mono text-ink">+</code> button on the page
-            with a link to the event. You can also create an{" "}
+            <code className="text-fg">+</code> button on the page with a link to
+            the event. You can also create an{" "}
             <a
               href="https://github.com/cjohnson19/pl-conf/issues/new"
               target="_blank"
               rel="noopener"
-              className="text-ink underline underline-offset-[3px]"
+              className="text-fg underline underline-offset-[3px]"
             >
               issue on GitHub
             </a>{" "}
@@ -61,7 +61,7 @@ export default function About() {
               href="https://github.com/cjohnson19/pl-conf/compare"
               target="_blank"
               rel="noopener"
-              className="text-ink underline underline-offset-[3px]"
+              className="text-fg underline underline-offset-[3px]"
             >
               open a PR
             </a>
@@ -75,7 +75,7 @@ export default function About() {
 
           {/* biome-ignore format: a literal space after the bold element is dropped from the prerendered HTML; the explicit space expression survives */}
           <FaqItem q="How do I know this information is accurate?">
-            You should <b className="font-medium text-ink">always</b>{" "}
+            You should <b className="font-medium text-fg">always</b>{" "}
             check the linked website to confirm dates. That said, I regularly run an
             automated review that cross-references each conference&apos;s site
             against the data here, so drift usually gets caught quickly.
@@ -95,10 +95,10 @@ function FaqItem({
 }) {
   return (
     <div>
-      <dt className="mb-1.5 text-[15px] font-semibold tracking-[-0.005em] text-ink">
+      <dt className="mb-1.5 text-[15px] font-semibold tracking-[-0.005em] text-fg">
         {q}
       </dt>
-      <dd className="text-[14px] leading-[1.65] text-ink-2">{children}</dd>
+      <dd className="text-[14px] leading-[1.65] text-fg-2">{children}</dd>
     </div>
   );
 }

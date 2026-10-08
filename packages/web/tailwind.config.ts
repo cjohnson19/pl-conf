@@ -14,24 +14,19 @@ export default {
   theme: {
     extend: {
       colors: {
-        // Paper + ink palette (canonical)
-        paper: "var(--paper)",
-        "paper-2": "var(--paper-2)",
+        // Background + foreground palette (canonical)
+        bg: "var(--bg)",
+        "bg-2": "var(--bg-2)",
         card: "var(--card)",
-        ink: "var(--ink)",
-        "ink-2": "var(--ink-2)",
-        "ink-3": "var(--ink-3)",
-        rule: "var(--rule)",
+        fg: "var(--fg)",
+        "fg-2": "var(--fg-2)",
+        "fg-3": "var(--fg-3)",
+        border: "var(--border)",
         accent: "var(--accent)",
-        hot: "var(--hot)",
+        urgent: "var(--urgent)",
       },
       borderColor: {
-        DEFAULT: "var(--rule)",
-      },
-      fontFamily: {
-        ui: ["var(--font-ui)"],
-        display: ["var(--font-display)"],
-        mono: ["var(--font-mono)"],
+        DEFAULT: "var(--border)",
       },
       borderRadius: {
         xs: "2px",
@@ -42,7 +37,7 @@ export default {
       boxShadow: {
         sm: "var(--shadow-sm)",
         md: "var(--shadow-md)",
-        pop: "var(--shadow-pop)",
+        lg: "var(--shadow-lg)",
       },
     },
   },

@@ -22,13 +22,13 @@ export function HelpPopover({ totalActive }: { totalActive: number }) {
         sideOffset={8}
         className="w-[min(360px,calc(100vw-2rem))] p-5"
       >
-        <p className="font-display text-[15px] leading-[1.45] text-ink-2 sm:text-[16px]">
+        <p className="text-[15px] leading-[1.45] text-fg-2 sm:text-[16px]">
           A small index of{" "}
-          <span className="not-italic font-medium text-ink">{totalActive}</span>{" "}
+          <span className="not-italic font-medium text-fg">{totalActive}</span>{" "}
           programming-language conferences, workshops, and symposia.
         </p>
 
-        <div className="mt-4 space-y-4 border-t border-rule pt-4">
+        <div className="mt-4 space-y-4 border-t border-border pt-4">
           <HelpStep
             icon={<Star size={18} strokeWidth={1.75} fill="currentColor" />}
             title="Star events to keep track of their deadlines."
@@ -67,10 +67,8 @@ function HelpStep({
         {icon}
       </div>
       <div className="min-w-0">
-        <p className="text-[14px] font-medium leading-[1.3] text-ink">
-          {title}
-        </p>
-        <p className="mt-1 text-[12px] leading-[1.5] text-ink-2">{sub}</p>
+        <p className="text-[14px] font-medium leading-[1.3] text-fg">{title}</p>
+        <p className="mt-1 text-[12px] leading-[1.5] text-fg-2">{sub}</p>
       </div>
     </div>
   );
