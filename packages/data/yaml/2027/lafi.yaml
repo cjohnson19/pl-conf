@@ -1,0 +1,19 @@
+name: Languages for Inference
+abbreviation: LAFI
+type: "workshop"
+tags:
+  - probabilistic
+date:
+  start: 2027-01-10
+  end: 2027-01-10
+location: Mexico City, Mexico
+partOf: POPL
+url: "https://popl27.sigplan.org/home/lafi-2027"
+submissionUrl: "https://lafi27.hotcrp.com/"
+importantDateUrl: "https://popl27.sigplan.org/home/lafi-2027#call-Call-for-Extended-Abstracts"
+importantDates:
+  abstract: 2026-11-02
+  notification: 2026-11-27
+notes:
+  - "2-page extended abstracts; informal, non-archival proceedings"
+  - "HotCRP still lists the submission deadline as Oct 31 AoE; the workshop page was updated to Nov 2"

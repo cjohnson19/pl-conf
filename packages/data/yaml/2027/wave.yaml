@@ -1,0 +1,19 @@
+name: Workshop on Auto-active Verification
+abbreviation: WAVE
+type: "workshop"
+tags:
+  - verification
+date:
+  start: 2027-01-10
+  end: 2027-01-10
+location: Mexico City, Mexico
+partOf: POPL
+url: "https://popl27.sigplan.org/home/wave-2027"
+submissionUrl: "https://wave27.hotcrp.com"
+importantDateUrl: "https://popl27.sigplan.org/home/wave-2027#call-Call-for-Papers"
+importantDates:
+  abstract: 2026-10-21
+  notification: 2026-11-11
+notes:
+  - "Previously the Dafny Workshop"
+  - "Extended abstracts of 2-6 pages; no formal proceedings"

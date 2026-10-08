@@ -1,0 +1,20 @@
+name: ACM/SIGAPP Symposium on Applied Computing, Programming Languages Track
+abbreviation: SAC
+type: "symposium"
+tags:
+  - compilers
+  - program-analysis
+date:
+  start: 2027-04-05
+  end: 2027-04-09
+location: Gwangju, South Korea
+url: "https://acmsac.wp.txstate.edu/"
+submissionUrl: "https://easychair.org/my/conference?conf=sac2027"
+importantDateUrl: "https://www.sigapp.org/sac/sac2027/#important-dates"
+importantDates:
+  paper: 2026-10-16
+  notification: 2026-11-20
+  camera-ready: 2026-12-11
+notes:
+  - "Dates are for the Programming Languages track, one of 39 technical tracks; submission is symposium-wide with the track chosen in EasyChair"
+  - "Paper deadline is stated in EST, not AoE"

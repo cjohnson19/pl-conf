@@ -1,0 +1,21 @@
+name: International Conference on Formal Methods in Software Engineering
+abbreviation: FormaliSE
+type: "conference"
+tags:
+  - formal-methods
+  - software-engineering
+date:
+  start: 2027-04-26
+  end: 2027-04-27
+location: Dublin, Ireland
+colocatedWith: ICSE
+url: "https://2027.formalise.org/"
+submissionUrl: "https://formalise27.hotcrp.com/"
+importantDateUrl: "https://2027.formalise.org/dates"
+importantDates:
+  abstract: 2026-10-30
+  paper: 2026-11-06
+  notification: 2027-01-11
+  camera-ready: 2027-01-29
+notes:
+  - "HotCRP closes paper submission at 12 PM AoE on November 6, not end of day"

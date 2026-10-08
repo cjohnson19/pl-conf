@@ -7,8 +7,8 @@ location: Odense, Denmark
 importantDates:
   paper: 2025-11-13
   notification: 2025-12-11
-url: "https://trendsfp.github.io"
-importantDateUrl: "https://trendsfp.github.io/cfp.html"
+url: "https://trendsfp.github.io/2026/"
+importantDateUrl: "https://trendsfp.github.io/2026/cfp.html"
 type: "symposium"
 tags:
   - functional-programming

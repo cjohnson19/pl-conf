@@ -1,0 +1,28 @@
+name: International Workshop on Trends in Functional Programming in Education
+abbreviation: TFPIE
+type: "workshop"
+tags:
+  - functional-programming
+date:
+  start: 2027-03-12
+  end: 2027-03-12
+location: Kyoto, Japan
+colocatedWith: TFP
+url: "https://wiki.tfpie.science.ru.nl/TFPIE2027"
+submissionUrl: "https://easychair.org/my/conference?conf=tfpie2027"
+importantDateUrl: "https://wiki.tfpie.science.ru.nl/TFPIE2027#Important_Dates"
+rounds:
+  - name: Full papers
+    importantDates:
+      paper: 2026-11-19
+      notification: 2026-12-17
+  - name: Draft papers
+    importantDates:
+      paper: 2027-02-04
+      notification: 2027-02-11
+  - name: Post-workshop review
+    importantDates:
+      paper: 2027-04-08
+      notification: 2027-05-12
+notes:
+  - "Only papers presented at the workshop may enter the post-workshop review; accepted papers from either review appear in EPTCS"

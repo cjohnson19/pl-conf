@@ -1,0 +1,28 @@
+name: International Symposium on Trends in Functional Programming
+abbreviation: TFP
+type: "symposium"
+tags:
+  - functional-programming
+date:
+  start: 2027-03-13
+  end: 2027-03-15
+location: Kyoto, Japan
+url: "https://trendsfp.github.io/2027/"
+submissionUrl: "https://easychair.org/conferences/?conf=tfp2027"
+importantDateUrl: "https://trendsfp.github.io/2027/cfp.html#important-dates"
+rounds:
+  - name: Full papers
+    importantDates:
+      paper: 2026-12-03
+      notification: 2027-01-14
+  - name: Draft papers
+    importantDates:
+      paper: 2027-01-28
+      notification: 2027-02-04
+  - name: Post-symposium review
+    importantDates:
+      paper: 2027-04-29
+      notification: 2027-06-10
+notes:
+  - "Post-symposium review dates are marked tentative on the site"
+  - "TFPIE 2027 is held the day before, on March 12"

@@ -1,0 +1,19 @@
+name: Rocq for Programming Languages
+abbreviation: RocqPL
+type: "workshop"
+tags:
+  - proof-assistants
+date:
+  start: 2027-01-16
+  end: 2027-01-16
+location: Mexico City, Mexico
+partOf: POPL
+url: "https://popl27.sigplan.org/home/rocqpl-2027"
+submissionUrl: "https://rocqpl27.hotcrp.com/"
+importantDateUrl: "https://popl27.sigplan.org/home/rocqpl-2027#call-Call-For-Presentations"
+importantDates:
+  abstract: 2026-10-23
+  notification: 2026-11-20
+notes:
+  - "Formerly CoqPL"
+  - "Extended abstracts of 1-2 pages for talks and demonstrations; no published papers"

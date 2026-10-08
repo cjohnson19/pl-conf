@@ -1,0 +1,20 @@
+name: International Conference on Rigorous State Based Methods
+abbreviation: ABZ
+type: "conference"
+tags:
+  - formal-methods
+date:
+  start: 2027-06-16
+  end: 2027-06-18
+location: Braga, Portugal
+url: "https://abz-conf.org/site/2027/"
+submissionUrl: "https://easychair.org/conferences/?conf=abz2027"
+importantDateUrl: "https://abz-conf.org/site/2027/importantdates/#papers-all-tracks"
+importantDates:
+  abstract: 2027-02-08
+  paper: 2027-02-15
+  notification: 2027-03-22
+  camera-ready: 2027-04-05
+notes:
+  - "Abstract submission is optional"
+  - "Workshops and tutorials run June 14-15, before the main conference"

@@ -1,0 +1,18 @@
+name: Workshop on Partial Evaluation and Program Manipulation
+abbreviation: PEPM
+type: "workshop"
+tags:
+  - compilers
+  - program-analysis
+date:
+  start: 2027-01-12
+  end: 2027-01-12
+location: Mexico City, Mexico
+partOf: POPL
+url: "https://popl27.sigplan.org/home/pepm-2027"
+submissionUrl: "https://pepm27.hotcrp.com"
+importantDateUrl: "https://popl27.sigplan.org/home/pepm-2027#call-Call-for-Submissions"
+importantDates:
+  paper: 2026-10-23
+notes:
+  - "HotCRP closes submission at 11:59 AM AoE on October 23, not end of day"

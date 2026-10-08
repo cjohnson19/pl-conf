@@ -1,0 +1,17 @@
+name: Workshop on Logic, Language, Information and Computation
+abbreviation: WoLLIC
+type: "workshop"
+tags:
+  - logic
+date:
+  start: 2027-08-23
+  end: 2027-08-26
+location: Helsinki, Finland
+url: "https://www.helsinki.fi/en/conferences/wollic-2027"
+submissionUrl: "https://easychair.org/conferences/?conf=wollic2027"
+importantDateUrl: "https://www.helsinki.fi/en/conferences/wollic-2027#welcome-to-the-wollic-2027-in-helsinki"
+importantDates:
+  abstract: 2027-03-08
+  paper: 2027-03-15
+  notification: 2027-05-08
+  camera-ready: 2027-05-29

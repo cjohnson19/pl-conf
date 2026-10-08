@@ -1,0 +1,20 @@
+name: Spotlights of Verification
+abbreviation: Spotlights
+type: "workshop"
+tags:
+  - verification
+  - formal-methods
+date:
+  start: 2026-12-01
+  end: 2026-12-01
+location: Hong Kong SAR, China
+colocatedWith: ATVA
+url: "https://conf.researchr.org/track/aplas-atva-2026/atva-2026#Spotlights-of-Verification-Call-for-Presentations"
+submissionUrl: "https://atva26.hotcrp.com/"
+importantDateUrl: "https://conf.researchr.org/track/aplas-atva-2026/atva-2026#Spotlights-of-Verification-Call-for-Presentations"
+importantDates:
+  abstract: 2026-10-15
+  notification: 2026-10-22
+notes:
+  - "New in 2026, modelled on Highlights: 1-2 page abstracts for ~10 minute talks on published or ongoing work; no proceedings"
+  - "Abstract deadline extended from October 8; HotCRP still shows the old date"
