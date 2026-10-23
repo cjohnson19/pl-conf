@@ -1,0 +1,19 @@
+name: Workshop on the Implementation of Type Systems
+abbreviation: WITS
+type: "workshop"
+tags:
+  - types
+  - compilers
+date:
+  start: 2027-01-16
+  end: 2027-01-16
+location: Mexico City, Mexico
+colocatedWith: POPL
+url: "https://wits2027.github.io/"
+importantDateUrl: "https://wits2027.github.io/#important-dates"
+importantDates:
+  abstract: 2026-11-11
+  notification: 2026-12-03
+notes:
+  - "Held at the POPL 2027 venue but not part of the POPL workshop program"
+  - "1-page abstracts for talks or roundtable discussions; no proceedings"

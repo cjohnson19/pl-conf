@@ -11,10 +11,13 @@ location: Nijmegen, The Netherlands
 colocatedWith:
   - CADE
 url: "https://fscd-cade.science.ru.nl/"
-importantDateUrl: "https://fscd-cade.science.ru.nl/"
+submissionUrl: "https://easychair.org/conferences/?conf=fscd2027"
+importantDateUrl: "https://easychair.org/cfp/FSCD2027"
 importantDates:
-  abstract: 2027-02-15
-  paper: 2027-02-22
-  rebuttal: 2027-04-30
-  notification: 2027-05-17
-  camera-ready: 2027-05-31
+  abstract: 2027-04-19
+  paper: 2027-04-26
+  rebuttal: 2027-06-12
+  notification: 2027-06-28
+  camera-ready: 2027-07-10
+notes:
+  - "The joint FSCD-CADE site lists only CADE's deadlines; FSCD's are in its EasyChair call"

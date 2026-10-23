@@ -1,0 +1,20 @@
+name: International Federated Conference on Distributed Computing Techniques
+abbreviation: DisCoTec
+type: "conference"
+tags:
+  - concurrency
+  - formal-methods
+date:
+  start: 2027-06-16
+  end: 2027-06-18
+location: Augsburg, Germany
+url: "https://www.discotec.org/2027/"
+importantDateUrl: "https://www.discotec.org/2027/dates"
+importantDates:
+  abstract: 2027-01-28
+  paper: 2027-02-04
+  notification: 2027-03-22
+  camera-ready: 2027-04-01
+notes:
+  - "Federates COORDINATION, DAIS, and FORTE, each with its own EasyChair submission site"
+  - "Satellite workshops and tutorials on June 14-15"

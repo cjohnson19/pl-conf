@@ -5,13 +5,22 @@ date:
   end: 2026-05-08
 location: Gothenburg, Sweden
 url: "https://types2026.cse.chalmers.se/"
-submissionUrl: "https://types-hotcrp.paris.inria.fr/types26-conf/"
-importantDateUrl: "https://types2026.cse.chalmers.se/call-for-contributions.html"
+submissionUrl: "https://types-hotcrp.paris.inria.fr/types26-post/"
+importantDateUrl: "https://types2026.cse.chalmers.se/postproceedings.html#deadlines"
 type: "conference"
 tags:
   - types
   - proof-assistants
-importantDates:
-  abstract: 2026-01-20
-  notification: 2026-02-20
-  camera-ready: 2026-04-03
+rounds:
+  - name: Conference
+    importantDates:
+      abstract: 2026-01-20
+      notification: 2026-02-20
+      camera-ready: 2026-04-03
+  - name: Post-proceedings
+    importantDates:
+      abstract: 2026-11-16
+      paper: 2026-11-30
+      notification: 2027-03-31
+notes:
+  - "LIPIcs post-proceedings are open to everyone, not only TYPES 2026 participants"
