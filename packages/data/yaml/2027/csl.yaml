@@ -4,7 +4,7 @@ type: "conference"
 tags:
   - logic
 date:
-  start: 2027-01-25
+  start: 2027-01-26
   end: 2027-01-29
 location: Brighton, UK
 url: "https://csl2027.github.io/"
@@ -14,4 +14,4 @@ importantDates:
   abstract: 2026-07-08
   paper: 2026-07-15
   notification: 2026-10-15
-  camera-ready: TBD
+  camera-ready: 2026-11-12

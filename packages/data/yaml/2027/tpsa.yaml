@@ -4,8 +4,8 @@ type: "workshop"
 tags:
   - program-analysis
 date:
-  start: 2027-01-10
-  end: 2027-01-16
+  start: 2027-01-12
+  end: 2027-01-12
 location: Mexico City, Mexico
 partOf: POPL
 url: "https://popl27.sigplan.org/home/tpsa-2027"
