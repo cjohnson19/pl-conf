@@ -4,8 +4,8 @@ type: "conference"
 tags:
   - functional-programming
 date:
-  start: 2027-09-26
-  end: 2027-10-01
+  start: 2027-09-27
+  end: 2027-09-29
 location: Nijmegen, The Netherlands
 format: PACMPL
 url: "https://icfp27.sigplan.org/"

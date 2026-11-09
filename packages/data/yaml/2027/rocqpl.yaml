@@ -12,7 +12,7 @@ url: "https://popl27.sigplan.org/home/rocqpl-2027"
 submissionUrl: "https://rocqpl27.hotcrp.com/"
 importantDateUrl: "https://popl27.sigplan.org/home/rocqpl-2027#call-Call-For-Presentations"
 importantDates:
-  abstract: 2026-10-23
+  abstract: 2026-10-30
   notification: 2026-11-20
 notes:
   - "Formerly CoqPL"

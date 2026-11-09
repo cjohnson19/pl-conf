@@ -8,6 +8,7 @@ date:
   start: 2027-06-05
   end: 2027-06-11
 location: Atlanta, Georgia
+format: PACMPL
 url: "https://pldi27.sigplan.org/"
 submissionUrl: "https://pldi2027.hotcrp.com"
 importantDateUrl: "https://pldi27.sigplan.org/dates"

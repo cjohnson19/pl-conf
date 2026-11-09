@@ -8,5 +8,9 @@ date:
   end: 2027-06-24
 location: Montreal, Canada
 url: "https://lics.siglog.org/lics27/"
-notes:
-  - The call for papers has not been published yet.
+importantDateUrl: "https://lics.siglog.org/lics27/cfp.php"
+importantDates:
+  abstract: 2027-01-14
+  paper: 2027-01-21
+  rebuttal: 2027-03-28
+  notification: 2027-04-15

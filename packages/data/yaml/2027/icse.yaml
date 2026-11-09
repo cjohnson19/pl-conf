@@ -4,8 +4,8 @@ type: "conference"
 tags:
   - software-engineering
 date:
-  start: 2027-04-25
-  end: 2027-05-01
+  start: 2027-04-28
+  end: 2027-04-30
 location: Dublin, Ireland
 url: "https://conf.researchr.org/home/icse-2027"
 submissionUrl: "https://icse2027.hotcrp.com/"
